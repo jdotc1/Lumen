@@ -1,0 +1,2 @@
+{ "id": "test.dtcg-v1", "name": "V1 spelling", "inherits": "lumen.standard",
+  "light": { "accent": "#0676d9" }, "summary": "Preserve source spelling" }

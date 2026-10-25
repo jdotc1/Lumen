@@ -1,0 +1,56 @@
+{
+  "source_page": "https://developer.apple.com/design/resources/",
+  "source_download": "https://devimages-cdn.apple.com/design/resources/download/iOS-27-Icon-Templates-Photoshop-Illustrator.dmg",
+  "source_member": "iOS 27 - Icon Templates - Illustrator/App Icon Template.ai",
+  "method": "Read the PDF-compatible Illustrator page MediaBox and vector content in optional-content group /MC6, named Grid, using pypdf. No raster tracing.",
+  "canvas": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "grid_lines_x": [
+    128,
+    256,
+    384,
+    512,
+    640,
+    768,
+    896
+  ],
+  "grid_lines_y": [
+    128,
+    256,
+    384,
+    512,
+    640,
+    768,
+    896
+  ],
+  "lumen_selected_glyph_box": [
+    256,
+    256,
+    768,
+    768
+  ],
+  "lumen_selected_extent": 512,
+  "lumen_selected_fraction": 0.5,
+  "interpretation": "Fit the longer glyph dimension to the central-circle bounding square (inner square guides), preserving aspect ratio. This is measured grid geometry, not a universal Apple glyph percentage.",
+  "inner_circle_center": [
+    512,
+    512
+  ],
+  "inner_circle_radius": 256,
+  "inner_circle_evidence": "Grid (/MC6): translation (512,768); cubic path runs from local (0,0) through (256,-256), (0,-512), (-256,-256), back to (0,0).",
+  "optical_offsets": {
+    "lumen.anonymize": [
+      0,
+      -16
+    ],
+    "lumen.anonymize.fill": [
+      0,
+      -16
+    ]
+  },
+  "optical_offset_basis": "Lumen optical adjustment for the heavy-base silhouette; other glyphs retain geometric centering."
+}
