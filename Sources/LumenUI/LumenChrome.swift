@@ -6,7 +6,7 @@ import LumenTokens
 
 /// What a piece of chrome is.
 enum LumenChromeKind {
-    /// A text field or value well: `bg.elevated` with a `border.default` hairline, `border.focus`
+    /// A text field or value well: `bg.elevated` with a `border.default` hairline, `accent.default`
     /// when focused. On a raised ground in dark (a card, sheet or popover) it takes the raised well
     /// (`bg.inset`, drawn there as `bg.insetRaised`), which is lighter than that ground.
     case field
@@ -17,6 +17,11 @@ enum LumenChromeKind {
     case card
 }
 
+/// Text, numeric, search and address fields share the caret accent for their focus outline.
+enum LumenFieldChrome {
+    static let focusToken: LumenToken = .accent
+}
+
 private struct LumenChromeModifier: ViewModifier {
     let kind: LumenChromeKind
     let isFocused: Bool
@@ -25,6 +30,7 @@ private struct LumenChromeModifier: ViewModifier {
     @Environment(\.lumenMetrics) private var metrics
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.lumenSettingsWindow) private var settingsWindow
 
     func body(content: Content) -> some View {
         let radius = kind == .card ? metrics.radius.lg : metrics.radius.sm
@@ -33,11 +39,13 @@ private struct LumenChromeModifier: ViewModifier {
         // On a raised ground in dark (a sheet, a card) that step would be no step at all: they take
         // the raised well instead, which is lighter than the ground.
         let fill: LumenToken = palette.key.raised && colorScheme == .dark && kind != .card ? .bgInset : .bgElevated
+        // Settings text and numeric wells use the same native text ground, independent of a
+        // raised group behind them. Keep the ordinary themed field treatment in other windows.
         content
-            .background(palette[fill], in: shape)
+            .background(kind == .field && settingsWindow ? Color(nsColor: .textBackgroundColor) : palette[fill], in: shape)
             .lumenRaisedGround()
             .overlay {
-                shape.strokeBorder(palette[isFocused ? .borderFocus : (kind == .card ? .borderSubtle : .borderDefault)],
+                shape.strokeBorder(palette[isFocused ? (kind == .field ? LumenFieldChrome.focusToken : .borderFocus) : (kind == .card ? .borderSubtle : .borderDefault)],
                                    lineWidth: isFocused ? metrics.stroke.regular : metrics.stroke.hairline)
             }
             // A disabled field or pop-up fades as every Lumen control does (a card holds controls
@@ -56,7 +64,7 @@ extension LumenResolvedPalette {
 }
 
 extension View {
-    /// Lumen's chrome for a kind of control. Fields show focus in `border.focus`.
+    /// Lumen's chrome for a kind of control. Fields show focus in the control accent.
     func lumenChrome(_ kind: LumenChromeKind, focused: Bool = false) -> some View {
         modifier(LumenChromeModifier(kind: kind, isFocused: focused))
     }

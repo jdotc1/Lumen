@@ -99,6 +99,53 @@ final class LumenSettingsChromeMatrixTests: XCTestCase {
         }
     }
 
+    func testSidebarPainterDiagnostic() throws {
+        let store = LumenSnapshot.store(for: .init(themeID: LumenThemes.standardID, colorScheme: .dark), registry: .core)
+        for composition in ["app-built", "scaffold", "control"] {
+            let policy = Policy()
+            policy.settings = true
+            let content = composition == "scaffold" ? kinds.first { $0.settings }!.make() : AnyView(AppBuiltRoot())
+            let root = composition == "control" ? content : AnyView(Root(content: content, policy: policy, store: store))
+            let host = NSHostingView(rootView: root)
+            host.sizingOptions = []
+            host.sceneBridgingOptions = [.title, .toolbars]
+            let window = LumenHeadlessHost.window(contentRect: .init(x: 0, y: 0, width: 980, height: 720),
+                styleMask: [.titled, .closable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.appearance = NSAppearance(named: .darkAqua)
+            window.titlebarAppearsTransparent = composition == "control"
+            window.toolbarStyle = composition == "control" ? .unified : .preference
+            window.contentView = host
+            window.setContentSize(.init(width: 980, height: 720))
+            LumenHeadlessHost.order(window)
+            settle(window)
+            let sidebar = try XCTUnwrap(descendants(host).compactMap { $0 as? NSSplitView }.first?.arrangedSubviews.first)
+            let frame = window.convertToScreen(sidebar.convert(sidebar.bounds, to: nil))
+            let label = "settings/\(composition)/drawn/1.0"
+            print("PAINTER_DIAGNOSTIC_BEGIN \(label) titlebarAppearsTransparent=\(window.titlebarAppearsTransparent) toolbarStyle=\(window.toolbarStyle.rawValue)")
+            let theme = try XCTUnwrap(host.superview)
+            let point = theme.convert(window.convertPoint(fromScreen: .init(x: frame.maxX - 4, y: window.frame.maxY - 12)), from: nil)
+            func layers(_ layer: CALayer, point: CGPoint, depth: Int) {
+                guard !layer.isHidden, layer.opacity > 0, layer.bounds.contains(point) else { return }
+                print("PAINTER_LAYER \(depth) \(type(of: layer)) backgroundColor=\(String(describing: layer.backgroundColor)) isOpaque=\(layer.isOpaque)")
+                for child in (layer.sublayers ?? []).reversed() { layers(child, point: child.convert(point, from: layer), depth: depth + 1) }
+            }
+            func views(_ view: NSView, depth: Int) {
+                let local = view.convert(point, from: theme)
+                guard !view.isHiddenOrHasHiddenAncestor, view.alphaValue > 0 else { return }
+                if view.bounds.contains(local) {
+                    print("PAINTER_VIEW \(depth) \(type(of: view)) backgroundColor=\(String(describing: view.layer?.backgroundColor)) isOpaque=\(view.isOpaque)")
+                    if let layer = view.layer { layers(layer, point: local, depth: depth) }
+                }
+                for child in view.subviews.reversed() { views(child, depth: depth + 1) }
+            }
+            views(theme, depth: 0)
+            try assertStructuralSidebarBand(window: window, sidebar: frame, label: label)
+            print("PAINTER_DIAGNOSTIC_END \(label)")
+            window.close()
+        }
+    }
+
     func testGeneratedWindowKindChromeCompositionAndScaleMatrix() throws {
         XCTAssertEqual(ProcessInfo.processInfo.environment["LUMEN_SETTINGS_MATRIX_NATIVE_PROBES"], "1",
                        "The matrix requires native first-content probes")
@@ -117,6 +164,9 @@ final class LumenSettingsChromeMatrixTests: XCTestCase {
         var cases = 0
         var hosts = 0
         let selected = ProcessInfo.processInfo.environment["LUMEN_SETTINGS_MATRIX_CASES"].map {
+            Set($0.split(separator: ",").map(String.init))
+        }
+        let selectedCells = ProcessInfo.processInfo.environment["LUMEN_SETTINGS_MATRIX_CELLS"].map {
             Set($0.split(separator: ",").map(String.init))
         }
         for kind in kinds {
@@ -152,6 +202,8 @@ final class LumenSettingsChromeMatrixTests: XCTestCase {
                 policy.increment?()
                 for chrome in [LumenChromeStyle.drawn, .glass] {
                     for scale in [1.0, 1.3] {
+                        let cell = "\(composition)/\(chrome)/\(scale)"
+                        if let selectedCells, !selectedCells.contains(cell) { continue }
                         policy.chrome = chrome
                         policy.scale = scale
                         settle(window)
@@ -184,17 +236,13 @@ final class LumenSettingsChromeMatrixTests: XCTestCase {
                                 let overlapWidth = min(effectFrame.maxX, frame.maxX) - max(effectFrame.minX, frame.minX)
                                 return overlapWidth >= frame.width * 0.8 ? effectFrame.maxY : nil
                             }
+                            try assertStructuralSidebarBand(window: window, sidebar: frame, label: label)
                             let sidebarTop = max(frame.maxY, materialTops.max() ?? frame.maxY)
                             let assertFullHeight = {
                                 XCTAssertGreaterThanOrEqual(sidebarTop, window.frame.maxY - 1,
                                     "\(label): sidebar content top=\(frame.maxY), material tops=\(materialTops), window top=\(window.frame.maxY), band=\(band)")
                             }
-                            if scaffold && ["library", "utility", "sampleWorkspace"].contains(kind.name) {
-                                XCTExpectFailure("Scaffold sidebars currently start below the toolbar band",
-                                                 strict: true, failingBlock: assertFullHeight)
-                            } else {
-                                assertFullHeight()
-                            }
+                            assertFullHeight()
                         } else if !scaffold || kind.sidebar {
                             XCTFail("\(label): expected native sidebar is absent")
                         }
@@ -224,8 +272,26 @@ final class LumenSettingsChromeMatrixTests: XCTestCase {
                 }
             }
         }
+        if (selected == nil && selectedCells == nil) || ProcessInfo.processInfo.environment["LUMEN_SETTINGS_MATRIX_CONTROL"] == "1" {
+            let host = NSHostingView(rootView: AppBuiltRoot().preferredColorScheme(.dark))
+            host.sizingOptions = []
+            host.sceneBridgingOptions = [.title, .toolbars]
+            let window = LumenHeadlessHost.window(contentRect: .init(x: 0, y: 0, width: 980, height: 720),
+                styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.titlebarAppearsTransparent = true
+            window.toolbarStyle = .unified
+            window.contentView = host
+            LumenHeadlessHost.order(window)
+            settle(window)
+            let sidebar = try XCTUnwrap(descendants(host).compactMap { $0 as? NSSplitView }.first?.arrangedSubviews.first)
+            try assertStructuralSidebarBand(window: window,
+                sidebar: window.convertToScreen(sidebar.convert(sidebar.bounds, to: nil)), label: "native/control")
+            window.close()
+            print("CHROME_MATRIX native/control checked; total including control=\(cases + 1)")
+        }
         XCTAssertGreaterThan(hosts, 0, "No matrix hosts matched \(selected?.sorted() ?? [])")
-        XCTAssertEqual(cases, hosts * 2 * 2)
+        XCTAssertEqual(cases, selectedCells?.count ?? hosts * 2 * 2)
         print("CHROME_MATRIX cases=\(cases); About uses the native standard panel with no Lumen root; sheets cover the production sheet root, not modal presentation")
     }
 
@@ -253,7 +319,12 @@ final class LumenSettingsChromeMatrixTests: XCTestCase {
         settle(window)
         window.toolbarStyle = .expanded
         settle(window)
-        XCTAssertEqual(window.toolbarStyle, .expanded, "opt-out actual style=\(window.toolbarStyle.rawValue)")
+        XCTAssertEqual(window.toolbarStyle, .unified, "native sidebar overrides expanded opt-out; actual style=\(window.toolbarStyle.rawValue)")
+        window.titlebarAppearsTransparent = false
+        window.styleMask.remove(.fullSizeContentView)
+        settle(window)
+        XCTAssertTrue(window.titlebarAppearsTransparent, "native sidebar lost transparency after scene update")
+        XCTAssertTrue(window.styleMask.contains(.fullSizeContentView), "native sidebar lost full-size content after scene update")
         policy.preserveExpanded = false
         settle(window)
         XCTAssertEqual(window.toolbarStyle, .unified, "normalization actual style=\(window.toolbarStyle.rawValue)")
@@ -354,6 +425,76 @@ final class LumenSettingsChromeMatrixTests: XCTestCase {
                     "\(label): sidebar first row/search \(first.name) minY=\(window.frame.maxY - first.frame.maxY), bandBottom=\(bandBottom)")
             }
         }
+    }
+
+    private func assertStructuralSidebarBand(window: NSWindow, sidebar: CGRect, label: String) throws {
+        let root = try XCTUnwrap(window.contentView?.superview)
+        let height = max(1, window.frame.height - window.contentLayoutRect.height - 2)
+        let screen = CGRect(x: sidebar.maxX - 6, y: window.frame.maxY - height - 1, width: 4, height: height)
+        let band = root.convert(window.convertFromScreen(screen), from: nil)
+        XCTAssertTrue(window.titlebarAppearsTransparent || !window.styleMask.contains(.titled),
+                      "\(label): opaque titlebar over sidebar band")
+        let sidebarColumns = descendants(root).compactMap { $0 as? NSSplitView }
+            .compactMap { $0.arrangedSubviews.first }
+            .filter { root.convert($0.bounds, from: $0).intersects(band) }
+        let toolbarControls = (window.toolbar?.items ?? []).flatMap { item in
+            ([item] + ((item as? NSToolbarItemGroup)?.subitems ?? [])).compactMap(\.view)
+        }
+        var blockers: [String] = []
+        var foundMaterial = false
+        func visit(_ view: NSView, clip: CGRect) {
+            guard !foundMaterial, !view.isHiddenOrHasHiddenAncestor, view.alphaValue > 0 else { return }
+            let bounds = root.convert(view.bounds, from: view)
+            let visible = view.clipsToBounds ? clip.intersection(bounds) : clip
+            guard visible.intersects(band) else { return }
+            // Toolbar item glyphs and their control glass are foreground controls, not
+            // the toolbar background. Keep inspecting all paint outside these item hosts.
+            if toolbarControls.contains(where: { view === $0 || view.isDescendant(of: $0) }) { return }
+            // Glass owns an internal compositor subtree. Only its documented contentView
+            // is foreground content; treating the material's own pigment as an overlay
+            // incorrectly rejects the native control as well.
+            if let glass = view as? NSGlassEffectView {
+                if let content = glass.contentView,
+                   toolbarControls.contains(where: { $0 === content || $0.isDescendant(of: content) }) { return }
+                if let content = glass.contentView { visit(content, clip: visible.intersection(bounds)) }
+                if let split = sequence(first: view.superview, next: { $0?.superview }).compactMap({ $0 as? NSSplitView }).first,
+                   let first = split.arrangedSubviews.first, view.isDescendant(of: first), bounds.intersects(band) {
+                    foundMaterial = true
+                }
+                return
+            }
+            for child in view.subviews.reversed() { visit(child, clip: visible) }
+            guard !foundMaterial, bounds.intersects(band) else { return }
+            if let effect = view as? NSVisualEffectView, effect.material == .sidebar {
+                foundMaterial = true
+                return
+            }
+            // The sidebar column owns its SwiftUI host, theme fill and material pigment.
+            // Only painters outside that column can obscure its material from above.
+            if sidebarColumns.contains(where: { view === $0 || view.isDescendant(of: $0) }) {
+                return
+            }
+            if view.isOpaque { blockers.append(String(describing: type(of: view))) }
+            if let layer = view.layer {
+                let childLayers = Set(view.subviews.compactMap { $0.layer }.map(ObjectIdentifier.init))
+                func inspect(_ item: CALayer, clip: CGRect) {
+                    guard !item.isHidden, item.opacity > 0, !childLayers.contains(ObjectIdentifier(item)) else { return }
+                    let local = item.convert(item.bounds, to: layer)
+                    let rect = root.convert(local, from: view)
+                    let visible = item.masksToBounds ? clip.intersection(rect) : clip
+                    guard visible.intersects(band) else { return }
+                    if rect.intersects(band), item.isOpaque || (item.backgroundColor?.alpha ?? 0) >= 0.999 {
+                        blockers.append("\(type(of: item)) in \(type(of: view)) rect=\(rect)")
+                    }
+                    for child in item.sublayers ?? [] { inspect(child, clip: visible) }
+                }
+                inspect(layer, clip: visible)
+            }
+        }
+        visit(root, clip: root.bounds)
+        XCTAssertTrue(foundMaterial, "\(label): no sidebar material in band rect \(band)")
+        XCTAssertTrue(blockers.isEmpty, "\(label): opaque painters above sidebar material: \(blockers)")
+        print("CHROME_STRUCTURAL_BAND \(label) transparent=\(window.titlebarAppearsTransparent) material=\(foundMaterial) blockers=\(blockers)")
     }
 
     private func assertGlow(window: NSWindow, store: LumenThemeStore, label: String) throws {
@@ -486,6 +627,7 @@ final class LumenSettingsSceneIdentityTests: XCTestCase {
         XCTAssertFalse(report.forcesToolbarBand, "Real Settings scene forces toolbar band")
         XCTAssertEqual(window.toolbarStyle, .unified, "Real Settings toolbar style=\(window.toolbarStyle.rawValue)")
         XCTAssertTrue(window.styleMask.contains(.fullSizeContentView), "Real Settings lacks full-height content")
+        XCTAssertTrue(window.titlebarAppearsTransparent, "Real Settings has an opaque titlebar over the sidebar")
         XCTAssertTrue(LumenNativeWindowChrome.isSettingsWindow(window),
                       "Real Settings identity is not recognized: identifier=\(identifier), class=\(NSStringFromClass(type(of: window)))")
         if observation.expectedAttempt {

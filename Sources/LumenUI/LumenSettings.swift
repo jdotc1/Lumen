@@ -477,7 +477,6 @@ public struct LumenSettingsSidebarView: View {
         .lumenScaffoldMargin(metrics.spacing.s6)
         .onPreferenceChange(LumenSettingsNaturalHeightKey.self) { measuredHeights = $0 }
         .onPreferenceChange(LumenSettingsFallbackHeightKey.self) { fallbackHeights = $0 }
-        .background(palette[.panelBackground])
         .tint(palette[.accent])
         .onAppear {
             sidebarFocused = true

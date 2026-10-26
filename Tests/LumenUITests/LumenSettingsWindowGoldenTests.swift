@@ -78,7 +78,8 @@ final class LumenSettingsWindowGoldenTests: XCTestCase {
                                      "The capture must include chrome above the content")
                 // Capture the offscreen frame view. A material difference is a golden failure,
                 // never permission to show the window or replace the expected image.
-                let directory = Self.goldens.deletingLastPathComponent().deletingLastPathComponent()
+                let directory = ProcessInfo.processInfo.environment["LUMEN_CAPTURE_DIR"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+            ?? Self.goldens.deletingLastPathComponent().deletingLastPathComponent()
                     .deletingLastPathComponent().appending(path: ".build/settings-captures")
                 try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
                 let url = directory.appending(path: "golden-\(UUID().uuidString).png")

@@ -247,6 +247,7 @@ private struct LumenUtilitySplit<Sidebar: View, Content: View, Inspector: View>:
                 sidebar
                     .lumenSidebarBackground()
                     .lumenWorkspaceRegion("Sidebar", shown: shown.sidebar, width: sidebarWidth)
+                    .lumenSidebarBand()
             }
             content
                 .lumenWorkspaceRegion("Content", shown: true)

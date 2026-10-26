@@ -21,32 +21,37 @@ extension View {
     /// For an existing background modifier, retain its native painting semantics and
     /// attach only the declaration of that specific pigment at the same extent.
     func lumenFullBleedBackground(_ color: Color, cornerRadius: CGFloat = 0) -> some View {
-        background(LumenFullBleedBackgroundReporter(color: color, cornerRadius: cornerRadius))
+        background {
+            GeometryReader { geometry in
+                LumenFullBleedBackgroundReporter(color: color, cornerRadius: cornerRadius, size: geometry.size)
+                    .frame(width: 0, height: 0)
+            }
+        }
     }
 }
 
 private struct LumenFullBleedBackgroundReporter: NSViewRepresentable {
     let color: Color
     let cornerRadius: CGFloat
+    let size: CGSize
     func makeNSView(context: Context) -> LumenFullBleedBackgroundView {
         LumenFullBleedBackgroundView()
     }
     func updateNSView(_ view: LumenFullBleedBackgroundView, context: Context) {
         view.color = color
         view.cornerRadius = cornerRadius
+        view.reportedSize = size
     }
 }
 
 @MainActor
-final class LumenFullBleedBackgroundView: NSView, LumenOwnedInkSource {
+final class LumenFullBleedBackgroundView: LumenNonpaintingReportView {
     var color = Color.clear
     var cornerRadius: CGFloat = 0
-    var ownedInkRects: [CGRect] { [] }
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
     func declaration(in window: NSWindow) -> LumenFullBleedBackground? {
         guard let rgb = NSColor(color).usingColorSpace(.deviceRGB), rgb.alphaComponent >= 1 else { return nil }
-        return .init(frame: window.convertToScreen(convert(bounds, to: nil)),
+        return .init(frame: reportedFrame(in: window),
                      red: Int((rgb.redComponent * 255).rounded()),
                      green: Int((rgb.greenComponent * 255).rounded()),
                      blue: Int((rgb.blueComponent * 255).rounded()), cornerRadius: cornerRadius)
@@ -92,7 +97,13 @@ struct LumenDeclaredLinearWash: View {
 
     var body: some View {
         LinearGradient(stops: stops, startPoint: startPoint, endPoint: endPoint)
-            .background(LumenLinearWashReporter(stops: stops, startPoint: startPoint, endPoint: endPoint))
+            .background {
+                GeometryReader { geometry in
+                    LumenLinearWashReporter(stops: stops, startPoint: startPoint, endPoint: endPoint,
+                                            size: geometry.size)
+                        .frame(width: 0, height: 0)
+                }
+            }
     }
 }
 
@@ -100,6 +111,7 @@ private struct LumenLinearWashReporter: NSViewRepresentable {
     let stops: [Gradient.Stop]
     let startPoint: UnitPoint
     let endPoint: UnitPoint
+    let size: CGSize
     func makeNSView(context: Context) -> LumenLinearWashView { LumenLinearWashView() }
     func updateNSView(_ view: LumenLinearWashView, context: Context) {
         view.stops = stops.compactMap { stop in
@@ -110,19 +122,18 @@ private struct LumenLinearWashReporter: NSViewRepresentable {
         }
         view.startPoint = startPoint
         view.endPoint = endPoint
+        view.reportedSize = size
     }
 }
 
 @MainActor
-final class LumenLinearWashView: NSView, LumenOwnedInkSource {
+final class LumenLinearWashView: LumenNonpaintingReportView {
     var stops: [LumenFullBleedLinearWash.Stop] = []
     var startPoint = UnitPoint.top
     var endPoint = UnitPoint.bottom
-    var ownedInkRects: [CGRect] { [] }
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
     func declaration(in window: NSWindow) -> LumenFullBleedLinearWash {
-        let frame = window.convertToScreen(convert(bounds, to: nil))
+        let frame = reportedFrame(in: window)
         func point(_ value: UnitPoint) -> CGPoint {
             CGPoint(x: frame.minX + value.x * frame.width, y: frame.maxY - value.y * frame.height)
         }

@@ -211,7 +211,7 @@ Add the package dependency and import `LumenUI` in your window content.
 
 ```swift
 // Package.swift
-.package(url: "https://github.com/jdotc1/LumenUI", from: "0.62.0")
+.package(url: "https://github.com/jdotc1/LumenUI", from: "0.62.1")
 // target
 .product(name: "LumenUI", package: "Lumen")
 ```

@@ -96,7 +96,8 @@ import LumenTokens
             window.displayIfNeeded()
             RunLoop.current.run(until: Date().addingTimeInterval(0.03))
         }
-        let captureDirectory = directory.deletingLastPathComponent().deletingLastPathComponent()
+        let captureDirectory = ProcessInfo.processInfo.environment["LUMEN_CAPTURE_DIR"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+            ?? directory.deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent().appending(path: ".build/feedback-captures")
         try FileManager.default.createDirectory(at: captureDirectory, withIntermediateDirectories: true)
         let captured = captureDirectory.appending(path: "\(name).png")

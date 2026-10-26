@@ -2,6 +2,14 @@
 
 Public releases of the Lumen design system and Catalog.
 
+## 0.62.1 (2026-10-26)
+
+### Fixed
+- Keep native sidebar material full-height behind the titlebar across settings and window scaffolds.
+- Use the accent focus ring across text, number, search and address fields; align Settings control wells and fills.
+- Omit the native text ownership reporter during offscreen rendering while preserving live-window reporting.
+- Refresh workspace goldens for the system icon tile appearance.
+
 ## 0.62.0 (2026-10-26)
 
 - Settings windows match macOS System Settings with one unified toolbar row, a full-height sidebar, and accent selection.

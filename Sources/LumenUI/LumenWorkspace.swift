@@ -36,7 +36,7 @@ struct LumenWindowChromeModifier: ViewModifier {
             : AnyShapeStyle(palette[.toolbarBackground])
         content
             .toolbarBackground(style, for: .windowToolbar)
-            .toolbarBackground(native || hasNativeSidebar ? .automatic : .visible, for: .windowToolbar)
+            .toolbarBackground(native || hasNativeSidebar ? .hidden : .visible, for: .windowToolbar)
             .preference(key: LumenWindowPaintKey.self, value: .init(glow: active, forcedBand: !native && !hasNativeSidebar))
     }
 }

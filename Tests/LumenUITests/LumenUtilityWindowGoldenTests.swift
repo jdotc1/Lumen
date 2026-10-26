@@ -66,7 +66,8 @@ final class LumenUtilityWindowGoldenTests: XCTestCase {
                 XCTAssertNotNil(window.toolbar, "A utility golden includes its native toolbar")
                 let frameView = try XCTUnwrap(host.superview)
                 XCTAssertGreaterThan(frameView.bounds.height, window.contentLayoutRect.height)
-                let captures = directory.deletingLastPathComponent().deletingLastPathComponent()
+                let captures = ProcessInfo.processInfo.environment["LUMEN_CAPTURE_DIR"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+            ?? directory.deletingLastPathComponent().deletingLastPathComponent()
                     .deletingLastPathComponent().appending(path: ".build/utility-captures")
                 try FileManager.default.createDirectory(at: captures, withIntermediateDirectories: true)
                 let captureURL = captures.appending(path: "utility-\(variant.label).png")

@@ -52,7 +52,8 @@ enum LumenFilterConfinedGolden {
     }
     private enum Stop: Error { case mismatch(String), missingCapture, unreadablePNG }
     typealias Pixels = (width: Int, height: Int, bytes: [UInt8])
-    static let diagnosticDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+    static let diagnosticDirectory = ProcessInfo.processInfo.environment["LUMEN_CAPTURE_DIR"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+        ?? URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         .deletingLastPathComponent().deletingLastPathComponent().appending(path: ".build/golden-diagnostics")
 
     static func verify(_ actual: Data, at url: URL) throws {

@@ -6,8 +6,8 @@ public struct LumenSettingsTextRow: View {
     private let description: String?
     private let monospaced: Bool
     @Binding private var text: String
+    @FocusState private var focused: Bool
     @Environment(\.lumenMetrics) private var metrics
-    @Environment(\.lumenPalette) private var palette
 
     public init(_ title: String, text: Binding<String>, description: String? = nil, monospaced: Bool = false) {
         self.title = title
@@ -18,11 +18,14 @@ public struct LumenSettingsTextRow: View {
 
     public var body: some View {
         LumenSettingsRow(title, description: description) {
-            TextField(title, text: $text)
-                .font(monospaced ? metrics.typography.body.monospaced() : metrics.typography.body)
-                .foregroundStyle(palette[.fgPrimary])
-                .textFieldStyle(.roundedBorder)
-                .frame(minWidth: 120, idealWidth: 220, maxWidth: 280)
+            LumenFieldInput(text: $text, prompt: title,
+                            font: monospaced ? metrics.typography.body.monospaced() : metrics.typography.body,
+                            focus: $focused)
+                .padding(.horizontal, metrics.layout.fieldInset)
+                .frame(maxWidth: .infinity, minHeight: metrics.layout.controlHeight, alignment: .leading)
+                .lumenChrome(.field, focused: focused)
+                .lumenTextComposite()
+                .frame(minWidth: 120, idealWidth: 220, maxWidth: 280, alignment: .leading)
         }
     }
 }
@@ -50,6 +53,7 @@ public struct LumenSettingsNumberRow: View {
         LumenSettingsRow(title, description: description) {
             LumenNumberField(value: $value, in: range, step: step, unit: unit,
                              minimumDigits: 7, usesGrouping: true)
+                .frame(minWidth: 120, idealWidth: 220, maxWidth: 280, alignment: .leading)
         }
     }
 }

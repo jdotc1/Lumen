@@ -3,7 +3,7 @@ import SwiftUI
 
 /// The version of the linked LumenUI library, updated by the release script.
 public enum LumenLibrary {
-    public static let version = "0.62.0"
+    public static let version = "0.62.1"
 }
 
 /// Supplies Apple's standard About panel without creating a custom window.

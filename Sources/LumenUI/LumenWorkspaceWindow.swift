@@ -322,6 +322,7 @@ public struct LumenWorkspaceWindow<Leading: View, Center: View, Trailing: View, 
                 sidebar
                     .lumenSidebarBackground()
                     .lumenWorkspaceRegion("Sidebar", shown: panels.leading, width: sidebarWidth)
+                    .lumenSidebarBand()
             }
             VSplitView {
                 content

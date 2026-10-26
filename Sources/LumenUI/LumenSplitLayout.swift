@@ -49,6 +49,7 @@ extension View {
 }
 
 private struct LumenSidebarBackgroundModifier: ViewModifier {
+    @Environment(\.lumenHasNativeSidebar) private var hasNativeSidebar
     @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenMetrics) private var metrics
     func body(content: Content) -> some View {
@@ -56,7 +57,7 @@ private struct LumenSidebarBackgroundModifier: ViewModifier {
         let background = palette[role]
         content
             .scrollContentBackground(.hidden)
-            .background(background)
+            .background(background, ignoresSafeAreaEdges: hasNativeSidebar ? [] : .all)
             .background { Color.clear.lumenFullBleedBackground(background) }
             #if DEBUG
             .background(LumenSidebarPaletteReporter(role: role, color: background))
@@ -296,5 +297,92 @@ public struct LumenWindowDragArea: NSViewRepresentable {
             default: window.performZoom(nil)
             }
         }
+    }
+}
+
+/// Extends a split sidebar's native material into its title-bar strip without adding a
+/// second split controller. The original HSplitView continues to negotiate every column.
+extension View {
+    func lumenSidebarBand() -> some View {
+        background(LumenSidebarBandReporter())
+    }
+}
+
+private struct LumenSidebarBandReporter: NSViewRepresentable {
+    func makeNSView(context: Context) -> LumenSidebarBandAnchor { LumenSidebarBandAnchor() }
+    func updateNSView(_ view: LumenSidebarBandAnchor, context: Context) { view.schedule() }
+    static func dismantleNSView(_ view: LumenSidebarBandAnchor, coordinator: ()) { view.detach() }
+}
+
+/// A measured continuation of the sidebar background, below native title-bar controls.
+/// Content remains below the toolbar and keeps its original sizing and split-view identity.
+@MainActor
+final class LumenSidebarBandAnchor: NSView, LumenOwnedInkSource {
+    private final class Material: NSVisualEffectView {
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+    }
+
+    private let material = Material()
+    private var geometryObservation: NSKeyValueObservation?
+    private var pending = false
+    var ownedInkRects: [CGRect] { [] }
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        material.material = .sidebar
+        material.blendingMode = .behindWindow
+        material.state = .followsWindowActiveState
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        detach()
+        geometryObservation = window?.observe(\.contentLayoutRect, options: [.new]) { [weak self] _, _ in
+            Task { @MainActor [weak self] in self?.schedule() }
+        }
+        schedule()
+    }
+
+    override func layout() { super.layout(); schedule() }
+    override func setFrameOrigin(_ newOrigin: NSPoint) { super.setFrameOrigin(newOrigin); schedule() }
+    override func setFrameSize(_ newSize: NSSize) { super.setFrameSize(newSize); schedule() }
+
+    func detach() {
+        geometryObservation = nil
+        material.removeFromSuperview()
+    }
+
+    func schedule() {
+        guard !pending else { return }
+        pending = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.pending = false
+            self.updateMaterial()
+        }
+    }
+
+    private func updateMaterial() {
+        guard let window, let content = window.contentView, let frame = content.superview,
+              !isHiddenOrHasHiddenAncestor, bounds.width > 1 else {
+            material.removeFromSuperview()
+            return
+        }
+        let sidebar = convert(bounds, to: nil)
+        let band = LumenWindowGeometry(window: window).chromeBand
+        let bandInWindow = window.convertFromScreen(band)
+        let continuation = CGRect(x: sidebar.minX, y: bandInWindow.minY,
+                                  width: sidebar.width, height: bandInWindow.height)
+        guard continuation.height > 0 else {
+            material.removeFromSuperview()
+            return
+        }
+        if material.superview !== frame {
+            frame.addSubview(material, positioned: .above, relativeTo: content)
+        }
+        material.frame = frame.convert(continuation, from: nil)
     }
 }

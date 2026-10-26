@@ -29,7 +29,8 @@ import AppKit
             let native = object as? NSView
             if let native, native.isHiddenOrHasHiddenAncestor || native.alphaValue <= 0 { return }
             let semantic = object as? any NSAccessibilityProtocol
-            let frame = native.map { window.convertToScreen($0.convert($0.bounds, to: nil)) }
+            let frame = (native as? LumenTextCompositeView)?.reportedFrame(in: window)
+                ?? native.map { window.convertToScreen($0.convert($0.bounds, to: nil)) }
                 ?? semantic?.accessibilityFrame()
             if native is LumenTextCompositeView, let frame, !frame.isEmpty {
                 var clip: CGRect?

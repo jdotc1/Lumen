@@ -42,7 +42,11 @@ final class LumenNativeWindowChrome {
     private var originalStyle: NSWindow.ToolbarStyle?
     private var installedStyle: NSWindow.ToolbarStyle?
     private var addedFullSize = false
+    private var originalTitlebarTransparency: Bool?
+    private var hasNativeSidebar = false
     private var observation: NSKeyValueObservation?
+    private var transparencyObservation: NSKeyValueObservation?
+    private var styleMaskObservation: NSKeyValueObservation?
     private var pending = false
     private var normalizing = false
     private var preservedHeight: CGFloat?
@@ -58,6 +62,7 @@ final class LumenNativeWindowChrome {
         detach()
         self.window = window
         originalStyle = window.toolbarStyle
+        originalTitlebarTransparency = window.titlebarAppearsTransparent
         addedFullSize = !window.styleMask.contains(.fullSizeContentView)
         observation = window.observe(\.toolbarStyle, options: [.prior, .new]) { [weak self] window, change in
             MainActor.assumeIsolated {
@@ -69,11 +74,18 @@ final class LumenNativeWindowChrome {
                 } else { self.schedule() }
             }
         }
+        transparencyObservation = window.observe(\.titlebarAppearsTransparent, options: [.new]) { [weak self] _, _ in
+            MainActor.assumeIsolated { self?.schedule() }
+        }
+        styleMaskObservation = window.observe(\.styleMask, options: [.new]) { [weak self] _, _ in
+            MainActor.assumeIsolated { self?.schedule() }
+        }
         schedule()
     }
 
-    func update(preservesExpanded: Bool) {
+    func update(preservesExpanded: Bool, hasNativeSidebar: Bool) {
         self.preservesExpanded = preservesExpanded
+        self.hasNativeSidebar = hasNativeSidebar
         schedule()
     }
 
@@ -92,7 +104,13 @@ final class LumenNativeWindowChrome {
         if !window.styleMask.contains(.fullSizeContentView) {
             window.styleMask.insert(.fullSizeContentView)
         }
-        if preservesExpanded {
+        let transparent = hasNativeSidebar || (originalTitlebarTransparency ?? false)
+        if window.titlebarAppearsTransparent != transparent {
+            window.titlebarAppearsTransparent = transparent
+        }
+        // Native sidebar material must own the band even in Settings scenes and
+        // when an application requests an expanded toolbar for other window kinds.
+        if preservesExpanded && !hasNativeSidebar {
             if let installedStyle, window.toolbarStyle == installedStyle, let originalStyle {
                 changeStyle(originalStyle, in: window)
                 self.installedStyle = nil
@@ -123,14 +141,19 @@ final class LumenNativeWindowChrome {
 
     func detach() {
         observation = nil
+        transparencyObservation = nil
+        styleMaskObservation = nil
         if let window {
             if let installedStyle, let originalStyle, window.toolbarStyle == installedStyle {
                 changeStyle(originalStyle, in: window)
             }
             if addedFullSize { window.styleMask.remove(.fullSizeContentView) }
+            if let originalTitlebarTransparency { window.titlebarAppearsTransparent = originalTitlebarTransparency }
         }
         window = nil
         originalStyle = nil
+        originalTitlebarTransparency = nil
+        hasNativeSidebar = false
         installedStyle = nil
         preservedHeight = nil
         addedFullSize = false

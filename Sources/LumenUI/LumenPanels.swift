@@ -144,7 +144,7 @@ public struct LumenFilterField: View {
         .padding(.horizontal, metrics.spacing.s3)
         .frame(height: metrics.layout.controlHeight)
         .background(palette[.fieldBackground], in: .capsule)
-        .overlay { Capsule(style: .circular).strokeBorder(palette[.borderFocus].opacity(isFocused ? 0.8 : 0), lineWidth: metrics.stroke.regular) }
+        .overlay { Capsule(style: .circular).strokeBorder(palette[LumenFieldChrome.focusToken].opacity(isFocused ? 0.8 : 0), lineWidth: metrics.stroke.regular) }
         .lumenTextComposite()
         // AppKit gives a new window's first text field the focus. Hand it back unless asked to keep
         // it: on the first focus change (that initial grant), not after a guessed delay.

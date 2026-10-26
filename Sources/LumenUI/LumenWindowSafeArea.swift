@@ -213,6 +213,7 @@ struct LumenWindowSafeArea: ViewModifier {
     @State private var detectedSettings = false
     @State private var settingsScaffold = false
     @State private var nativeSplitOwnsTop = false
+    @State private var hasNativeSidebar = false
     @State private var chromePaint = LumenWindowPaint()
     @State private var framedTileSymbols: Set<String> = []
     private var isSettings: Bool { explicitSettings || detectedSettings || settingsScaffold }
@@ -264,7 +265,7 @@ struct LumenWindowSafeArea: ViewModifier {
         }
         .environment(\.lumenWindowRootScope, scope)
         .environment(\.lumenIsSettingsWindow, isSettings)
-        .environment(\.lumenHasNativeSidebar, nativeSplitOwnsTop)
+        .environment(\.lumenHasNativeSidebar, hasNativeSidebar)
         .environment(\.lumenScaffoldContentMargin, ancestorMargin ?? metrics.spacing.s6)
         .environment(\.lumenReportsLayoutChecks, watches)
         .background {
@@ -276,7 +277,7 @@ struct LumenWindowSafeArea: ViewModifier {
                                           settings: isSettings, settingsScaffold: settingsScaffold,
                                           preservesExpanded: preservesExpanded, paint: chromePaint, framedTileSymbols: framedTileSymbols,
                                           detectedSettings: { detectedSettings = $0 },
-                                          detectedRootSplit: { nativeSplitOwnsTop = $0 },
+                                          detectedRootSplit: { nativeSplitOwnsTop = $0; hasNativeSidebar = $1 },
                                           margin: metrics.spacing.s6, scaffoldMargins: scaffoldMargins,
                                           truncated: truncated, visibleTexts: visibleTexts,
                                           bottomBars: bottomBars + wizard.filter { $0.region == .bottomBar }.map(\.frame)
@@ -319,7 +320,7 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
     let paint: LumenWindowPaint
     let framedTileSymbols: Set<String>
     let detectedSettings: @MainActor (Bool) -> Void
-    let detectedRootSplit: @MainActor (Bool) -> Void
+    let detectedRootSplit: @MainActor (Bool, Bool) -> Void
     let margin: CGFloat?
     let scaffoldMargins: [LumenScaffoldMargin]
     let truncated: Set<String>
@@ -342,6 +343,7 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
         private let chrome = LumenNativeWindowChrome()
         private var lastDetectedSettings: Bool?
         private var lastRootSplit: Bool?
+        private var lastNativeSidebar: Bool?
         private var pending = false
         private var lastTop: CGFloat?
         private var lastEligible: Bool?
@@ -377,6 +379,7 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             chrome.detach()
             lastDetectedSettings = nil
             lastRootSplit = nil
+            lastNativeSidebar = nil
             if let ownedWindow, let installedMinimum, ownedWindow.contentMinSize == installedMinimum,
                let originalMinimum { ownedWindow.contentMinSize = originalMinimum }
             installedMinimum = nil
@@ -405,7 +408,7 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             let nested = input.ancestorScope?.window === window
             if !nested {
                 chrome.attach(window: window)
-                chrome.update(preservesExpanded: input.preservesExpanded)
+                chrome.update(preservesExpanded: input.preservesExpanded, hasNativeSidebar: lastNativeSidebar == true)
                 let detected = LumenNativeWindowChrome.isSettingsWindow(window)
                 if detected != lastDetectedSettings {
                     lastDetectedSettings = detected
@@ -427,6 +430,13 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             // our inset moves both extents together, so ownership does not feed back into
             // itself. A header stacked above a split makes its top lower and cannot qualify.
             let appFrame = screen(input.contentFrame)
+            func containsSidebarMaterial(_ view: NSView) -> Bool {
+                if view is LumenSidebarBandAnchor, !view.isHiddenOrHasHiddenAncestor, view.bounds.width > 1 { return true }
+                if let effect = view as? NSVisualEffectView, effect.material == .sidebar,
+                   !effect.isHiddenOrHasHiddenAncestor { return true }
+                return view.subviews.contains(where: containsSidebarMaterial)
+            }
+            var nativeSidebar = false
             func rootSplit(in view: NSView) -> Bool {
                 if let split = view as? NSSplitView, split.isVertical, !split.isHiddenOrHasHiddenAncestor {
                     let rect = window.convertToScreen(split.convert(split.bounds, to: nil))
@@ -434,17 +444,23 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
                     if appFrame.width > 0, appFrame.height > 0,
                        abs(rect.minX - appFrame.minX) < 1,
                        abs(rect.maxX - appFrame.maxX) < 1,
-                       abs(rect.minY - appFrame.minY) < 1,
+                       rect.minY >= appFrame.minY - 1,
                        rect.maxY >= expectedTop - 1 {
+                        nativeSidebar = (split.delegate as? NSSplitViewController)?.splitViewItems
+                            .contains(where: { $0.behavior == .sidebar }) == true || containsSidebarMaterial(split)
                         return true
                     }
                 }
                 return view.subviews.contains(where: rootSplit)
             }
             let splitOwnsTop = !nested && window.contentView.map(rootSplit) == true
-            if splitOwnsTop != lastRootSplit {
+            if !nested {
+                chrome.update(preservesExpanded: input.preservesExpanded, hasNativeSidebar: nativeSidebar)
+            }
+            if splitOwnsTop != lastRootSplit || nativeSidebar != lastNativeSidebar {
                 lastRootSplit = splitOwnsTop
-                input.detectedRootSplit(splitOwnsTop)
+                lastNativeSidebar = nativeSidebar
+                input.detectedRootSplit(splitOwnsTop, nativeSidebar)
             }
             if lastTop != top || lastEligible != active || lastNested != nested || lastViewport != geometry.contentBounds.size || lastVisible != window.isVisible {
                 lastTop = top

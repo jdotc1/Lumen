@@ -200,6 +200,7 @@ private struct LumenLibrarySplit<SourceList: View, Content: View, Detail: View>:
                 sourceList
                     .lumenSidebarBackground()
                     .lumenWorkspaceRegion("Source list", shown: shown.sourceList, width: sourceListWidth)
+                    .lumenSidebarBand()
             }
             content
                 .lumenWorkspaceRegion("Content", shown: true)
