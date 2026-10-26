@@ -109,7 +109,6 @@ public struct LumenSettingsRow<Control: View>: View {
     @Environment(\.lumenMetrics) private var metrics
     @Environment(\.lumenSettingsPaneOwnsMeasure) private var paneOwnsMeasure
     @Environment(\.lumenSettingsQuery) private var query
-    @Environment(\.lumenSettingsWidthClass) private var widthClass
     @Environment(\.lumenDensity) private var density
 
     public init(_ title: String, description: String? = nil, @ViewBuilder control: () -> Control) {
@@ -127,28 +126,9 @@ public struct LumenSettingsRow<Control: View>: View {
     }
 
     public var body: some View {
-        Group {
-            if paneOwnsMeasure {
-                let layout = widthClass == .compact
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: metrics.spacing.s3))
-                    : AnyLayout(HStackLayout(alignment: .center, spacing: metrics.spacing.s4))
-                layout {
-                    text.frame(maxWidth: .infinity, alignment: .leading)
-                    control.labelsHidden().fixedSize(horizontal: widthClass != .compact, vertical: true)
-                }
-            } else {
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: metrics.spacing.s4) {
-                        text
-                        Spacer(minLength: metrics.spacing.s3)
-                        control.labelsHidden().fixedSize()
-                    }
-                    VStack(alignment: .leading, spacing: metrics.spacing.s3) {
-                        text
-                        control.labelsHidden()
-                    }
-                }
-            }
+        LumenSettingsRowLayout(spacing: metrics.spacing.s4) {
+            text
+            control.labelsHidden()
         }
         // A pane supplies the shared proposal for settings rows, public form rows and prose.
         // Keep the standalone row's compact measure without introducing a second edge in a pane.
@@ -176,7 +156,7 @@ public struct LumenSettingsRow<Control: View>: View {
                 // Inside the match band the letters are marked by emphasis, not a second accent tint
                 // (the marker's own tint vanished into the band).
                 LumenHighlightedText(title, matching: matchesSearch ? query.trimmingCharacters(in: .whitespaces) : "", style: .emphasis)
-                    .font(metrics.typography.body.weight(.medium)).foregroundStyle(palette[.fgPrimary])
+                    .font(metrics.typography.body).foregroundStyle(palette[.fgPrimary])
                 if let badge {
                     LumenSymbol(badge.systemImage).font(.system(size: metrics.iconSize.small, weight: .semibold)).foregroundStyle(palette[.accent])
                         .help(badge.help)
@@ -313,6 +293,7 @@ public struct LumenSettingsSidebarView: View {
     private var externalSelection: Binding<String?>?
     @State private var selection: String?
     @State private var query = ""
+    @FocusState private var sidebarFocused: Bool
     @State private var history = LumenSettingsHistory()
     @State private var visibility: NavigationSplitViewVisibility = .all
     @State private var measuredHeights: [String: CGFloat] = [:]
@@ -388,30 +369,36 @@ public struct LumenSettingsSidebarView: View {
             List(shown, selection: categorySelection) { category in
                 Label {
                     VStack(alignment: .leading, spacing: metrics.spacing.s1) {
-                        LumenSidebarTitle(category.title, font: metrics.typography.body, isSelected: selection == category.id)
+                        Text(category.title).font(metrics.typography.body).fontWeight(.regular)
                         let found = category.matchingSettings(query)
                         if !found.isEmpty {
                             Text(found.joined(separator: " · ")).font(metrics.typography.caption)
-                                .foregroundStyle(palette[.sidebarSecondaryForeground]).lineLimit(2)
+                                .foregroundStyle(palette[selection == category.id && activeState == .key
+                                    ? .accentFilledForeground : .sidebarSecondaryForeground]).lineLimit(2)
                                 .help(found.joined(separator: " · "))
                         }
                     }
                 } icon: {
                     LumenIconTile(category.systemImage, hue: category.hue, size: metrics.layout.tileRow)
                 }
-                .foregroundStyle(palette[.sidebarForeground])
+                .foregroundStyle(palette[selection == category.id && activeState == .key
+                    ? .accentFilledForeground : .sidebarForeground])
+                .frame(minHeight: metrics.layout.settingsRowHeight)
+                .listRowInsets(EdgeInsets(top: 0, leading: metrics.spacing.s5,
+                                          bottom: 0, trailing: metrics.spacing.s5))
                 .listRowBackground(
                     RoundedRectangle(cornerRadius: metrics.radius.sm, style: .continuous)
                         .fill(selection == category.id
-                              ? palette[activeState == .inactive ? .sidebarRowSelectedInactive : .sidebarRowSelected]
+                              ? palette[activeState == .key ? .accentFilled : .settingsRowSelectedInactive]
                               : .clear)
-                        .padding(.horizontal, metrics.spacing.s4)
-                        .padding(.vertical, metrics.spacing.s1)
+                        .padding(.horizontal, (metrics.spacing.s4 + metrics.spacing.s5) / 2)
                 )
                 .tag(category.id)
             }
             .listStyle(.sidebar)
-            .lumenSidebarBackground()
+            .focused($sidebarFocused)
+            .environment(\.defaultMinListRowHeight, metrics.layout.settingsRowHeight)
+            .scrollContentBackground(.automatic)
             .searchable(text: $query, placement: .sidebar, prompt: "Search Settings")
             .onChange(of: query) { _, text in
                 let matching = categories.filter { $0.matches(text) }
@@ -455,6 +442,7 @@ public struct LumenSettingsSidebarView: View {
             .navigationSplitViewColumnWidth(min: Self.detailMinWidth, ideal: Self.detailMinWidth + 120)
         }
         .navigationSplitViewStyle(.balanced)
+        .defaultFocus($sidebarFocused, true, priority: .userInitiated)
         .toolbar {
             ToolbarItem(id: "lumen.settings.history", placement: .navigation) {
                 HStack(spacing: 0) {
@@ -476,6 +464,8 @@ public struct LumenSettingsSidebarView: View {
             }
             .lumenToolbarPlatter(chrome)
         }
+        .environment(\.lumenSettingsWindow, true)
+        .preference(key: LumenSettingsRootKey.self, value: true)
         .lumenWindowChrome()
         .background(LumenSettingsNativeChrome(heights: sizingHeights, categoryIDs: categories.map(\.id),
                                                preferred: preferredSize, sizesWindow: sizesWindow))
@@ -489,8 +479,14 @@ public struct LumenSettingsSidebarView: View {
         .onPreferenceChange(LumenSettingsFallbackHeightKey.self) { fallbackHeights = $0 }
         .background(palette[.panelBackground])
         .tint(palette[.accent])
-        .onAppear { synchronizeSelection() }
-        .onChange(of: selection) { _, _ in synchronizeSelection() }
+        .onAppear {
+            sidebarFocused = true
+            synchronizeSelection()
+        }
+        .onChange(of: selection) { _, _ in
+            sidebarFocused = true
+            synchronizeSelection()
+        }
         .onChange(of: externalSelection?.wrappedValue) { _, next in
             guard externalSelection != nil, next != selection else { return }
             let valid = Self.validSelection(next, in: categories)
@@ -535,16 +531,16 @@ public extension Scene {
     /// because Settings does not inherit the main window's view environment.
     func lumenSettingsScene() -> some Scene {
         windowStyle(.titleBar)
-            .windowToolbarStyle(.unifiedCompact(showsTitle: true))
+            .environment(\.lumenSettingsWindow, true)
+            .windowToolbarStyle(.unified)
             .defaultSize(width: LumenSettingsSidebarView.windowIdealWidth,
                          height: LumenSettingsSizing.minimumHeight)
             .windowResizability(.contentMinSize)
     }
 }
 
-/// Settings scenes can force AppKit's preference toolbar after Scene modifiers have been
-/// applied. Own the documented native style at the root's window lifetime as well. This bridge
-/// never removes toolbar items, positions titlebar frames, or touches another window.
+/// Owns the settings content size and sidebar selection appearance. Native toolbar style
+/// belongs to the shared palette-root bridge, including for app-built Settings roots.
 private struct LumenSettingsNativeChrome: NSViewRepresentable {
     let heights: [String: CGFloat]
     let categoryIDs: [String]
@@ -561,10 +557,7 @@ private struct LumenSettingsNativeChrome: NSViewRepresentable {
         // This bridge configures native chrome and sizing; its transparent frame paints no ink.
         var ownedInkRects: [CGRect] { [] }
         private weak var ownedWindow: NSWindow?
-        private var originalStyle: NSWindow.ToolbarStyle?
-        private var observation: NSKeyValueObservation?
         private var scheduled = false
-        private var contentHeightBeforeStyleChange: CGFloat?
         private weak var sidebarTable: NSTableView?
         private var originalSelectionStyle: NSTableView.SelectionHighlightStyle?
         private var heights: [String: CGFloat] = [:]
@@ -620,19 +613,6 @@ private struct LumenSettingsNativeChrome: NSViewRepresentable {
             detach()
             guard let window else { return }
             ownedWindow = window
-            originalStyle = window.toolbarStyle
-            observation = window.observe(\.toolbarStyle, options: [.prior]) { [weak self] window, change in
-                MainActor.assumeIsolated {
-                    if change.isPrior {
-                        // Capture before AppKit enforces the taller preference-style minimum.
-                        if window.toolbarStyle == .unifiedCompact {
-                            self?.contentHeightBeforeStyleChange = window.contentLayoutRect.height
-                        }
-                    } else {
-                        self?.scheduleConfiguration()
-                    }
-                }
-            }
             scheduleConfiguration()
         }
 
@@ -645,17 +625,6 @@ private struct LumenSettingsNativeChrome: NSViewRepresentable {
                 guard let window = self.ownedWindow, window === self.window else { return }
                 self.configureSidebar(in: window.contentView)
                 self.scheduleInitialSize()
-                guard window.toolbarStyle != .unifiedCompact else { return }
-                let contentHeight = self.contentHeightBeforeStyleChange ?? window.contentLayoutRect.height
-                self.contentHeightBeforeStyleChange = nil
-                window.toolbarStyle = .unifiedCompact
-                // AppKit keeps or expands the outer frame when changing toolbar style. Keep
-                // the visible content height and top edge, including after later scene updates.
-                let excess = window.contentLayoutRect.height - contentHeight
-                var frame = window.frame
-                frame.origin.y += excess
-                frame.size.height -= excess
-                window.setFrame(frame, display: false)
             }
         }
 
@@ -671,6 +640,10 @@ private struct LumenSettingsNativeChrome: NSViewRepresentable {
                 restoreSelectionStyle()
                 sidebarTable = table
                 originalSelectionStyle = table.selectionHighlightStyle
+                // The native table attaches after SwiftUI evaluates default focus. Establish the
+                // same initial target once, after the detail fields have joined the window.
+                ownedWindow?.initialFirstResponder = table
+                ownedWindow?.makeFirstResponder(table)
             }
             // Keep native selection, keyboard navigation and table semantics. Only the fill
             // comes from the row's palette role instead of AppKit's grey selection material.
@@ -702,14 +675,8 @@ private struct LumenSettingsNativeChrome: NSViewRepresentable {
             pendingSize?.cancel()
             pendingSize = nil
             sizedWindow = false
-            observation = nil
             restoreSelectionStyle(removingFromHierarchy: removingFromHierarchy || window !== ownedWindow)
-            if let window = ownedWindow, let originalStyle, window.toolbarStyle == .unifiedCompact {
-                window.toolbarStyle = originalStyle
-            }
             ownedWindow = nil
-            originalStyle = nil
-            contentHeightBeforeStyleChange = nil
         }
     }
 }

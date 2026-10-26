@@ -450,7 +450,7 @@ struct CatalogView: View {
         .toolbar {
             // Each item takes the chrome style's platter rule: bare in `.drawn`, the system's under `.glass`.
             ToolbarItem(placement: .navigation) {
-                LumenToolbarIdentity("Lumen Catalog", subtitle: "~/Developer/Lumen", systemImage: "lumen.lens", hue: .hueViolet)
+                LumenToolbarIdentity("Lumen Catalog", subtitle: "~/Projects/Lumen", systemImage: "lumen.lens", hue: .hueViolet)
             }
             .lumenToolbarPlatter(chromeStyle)
             // Nothing while idle, as the unified bar's status (§9 item 4): no "Ready" pill.
@@ -680,6 +680,7 @@ struct PageHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title).font(.title2.weight(.semibold))
+                .catalogFirstContent("detail-first-header")
             Text(summary).foregroundStyle(.lumen(.fgSecondary))
         }
         .padding(.bottom, 12)
@@ -868,8 +869,8 @@ struct CatalogWelcome: View {
                 LumenWelcomeAction("Clone Repository…", systemImage: "arrow.down", hue: .hueTeal) {},
             ],
             recents: [
-                LumenRecentItem(title: "Lumen", detail: "~/Developer/Lumen", date: .now.addingTimeInterval(-600), systemImage: "lumen.lens", hue: .hueViolet),
-                LumenRecentItem(title: "Sample Project", detail: "~/Developer/Sample", date: .now.addingTimeInterval(-86_400), systemImage: "scope", hue: .hueIndigo),
+                LumenRecentItem(title: "Lumen", detail: "~/Projects/Lumen", date: .now.addingTimeInterval(-600), systemImage: "lumen.lens", hue: .hueViolet),
+                LumenRecentItem(title: "Sample Project", detail: "~/Projects/Sample", date: .now.addingTimeInterval(-86_400), systemImage: "scope", hue: .hueIndigo),
                 LumenRecentItem(title: "Field Notes", detail: "~/Documents/Field Notes", date: .now.addingTimeInterval(-3 * 86_400), systemImage: "book.closed.fill", hue: .hueOrange),
                 LumenRecentItem(title: "Scans", detail: "~/Documents/Scans", date: .now.addingTimeInterval(-9 * 86_400), systemImage: "doc.viewfinder.fill", hue: .hueTeal),
             ],
@@ -1223,6 +1224,8 @@ struct CatalogSettings: View {
                               keywords: ["alerts"]) { NotificationSettings() },
         LumenSettingsCategory(id: "automation", title: "Automation", systemImage: "gearshape.2", hue: .hueTeal,
                               keywords: ["queue", "tasks", "checkpoints", "scrolling"]) { CatalogAutomationSettings() },
+        LumenSettingsCategory(id: "model-server", title: "Model server", systemImage: "cpu", hue: .hueViolet,
+                              keywords: ["provider", "sampling", "endpoint", "timeout", "models"]) { CatalogModelServerSettings() },
     ]
 }
 
@@ -1427,6 +1430,7 @@ struct WorkspaceDemo: View {
     private var sidebar: some View {
         VStack(spacing: 0) {
             LumenSidebarSwitcher(selection: $pane, items: Self.panes, arrangement: $paneArrangement)
+                .catalogFirstContent("sidebar-first-control")
             LumenSidebarSection("Symbols") {
                 LumenEmptyState.inline("No symbols in the current document", leading: true).padding(.horizontal, metrics.spacing.s4)
             }
@@ -1447,6 +1451,7 @@ struct WorkspaceDemo: View {
         VStack(spacing: 0) {
             LumenDocumentTabBar(documents.tabs, selection: $documents.selection,
                                 onClose: { documents.close($0.id) })
+                .catalogFirstContent("detail-first-tabs")
             HStack(spacing: 8) {
                 Image(systemName: "chevron.left"); Image(systemName: "chevron.right")
                 Text("html › body › main").font(.callout)
@@ -1572,6 +1577,7 @@ struct SplitWorkspaceDemo: View {
                     VStack(spacing: 0) {
                         VStack(alignment: .leading, spacing: 10) {
                             LumenSidebarHeader("Project", subtitle: "Sample Workspace", systemImage: "square.stack.3d.up.fill", hue: .huePink)
+                                .catalogFirstContent("sidebar-first-control")
                             LumenStatsCard([LumenStat("Targets", count: 1), LumenStat("Functions", count: symbols.count), LumenStat("Xrefs", count: 38)])
                         }
                         .padding(.horizontal, 12).padding(.top, 12)
@@ -1621,6 +1627,7 @@ struct SplitWorkspaceDemo: View {
                 LumenModeSwitcher(selection: $mode, options: CatalogEditorMode.allCases, style: .underline,
                                   title: \.rawValue, systemImage: \.systemImage)
                     .accessibilityLabel("Editor mode")
+                    .catalogFirstContent("detail-first-tabs")
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
@@ -1771,7 +1778,7 @@ struct StatesPage: View {
             LumenEmptyHero("No binary open", message: "Open a macOS executable, app bundle, framework or dylib to begin analysis.",
                            systemImage: "cpu", hue: .huePink, primary: LumenBarAction("Open Binary…") {},
                            secondary: [LumenBarAction("Open Workspace…") {}],
-                           recents: [LumenRecentItem(title: "Sample Workspace", detail: "~/Developer/Sample",
+                           recents: [LumenRecentItem(title: "Sample Workspace", detail: "~/Projects/Sample",
                                                      systemImage: "square.stack.3d.up.fill", hue: .huePink)],
                            recentsTitle: "Recent Workspaces")
                 .frame(height: 420)

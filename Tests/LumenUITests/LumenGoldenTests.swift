@@ -274,8 +274,8 @@ final class LumenGoldenTests: XCTestCase {
             LumenWelcomeAction("Clone Repository…", systemImage: "arrow.down", hue: .hueTeal) {},
         ],
         recents: [
-            LumenRecentItem(title: "Lumen", detail: "~/Developer/Lumen", systemImage: "lumen.lens", hue: .hueViolet),
-            LumenRecentItem(title: "Sample Project", detail: "~/Developer/Sample", systemImage: "scope", hue: .hueIndigo),
+            LumenRecentItem(title: "Lumen", detail: "~/Projects/Lumen", systemImage: "lumen.lens", hue: .hueViolet),
+            LumenRecentItem(title: "Sample Project", detail: "~/Projects/Sample", systemImage: "scope", hue: .hueIndigo),
             LumenRecentItem(title: "Field Notes", detail: "~/Documents/Field Notes", systemImage: "book.closed.fill", hue: .hueOrange),
             LumenRecentItem(title: "Scans", detail: "~/Documents/Scans", systemImage: "doc.viewfinder.fill", hue: .hueTeal),
         ]
@@ -308,7 +308,7 @@ final class LumenGoldenTests: XCTestCase {
             VStack(spacing: 0) {
                 ForEach(Array(states.enumerated()), id: \.offset) { _, state in
                     HStack(spacing: 16) {
-                        LumenToolbarIdentity("Lumen", subtitle: "~/Developer/Lumen", systemImage: "lumen.lens", hue: .hueViolet)
+                        LumenToolbarIdentity("Lumen", subtitle: "~/Projects/Lumen", systemImage: "lumen.lens", hue: .hueViolet)
                         Spacer()
                         // The toolbar's status, which shows nothing while idle (PRINCIPLES §9).
                         LumenToolbarStatus(state)
@@ -664,7 +664,7 @@ final class LumenGoldenTests: XCTestCase {
             LumenEmptyHero("No binary open", message: "Open a macOS executable, app bundle, framework or dylib to begin analysis.",
                            systemImage: "cpu", hue: .huePink, primary: LumenBarAction("Open Binary…") {},
                            secondary: [LumenBarAction("Open Workspace…") {}],
-                           recents: [LumenRecentItem(title: "Acceptance Workspace", detail: "~/Developer/Code…acceptance1",
+                           recents: [LumenRecentItem(title: "Acceptance Workspace", detail: "~/Projects/Code…acceptance1",
                                                      systemImage: "square.stack.3d.up.fill", hue: .huePink)],
                            recentsTitle: "Recent Workspaces", showsStarfield: false)
                 .frame(width: 440, height: 400)
@@ -821,8 +821,8 @@ final class LumenGoldenTests: XCTestCase {
             .fixedSize(horizontal: false, vertical: true)
             .lumenCard(padding: 0)
             LumenProcessList([
-                LumenProcess(pid: 4312, name: "Sample", path: "~/Developer/Sample/Build/Sample.app", user: "alex"),
-                LumenProcess(pid: 811, name: "Sample Helper", path: "~/Developer/Sample/Build/Helper.app", user: "alex", systemImage: "gearshape", hue: .hueTeal),
+                LumenProcess(pid: 4312, name: "Sample", path: "~/Projects/Sample/Build/Sample.app", user: "alex"),
+                LumenProcess(pid: 811, name: "Sample Helper", path: "~/Projects/Sample/Build/Helper.app", user: "alex", systemImage: "gearshape", hue: .hueTeal),
                 LumenProcess(pid: 98, name: "launchd", path: "/sbin/launchd", user: "root", isPrivileged: true,
                              systemImage: "lock", hue: .hueGraphite),
             ], selection: .constant(4312))
@@ -1148,9 +1148,9 @@ final class LumenGoldenTests: XCTestCase {
             LumenSidebarItem(id: "git", title: "Git", systemImage: "arrow.triangle.branch", hue: .hueGreen),
         ]
         let items = [
-            LumenCollectionItem(id: "lumen", title: "Lumen", detail: "~/Developer/Lumen", systemImage: "lumen.lens", hue: .hueViolet),
-            LumenCollectionItem(id: "sample", title: "Sample Project", detail: "~/Developer/Sample", systemImage: "scope", hue: .hueBlue, group: "Apps"),
-            LumenCollectionItem(id: "files", title: "File Collection", detail: "~/Developer/Files", systemImage: "cross.case", hue: .hueTeal, group: "Apps"),
+            LumenCollectionItem(id: "lumen", title: "Lumen", detail: "~/Projects/Lumen", systemImage: "lumen.lens", hue: .hueViolet),
+            LumenCollectionItem(id: "sample", title: "Sample Project", detail: "~/Projects/Sample", systemImage: "scope", hue: .hueBlue, group: "Apps"),
+            LumenCollectionItem(id: "files", title: "File Collection", detail: "~/Projects/Files", systemImage: "cross.case", hue: .hueTeal, group: "Apps"),
         ]
         check(TypeScaledFixture { scaled in
             HStack(alignment: .top, spacing: scaled ? 8 : 16) {

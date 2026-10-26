@@ -61,6 +61,7 @@ struct CatalogWizardWindow: View {
                 case "welcome":
                     Text(completed ? "Your sample setup is complete." : "Make yourself at home.")
                         .font(metrics.typography.headline)
+                        .catalogFirstContent("detail-first-text")
                         .lumenWrapsWithoutTruncating()
                     Text("Choose a folder, adjust a few preferences, and review your choices before you begin.")
                         .foregroundStyle(.lumen(.fgSecondary))

@@ -5,8 +5,9 @@ import os
 
 /// An icon tile with a symbol on a rounded square:
 ///
-/// - Light: the hue as the tile, a gentle top-to-bottom gradient, a white symbol.
-/// - Dark: a slate tile with the symbol in its hue.
+/// - Light icons: a solid hue tile and white symbol.
+/// - Dark icons: a near-black tile with a vivid symbol, as System Settings does in dark mode.
+/// - The global icon appearance follows the system; Clear and Tinted use the dark treatment.
 /// - Depth comes from material only: each shape's gentle gradient and a soft hairline rim, lighter
 ///   at the top. No shadows, sheens or dark edges.
 /// - The symbol is an SF Symbol, sized like Apple's (its box is 64% of the tile) and drawn by the
@@ -30,6 +31,7 @@ public struct LumenIconTile: View {
     @Environment(\.lumenTileHueGround) private var hueGround
     @Environment(\.lumenMetrics) private var metrics
     @Environment(\.lumenToolbarCompact) private var toolbarCompact
+    @Environment(\.lumenIconAppearance) private var iconAppearance
 
     /// The symbol's box as a share of the tile.
     static let symbolShare: CGFloat = 0.64
@@ -74,20 +76,24 @@ public struct LumenIconTile: View {
     }
 
     public var body: some View {
-        let colors = LumenTileColors(hue: hue, appearance: LumenAppearance(isDark: colorScheme == .dark,
+        let appearance = iconAppearance ?? LumenSystemIconAppearance.shared.appearance
+        let colors = LumenTileColors(hue: hue, appearance: LumenAppearance(isDark: appearance.isDark(in: colorScheme),
                                                                           isHighContrast: LumenTileContrast.isHigh(contrast, store: store)),
                                      store: store, hueGround: hueGround)
+        let symbol = Self.tileSymbol(for: systemImage)
+        let framed = LumenTileSymbolFrame.isFramed(symbol)
+        let share = framed ? LumenTileSymbolFrame.reducedShare : Self.symbolShare
         let _ = palette   // re-render when the palette (theme selection) changes
         let shape = RoundedRectangle(cornerRadius: size * 0.225, style: .continuous)
         Group {
-            if let image = LumenGlyph.symbolImage(for: Self.tileSymbol(for: systemImage), filled: true) {
+            if let image = LumenGlyph.symbolImage(for: symbol, filled: true) {
                 image
                     .resizable()
                     .scaledToFit()
                     .font(.system(size: size, weight: .medium))
                     .symbolRenderingMode(.monochrome)
                     .symbolVariant(.fill)   // filled on a colored tile, as Apple pairs them
-                    .frame(width: size * Self.symbolShare, height: size * Self.symbolShare)
+                    .frame(width: size * share, height: size * share)
             } else if let glyph = LumenGlyph.named(systemImage) {
                 LumenGlyphView(glyph, size: size * Self.symbolShare, weight: size <= 28 ? .bold : .regular)
                     .environment(\.lumenGlyphTint, colors.tint)
@@ -125,8 +131,26 @@ public struct LumenIconTile: View {
         }
         .accessibilityHidden(label == nil)
         .accessibilityLabel(label ?? "")
-        .preference(key: LumenIconScaleKey.self, value: size + 0.5 < role.minimumSize(in: metrics.layout)
-                    ? ["\(systemImage) tile is \(Int(size)) pt; \(role == .control ? " control" : role == .section ? " section" : "n inline") tile needs \(Int(role.minimumSize(in: metrics.layout))) pt"] : [])
+        .lumenReportsMarginElement("icon-tile")
+        .preference(key: LumenIconScaleKey.self, value: scaleFindings())
+        .preference(key: LumenTileFrameAdvisoryKey.self, value: frameAdvisories(framed: framed))
+    }
+
+    private func scaleFindings() -> Set<String> {
+        var findings: Set<String> = []
+        if size + 0.5 < role.minimumSize(in: metrics.layout) {
+            findings.insert("\(systemImage) tile is \(Int(size)) pt; \(role == .control ? " control" : role == .section ? " section" : "n inline") tile needs \(Int(role.minimumSize(in: metrics.layout))) pt")
+        }
+        return findings
+    }
+
+    private func frameAdvisories(framed: Bool) -> Set<String> {
+        #if DEBUG
+        if framed {
+            return ["\(systemImage) frames its tile: perimeter ink exceeds \(Int(LumenTileSymbolFrame.threshold * 100))%; prefer an unframed symbol"]
+        }
+        #endif
+        return []
     }
 }
 
@@ -157,12 +181,12 @@ struct LumenTileColors {
 
     static let darkTintAlpha = 0.22
     static let lightTintAlpha = 0.35
-    static let rimTop = 0.35
+    static let rimTop = 0.10
     /// The symbol's contrast on a dark tile under Increase Contrast.
     static let highContrastGlyphRatio = 4.5
 
     /// - Parameter hueGround: the hue as the ground in dark mode too (color swatches), rather than
-    ///   the slate tile.
+    ///   the near-black tile.
     init(hue: LumenToken, appearance: LumenAppearance, store: LumenThemeStore, hueGround: Bool = false) {
         let theme = store.theme(for: store.registry.surface(of: hue))
         let base = store.resolvedColor(hue, for: appearance)   // through the store: follows the system accent
@@ -170,12 +194,13 @@ struct LumenTileColors {
         let white = LumenColor(red: 1, green: 1, blue: 1), black = LumenColor(red: 0, green: 0, blue: 0)
         func color(_ c: LumenColor) -> Color { Color(nsColor: c.nsColor(in: space)) }
         if appearance.isDark && !hueGround {
-            // Dark tiles: slate, the symbol in its hue, lifted until it reads at 3:1.
-            let groundTop = appearance.isHighContrast ? LumenColor(red: 0.14, green: 0.15, blue: 0.18) : LumenColor(red: 0.25, green: 0.27, blue: 0.32)
-            let groundBottom = appearance.isHighContrast ? LumenColor(red: 0.07, green: 0.07, blue: 0.09) : LumenColor(red: 0.15, green: 0.16, blue: 0.20)
+            // A near-black neutral ground keeps each hue vivid.
+            // The gradient stays close to the native system tile appearance.
+            let groundTop = appearance.isHighContrast ? LumenColor(red: 0.14, green: 0.15, blue: 0.18) : LumenColor(red: 30.0 / 255, green: 30.0 / 255, blue: 30.0 / 255)
+            let groundBottom = appearance.isHighContrast ? LumenColor(red: 0.07, green: 0.07, blue: 0.09) : LumenColor(red: 16.0 / 255, green: 17.0 / 255, blue: 16.0 / 255)
             var ink = base
             var lift = 0.0
-            while ink.contrastRatio(against: groundTop) < 3, lift < 0.9 { lift += 0.05; ink = white.composited(alpha: lift, over: base) }
+            while ink.contrastRatio(against: groundTop) < 3, lift < 1 { lift = min(1, lift + 0.005); ink = white.composited(alpha: lift, over: base) }
             if appearance.isHighContrast {
                 // Increase Contrast darkens the ground; the symbol lifts to 4.5:1 and never ends up
                 // dimmer than on the standard dark tile.
@@ -186,28 +211,25 @@ struct LumenTileColors {
                 }
             }
             top = color(groundTop); bottom = color(groundBottom)
-            glyph = color(ink); glyphTop = color(white.composited(alpha: 0.15, over: ink))
+            glyph = color(ink); glyphTop = color(ink)
             let tintGround = black.composited(alpha: Self.darkTintAlpha, over: groundTop)
             tint = .black.opacity(Self.darkTintAlpha)
             baseValue = groundTop; glyphValue = ink; tintGroundValue = tintGround
         } else {
-            // White, whenever it reaches 3:1 on the hue; a near-black
-            // symbol only for light hues such as yellow.
-            let ink = Self.ink(on: base)
-            let whiteGlyph = ink == white
-            // The gradient's lighter top: up to 18% white, only as far as a white symbol keeps 3:1.
-            let lift = whiteGlyph
-                ? stride(from: 0.18, through: 0, by: -0.02).first { white.composited(alpha: $0, over: base).contrastRatio(against: ink) >= 3 } ?? 0
-                : 0.18
-            let lighter = white.composited(alpha: lift, over: base)
-            top = color(lighter); bottom = color(base)
-            glyph = whiteGlyph ? .white : Color(white: 0.08)
-            glyphTop = whiteGlyph ? .white : Color(white: 0.16)
-            tint = whiteGlyph ? .black.opacity(Self.darkTintAlpha) : .white.opacity(Self.lightTintAlpha)
-            baseValue = lighter
-            glyphValue = ink
-            tintGroundValue = whiteGlyph ? black.composited(alpha: Self.darkTintAlpha, over: lighter)
-                                         : white.composited(alpha: Self.lightTintAlpha, over: lighter)
+            // A white symbol on a solid vivid hue. Deepen a bright hue only enough to keep 3:1;
+            // adding white to the ground washed out the system's Light-icon appearance.
+            var ground = base
+            var depth = 0.0
+            while white.contrastRatio(against: ground) < 3, depth < 1 {
+                depth = min(1, depth + 0.005)
+                ground = black.composited(alpha: depth, over: base)
+            }
+            top = color(ground); bottom = color(ground)
+            glyph = .white; glyphTop = .white
+            tint = .black.opacity(Self.darkTintAlpha)
+            baseValue = ground
+            glyphValue = white
+            tintGroundValue = black.composited(alpha: Self.darkTintAlpha, over: ground)
         }
     }
 }

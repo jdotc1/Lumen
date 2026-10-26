@@ -203,6 +203,8 @@ public struct LumenSheet<Content: View>: View {
 }
 
 /// A titled group of fields in a sheet: a small uppercase header over its rows.
+/// A rich-pane or sheet group. In a native grouped `Form`, use SwiftUI `Section` instead
+/// so each setting remains an individual row with its own separator.
 public struct LumenFormSection<Content: View>: View {
     private let title: String
     private let content: Content

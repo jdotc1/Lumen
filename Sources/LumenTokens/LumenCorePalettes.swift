@@ -48,6 +48,7 @@ extension LumenThemes {
 
     static let standardDark: LumenPalette = standardHues.merging(_standardDark)
     private static let _standardDark: LumenPalette = [
+        .settingsRowSelectedInactive: "#32343A",
         .titlebarActiveTop: "#2A2442", .titlebarActiveBottom: "#201E2E",
         .bgWindow: "#0D0F13", .bgSidebar: "#1C1F26", .bgCanvas: "#16181E", .bgElevated: "#23262F",
         .bgInset: "#21242C", .bgInsetRaised: "#2B2F3A", .menuHighlight: "#5340CA", .menuHighlightForeground: "#FFFFFF", .bgHover: "#252934", .bgSelected: "#2F2A57", .bgSelectedInactive: "#2D2B40",

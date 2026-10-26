@@ -50,6 +50,7 @@ struct CatalogLibraryWindow: View {
             LibraryImageDetail(image: items.first { $0.id == selection })
         } filterChips: {
             LumenFilterChips(selection: $filter, options: ["All", "Favorites", "Recent"], title: { $0 })
+                .catalogFirstContent("detail-first-filter")
         } statusBar: {
             Text("\(items.count) images")
             Spacer(minLength: 8)
@@ -138,6 +139,7 @@ private struct LibraryImageDetail: View {
         VStack(alignment: .leading, spacing: 20) {
             if let image {
                 LumenDetailHeader(image.title, systemImage: image.symbol, hue: image.hue, categories: [image.collection])
+                    .catalogFirstContent("inspector-first-header")
                 LumenInspectorSection("Image Metadata") {
                     LumenInspectorRow("Dimensions") { Text("2400 × 1600") }
                     LumenInspectorRow("Format") { Text("JPEG") }

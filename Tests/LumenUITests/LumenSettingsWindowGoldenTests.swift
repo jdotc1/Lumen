@@ -60,7 +60,7 @@ final class LumenSettingsWindowGoldenTests: XCTestCase {
                 // AppKit equivalents of `.lumenSettingsScene()`. The Catalog's four launch
                 // screenshots separately exercise the actual SwiftUI Settings scene helper.
                 window.titleVisibility = .visible
-                window.toolbarStyle = .unifiedCompact
+                window.toolbarStyle = .unified
                 window.contentView = host
                 window.setContentSize(size)
                 LumenHeadlessHost.prepare(window)

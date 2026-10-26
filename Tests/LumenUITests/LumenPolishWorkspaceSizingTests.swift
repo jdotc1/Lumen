@@ -9,7 +9,7 @@ final class LumenPolishWorkspaceSizingTests: XCTestCase {
         for scale in [1.0, 1.3] {
             let row = LumenWelcomeRecentRow(item: LumenRecentItem(
                 title: "Research workspace containing longitudinal imaging and configuration reports",
-                detail: "~/Developer/Research/Longitudinal imaging/Configuration and analysis reports",
+                detail: "~/Projects/Research/Longitudinal imaging/Configuration and analysis reports",
                 date: Date(timeIntervalSince1970: 0)))
             let narrow = try fittedSize(row, width: 220, scale: scale)
             let wide = try fittedSize(row, width: 1000, scale: scale)

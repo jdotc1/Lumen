@@ -109,14 +109,14 @@ final class LumenSettingsAdaptiveTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(natural, document.bounds.height - 1)
     }
 
-    func testCompactPaneStacksTrailingControlAndRegularPaneKeepsItBesideLabel() throws {
+    func testSettingsRowsKeepTrailingControlsBesideLabelsWhenTheyFit() throws {
         let compact = try rowGeometry(width: 550, density: .regular)
         let regular = try rowGeometry(width: 600, density: .regular)
-        XCTAssertGreaterThan(compact.control.minY - compact.row.minY, 20,
-                             "At compact pane width the control must sit below the title")
+        XCTAssertEqual(compact.control.midY, compact.row.midY, accuracy: 1,
+                       "At ordinary Settings width a fitting control stays beside its label")
         XCTAssertEqual(regular.control.midY, regular.row.midY, accuracy: 1,
                        "At regular pane width the trailing control remains vertically centered")
-        XCTAssertGreaterThan(compact.row.height, regular.row.height)
+        XCTAssertEqual(compact.row.height, regular.row.height, accuracy: 1)
     }
 
     func testSettingsRowsRetainThreeDistinctDensityRhythms() throws {

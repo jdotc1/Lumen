@@ -36,6 +36,7 @@ private struct CatalogAgentStatus: View {
             Label {
                 Text("All files up to date").lumenNeverTruncates("All files up to date")
             } icon: { Image(systemName: "checkmark.circle") }
+            .catalogFirstContent("detail-first-status")
             Text("3 folders watched").lumenNeverTruncates("3 folders watched")
                 .foregroundStyle(.lumen(.fgSecondary))
         }

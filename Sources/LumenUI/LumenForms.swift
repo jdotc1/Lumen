@@ -199,6 +199,37 @@ public struct LumenNumberField: View {
         automaticWidth = true
     }
 
+    /// A grouped whole-number field with space reserved for at least `minimumDigits` digits.
+    /// Existing initializers retain their ungrouped representation and width behavior.
+    public init(value: Binding<Int>, in range: ClosedRange<Int>, step: Int,
+                unit: String, minimumDigits: Int, usesGrouping: Bool) {
+        let format = IntegerFormatStyle<Int>.number.grouping(usesGrouping ? .automatic : .never)
+        let formatted = { (number: Int) in number.formatted(format) }
+        let digits = min(18, max(1, minimumDigits))
+        let sample = Int(String(repeating: "9", count: digits)) ?? Int.max
+        model = Model(
+            text: { formatted(value.wrappedValue) },
+            widthSamples: { [formatted(range.lowerBound), formatted(range.upperBound),
+                             formatted(value.wrappedValue), formatted(sample)] },
+            commit: { text in
+                let ungrouped = usesGrouping ? Self.removingGrouping(text, locale: .current) : text
+                if let parsed = Self.normalized(ungrouped, range: range, step: step) {
+                    value.wrappedValue = parsed
+                }
+            },
+            nudge: { value.wrappedValue = Self.nudged(value.wrappedValue, by: $0, range: range, step: step) },
+            atLowerBound: { value.wrappedValue <= range.lowerBound },
+            atUpperBound: { value.wrappedValue >= range.upperBound })
+        self.unit = unit
+        width = 52
+        automaticWidth = true
+    }
+
+    static func removingGrouping(_ text: String, locale: Locale) -> String {
+        guard let separator = locale.groupingSeparator, !separator.isEmpty else { return text }
+        return text.replacingOccurrences(of: separator, with: "")
+    }
+
     /// `raw` clamped to the range and rounded to the step; `nil` when it isn't a number.
     static func normalized(_ raw: Double?, range: ClosedRange<Double>, step: Double) -> Double? {
         guard let raw, raw.isFinite else { return nil }

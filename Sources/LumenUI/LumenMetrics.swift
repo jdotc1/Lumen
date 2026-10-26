@@ -167,6 +167,8 @@ public struct LumenMetrics: Sendable, Equatable {
         /// One-line row heights, by density.
         public var rowHeightCompact: CGFloat = 22
         public var rowHeightRegular: CGFloat = 26
+        /// Native Settings sidebar rhythm, independent of workspace row density.
+        public var settingsRowHeight: CGFloat = 32
         public var rowHeightComfortable: CGFloat = 30
         /// Two-line (title and detail) row heights, by density.
         public var detailedRowHeightCompact: CGFloat = 32
@@ -334,7 +336,7 @@ public struct LumenMetrics: Sendable, Equatable {
             // the 24 pt control is a floor, rather than a clipping boundary (PRINCIPLES §6).
             let growth = max(1, scale)
             for path in [\Layout.controlHeight, \.minimumHitTarget, \.rowHeightCompact, \.rowHeightRegular,
-                         \.rowHeightComfortable, \.detailedRowHeightCompact, \.detailedRowHeightRegular,
+                         \.rowHeightComfortable, \.settingsRowHeight, \.detailedRowHeightCompact, \.detailedRowHeightRegular,
                          \.detailedRowHeightComfortable, \.statusBarHeight, \.tabHeight, \.paneHeaderHeight,
                          \.subheaderHeight, \.paletteQueryHeight, \.toolbarButton] {
                 result.layout[keyPath: path] *= growth

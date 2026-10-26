@@ -78,9 +78,33 @@ struct LumenMarginElementFrameKey: PreferenceKey {
     }
 }
 
+#if DEBUG
+/// Native ancestry for first-content tests; preference geometry alone cannot identify
+/// a column when SwiftUI creates a separate hosting root for a native split pane.
+final class LumenMarginElementProbeView: NSView {
+    var role = ""
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+}
+private struct LumenMarginElementProbe: NSViewRepresentable {
+    let role: String
+    func makeNSView(context: Context) -> LumenMarginElementProbeView {
+        let view = LumenMarginElementProbeView()
+        view.setAccessibilityElement(false)
+        view.role = role
+        return view
+    }
+    func updateNSView(_ view: LumenMarginElementProbeView, context: Context) { view.role = role }
+}
+#endif
+
 extension View {
     func lumenReportsMarginElement(_ role: String) -> some View {
         background {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["LUMEN_SETTINGS_MATRIX_NATIVE_PROBES"] == "1" {
+                LumenMarginElementProbe(role: role)
+            }
+            #endif
             GeometryReader { proxy in
                 Color.clear.preference(key: LumenMarginElementFrameKey.self,
                     value: [.init(role: role, frame: proxy.frame(in: .global))])
@@ -184,6 +208,14 @@ struct LumenWindowSafeArea: ViewModifier {
     @Environment(\.lumenWindowRootScope) private var ancestorScope
     @Environment(\.lumenScaffoldContentMargin) private var ancestorMargin
     @State private var scope = LumenWindowRootScope()
+    @Environment(\.lumenSettingsWindow) private var explicitSettings
+    @Environment(\.lumenPreservesExpandedToolbar) private var preservesExpanded
+    @State private var detectedSettings = false
+    @State private var settingsScaffold = false
+    @State private var nativeSplitOwnsTop = false
+    @State private var chromePaint = LumenWindowPaint()
+    @State private var framedTileSymbols: Set<String> = []
+    private var isSettings: Bool { explicitSettings || detectedSettings || settingsScaffold }
     @State private var nested = false
     @Environment(\.lumenMetrics) private var metrics
     @Environment(\.lumenReportsLayoutChecks) private var reportsChecks
@@ -200,6 +232,7 @@ struct LumenWindowSafeArea: ViewModifier {
     @State private var visibleTexts: Set<LumenVisibleTextEntry> = []
 
     private var ownsTop: Bool {
+        if isSettings || nativeSplitOwnsTop { return true }
         let extents = owners + wizard.filter { $0.region == .window }.map(\.frame)
             + menu.filter { $0.region == .panel }.map(\.frame)
         return extents.contains { owner in
@@ -230,6 +263,8 @@ struct LumenWindowSafeArea: ViewModifier {
             .hidden()
         }
         .environment(\.lumenWindowRootScope, scope)
+        .environment(\.lumenIsSettingsWindow, isSettings)
+        .environment(\.lumenHasNativeSidebar, nativeSplitOwnsTop)
         .environment(\.lumenScaffoldContentMargin, ancestorMargin ?? metrics.spacing.s6)
         .environment(\.lumenReportsLayoutChecks, watches)
         .background {
@@ -238,6 +273,10 @@ struct LumenWindowSafeArea: ViewModifier {
                 LumenWindowSafeAreaBridge(globalFrame: proxy.frame(in: .global), contentFrame: contentFrame,
                                           minimum: minimum, contentName: contentName, extra: CGSize(width: 0, height: top), gap: metrics.spacing.s4,
                                           ownsTop: ownsTop, scope: scope, ancestorScope: ancestorScope,
+                                          settings: isSettings, settingsScaffold: settingsScaffold,
+                                          preservesExpanded: preservesExpanded, paint: chromePaint, framedTileSymbols: framedTileSymbols,
+                                          detectedSettings: { detectedSettings = $0 },
+                                          detectedRootSplit: { nativeSplitOwnsTop = $0 },
                                           margin: metrics.spacing.s6, scaffoldMargins: scaffoldMargins,
                                           truncated: truncated, visibleTexts: visibleTexts,
                                           bottomBars: bottomBars + wizard.filter { $0.region == .bottomBar }.map(\.frame)
@@ -248,6 +287,9 @@ struct LumenWindowSafeArea: ViewModifier {
                 }
             }
         }
+        .onPreferenceChange(LumenSettingsRootKey.self) { settingsScaffold = $0 }
+        .onPreferenceChange(LumenWindowPaintKey.self) { chromePaint = $0 }
+        .onPreferenceChange(LumenTileFrameAdvisoryKey.self) { framedTileSymbols = $0 }
         .onPreferenceChange(LumenScaffoldMarginKey.self) { scaffoldMargins = $0 }
         .onPreferenceChange(LumenChromeOwnerKey.self) { owners = $0 }
         .onPreferenceChange(LumenWizardLayoutKey.self) { wizard = $0 }
@@ -271,6 +313,13 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
     let ownsTop: Bool
     let scope: LumenWindowRootScope
     let ancestorScope: LumenWindowRootScope?
+    let settings: Bool
+    let settingsScaffold: Bool
+    let preservesExpanded: Bool
+    let paint: LumenWindowPaint
+    let framedTileSymbols: Set<String>
+    let detectedSettings: @MainActor (Bool) -> Void
+    let detectedRootSplit: @MainActor (Bool) -> Void
     let margin: CGFloat?
     let scaffoldMargins: [LumenScaffoldMargin]
     let truncated: Set<String>
@@ -290,6 +339,9 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
         var ownedInkRects: [CGRect] { [] }
         var input: LumenWindowSafeAreaBridge?
         private var observation: NSKeyValueObservation?
+        private let chrome = LumenNativeWindowChrome()
+        private var lastDetectedSettings: Bool?
+        private var lastRootSplit: Bool?
         private var pending = false
         private var lastTop: CGFloat?
         private var lastEligible: Bool?
@@ -322,6 +374,9 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
         override func layout() { super.layout(); schedule() }
         @objc private func changed(_ notification: Notification) { schedule() }
         func detach() {
+            chrome.detach()
+            lastDetectedSettings = nil
+            lastRootSplit = nil
             if let ownedWindow, let installedMinimum, ownedWindow.contentMinSize == installedMinimum,
                let originalMinimum { ownedWindow.contentMinSize = originalMinimum }
             installedMinimum = nil
@@ -348,6 +403,15 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             guard let window, let input else { return }
             input.scope.window = window
             let nested = input.ancestorScope?.window === window
+            if !nested {
+                chrome.attach(window: window)
+                chrome.update(preservesExpanded: input.preservesExpanded)
+                let detected = LumenNativeWindowChrome.isSettingsWindow(window)
+                if detected != lastDetectedSettings {
+                    lastDetectedSettings = detected
+                    input.detectedSettings(detected)
+                }
+            } else { chrome.detach() }
             let geometry = LumenWindowGeometry(window: window)
             let frame = window.convertToScreen(convert(bounds, to: nil))
             // Sheets and untitled transient panels own their own presentation margins.
@@ -358,6 +422,29 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
                 CGRect(x: frame.minX + rect.minX - input.globalFrame.minX,
                        y: frame.maxY - (rect.maxY - input.globalFrame.minY),
                        width: rect.width, height: rect.height)
+            }
+            // Compare with the app subtree, not the probe/viewport. Applying or removing
+            // our inset moves both extents together, so ownership does not feed back into
+            // itself. A header stacked above a split makes its top lower and cannot qualify.
+            let appFrame = screen(input.contentFrame)
+            func rootSplit(in view: NSView) -> Bool {
+                if let split = view as? NSSplitView, split.isVertical, !split.isHiddenOrHasHiddenAncestor {
+                    let rect = window.convertToScreen(split.convert(split.bounds, to: nil))
+                    let expectedTop = min(appFrame.maxY, geometry.contentBounds.maxY)
+                    if appFrame.width > 0, appFrame.height > 0,
+                       abs(rect.minX - appFrame.minX) < 1,
+                       abs(rect.maxX - appFrame.maxX) < 1,
+                       abs(rect.minY - appFrame.minY) < 1,
+                       rect.maxY >= expectedTop - 1 {
+                        return true
+                    }
+                }
+                return view.subviews.contains(where: rootSplit)
+            }
+            let splitOwnsTop = !nested && window.contentView.map(rootSplit) == true
+            if splitOwnsTop != lastRootSplit {
+                lastRootSplit = splitOwnsTop
+                input.detectedRootSplit(splitOwnsTop)
             }
             if lastTop != top || lastEligible != active || lastNested != nested || lastViewport != geometry.contentBounds.size || lastVisible != window.isVisible {
                 lastTop = top
@@ -374,6 +461,13 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
                 return
             }
             let report = LumenWindowAuditReports.record(for: window)
+            report.lumenRooted = true
+            report.settingsWindow = input.settings
+            report.settingsScaffold = input.settingsScaffold
+            report.paintsWindowGlow = input.paint.glow
+            report.forcesToolbarBand = input.paint.forcedBand
+            report.preservesExpandedToolbar = input.preservesExpanded
+            report.framedTileSymbols = input.framedTileSymbols
             report.truncated = input.truncated
             report.visibleTexts = input.visibleTexts
             report.bottomBars = input.bottomBars.map(screen)

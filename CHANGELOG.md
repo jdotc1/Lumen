@@ -2,6 +2,14 @@
 
 Public releases of the Lumen design system and Catalog.
 
+## 0.62.0 (2026-10-26)
+
+- Settings windows match macOS System Settings with one unified toolbar row, a full-height sidebar, and accent selection.
+- Shared window chrome guarantees consistent native geometry for app-built windows.
+- Icon tiles follow the system icon appearance.
+- Framed symbols use sizing that preserves their artwork within icon tiles.
+- New settings form rows provide labeled text and numeric fields, status, empty states, and trailing actions.
+
 ## 0.61.0 (2026-10-24)
 
 - Theme tokens, scoped stores, editable color and depth metrics, validated theme files, and command-line theme exchange.

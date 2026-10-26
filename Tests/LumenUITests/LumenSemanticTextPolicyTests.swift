@@ -22,7 +22,7 @@ final class LumenSemanticTextPolicyTests: XCTestCase {
     }
 
     func testUnicodePathsRetainCompleteTerminalComponents() {
-        let value = "/Users/Zoë/研究/測定値.swift"
+        let value = "/Volumes/Zoë/研究/測定値.swift"
         let candidates = LumenSemanticTextPolicy.candidates(for: value, kind: .path)
         XCTAssertEqual(candidates.first, value)
         XCTAssertTrue(candidates.contains("…研究/測定値.swift"))
@@ -207,7 +207,7 @@ final class LumenSemanticTextPolicyTests: XCTestCase {
         let config = shown("Configuration.json", LumenSemanticTextPolicy.labelKind(for: "Configuration.json"), width: 90, lines: 1)
         XCTAssertEqual(config, ["Config….json"])
         // A full path drops leading components first, then middle-truncates the file name itself.
-        let path = "/Users/alex/Projects/Sample/Sources/LumenExtras.swift"
+        let path = "/Volumes/alex/Projects/Sample/Sources/LumenExtras.swift"
         XCTAssertEqual(shown(path, .path, width: 140, lines: 1), ["…LumenExtras.swift"])
         XCTAssertEqual(shown(path, .path, width: 80, lines: 1), ["Lumen…swift"])
     }

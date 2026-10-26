@@ -15,13 +15,13 @@ struct BrowsePage: View {
     @State private var tab: String? = "b"
 
     private static let items = [
-        LumenCollectionItem(id: "lumen", title: "Lumen", detail: "~/Developer/Lumen", systemImage: "lumen.lens", hue: .hueViolet,
+        LumenCollectionItem(id: "lumen", title: "Lumen", detail: "~/Projects/Lumen", systemImage: "lumen.lens", hue: .hueViolet,
                             date: .now.addingTimeInterval(-600)),
-        LumenCollectionItem(id: "sample", title: "Sample Project", detail: "~/Developer/Sample", systemImage: "scope", hue: .hueBlue,
+        LumenCollectionItem(id: "sample", title: "Sample Project", detail: "~/Projects/Sample", systemImage: "scope", hue: .hueBlue,
                             date: .now.addingTimeInterval(-86_400), group: "Apps"),
-        LumenCollectionItem(id: "files", title: "File Collection", detail: "~/Developer/Files", systemImage: "cross.case", hue: .hueTeal,
+        LumenCollectionItem(id: "files", title: "File Collection", detail: "~/Projects/Files", systemImage: "cross.case", hue: .hueTeal,
                             date: .now.addingTimeInterval(-3 * 86_400), group: "Apps"),
-        LumenCollectionItem(id: "documents", title: "Text Documents", detail: "~/Developer/Documents", systemImage: "doc.richtext", hue: .hueOrange,
+        LumenCollectionItem(id: "documents", title: "Text Documents", detail: "~/Projects/Documents", systemImage: "doc.richtext", hue: .hueOrange,
                             date: .now.addingTimeInterval(-9 * 86_400), group: "Apps"),
     ]
 

@@ -207,9 +207,7 @@ private struct LumenPaletteRootModifier: ViewModifier {
         // Native controls stay native but take the theme's accent: list selection, checkboxes,
         // segmented controls, buttons, progress.
         // The glow reads the palette injected below, so it sits inside the environment modifiers.
-        Group {
-            if windowChrome { content.lumenWindowChrome() } else { content }
-        }
+        content.modifier(LumenWindowChromeModifier(enabled: windowChrome))
         .modifier(LumenWindowSafeArea(contentName: contentName))
         .environment(\.colorScheme, store.forcedAppearance(for: .window) ?? inheritedColorScheme)
         .environment(\.lumenPalette, palette)

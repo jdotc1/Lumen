@@ -18,20 +18,26 @@ public extension View {
     func lumenWindowChrome() -> some View { modifier(LumenWindowChromeModifier()) }
 }
 
-private struct LumenWindowChromeModifier: ViewModifier {
+struct LumenWindowChromeModifier: ViewModifier {
+    var enabled = true
+    @Environment(\.lumenIsSettingsWindow) private var isSettingsWindow
+    @Environment(\.lumenHasNativeSidebar) private var hasNativeSidebar
+    @Environment(\.lumenSettingsWindow) private var explicitlySettings
     @Environment(\.appearsActive) private var appearsActive
     @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenResolvedChromeStyle) private var chromeStyle
 
     func body(content: Content) -> some View {
-        let active = appearsActive && chromeStyle == .drawn
-        let style: AnyShapeStyle = active
+        let native = isSettingsWindow || explicitlySettings || !enabled
+        let active = !native && appearsActive && chromeStyle == .drawn
+        let style: AnyShapeStyle = native ? AnyShapeStyle(.bar) : active
             ? AnyShapeStyle(LinearGradient(colors: [palette[.titlebarActiveTop], palette[.titlebarActiveBottom]],
                                            startPoint: .top, endPoint: .bottom))
             : AnyShapeStyle(palette[.toolbarBackground])
         content
             .toolbarBackground(style, for: .windowToolbar)
-            .toolbarBackground(.visible, for: .windowToolbar)
+            .toolbarBackground(native || hasNativeSidebar ? .automatic : .visible, for: .windowToolbar)
+            .preference(key: LumenWindowPaintKey.self, value: .init(glow: active, forcedBand: !native && !hasNativeSidebar))
     }
 }
 

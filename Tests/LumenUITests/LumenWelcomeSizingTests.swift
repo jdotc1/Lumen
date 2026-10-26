@@ -52,7 +52,7 @@ final class LumenWelcomeSizingTests: XCTestCase {
             LumenWelcomeAction("Open Project", subtitle: "Browse for a workspace", systemImage: "folder.fill", hue: .hueTeal) {},
             LumenWelcomeAction("Clone Repository", subtitle: "Start from a repository", systemImage: "arrow.down", hue: .hueViolet) {}
         ], recents: (0..<recents).map {
-            LumenRecentItem(title: "Project \($0)", detail: "~/Developer/Project\($0)", date: Date(timeIntervalSince1970: 0))
+            LumenRecentItem(title: "Project \($0)", detail: "~/Projects/Project\($0)", date: Date(timeIntervalSince1970: 0))
         })
     }
 

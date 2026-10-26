@@ -80,6 +80,8 @@ public extension LumenToken {
     static let menuDestructive: LumenToken = "menu.destructive"
     static let keycapBackground: LumenToken = "keycap.background"
     static let keycapForeground: LumenToken = "keycap.foreground"
+    /// Muted selection in an inactive Settings sidebar.
+    static let settingsRowSelectedInactive: LumenToken = "settings.rowSelectedInactive"
     // Settings and grouped panels
     static let panelBackground: LumenToken = "panel.background"
     static let panelGroup: LumenToken = "panel.group"
@@ -194,6 +196,7 @@ public extension LumenPack {
             + status(.statusNeutral, .statusNeutralBackground)
         specs += LumenToken.hues.map { LumenTokenSpec($0, group: "Hues", summary: "Categorical hue for tiles and categories") }
         specs += [
+            LumenTokenSpec(.settingsRowSelectedInactive, group: "Window Chrome", fallback: .token(.sidebarRowSelectedInactive)),
             LumenTokenSpec(.sidebarBackground, group: "Window Chrome", fallback: .token(.bgSidebar)),
             LumenTokenSpec(.sidebarRowSelected, group: "Window Chrome", fallback: .token(.bgSelected)),
             LumenTokenSpec(.sidebarRowSelectedInactive, group: "Window Chrome", fallback: .token(.bgSelectedInactive),
@@ -205,7 +208,7 @@ public extension LumenPack {
             LumenTokenSpec(.inspectorBackground, group: "Window Chrome", fallback: .token(.bgSidebar)),
             LumenTokenSpec(.sidebarForeground, group: "Window Chrome", fallback: .token(.fgPrimary),
                            contrast: [.text(on: .sidebarBackground), .text(on: .sidebarRowSelected),
-                                      .text(on: .sidebarRowSelectedInactive)],
+                                      .text(on: .sidebarRowSelectedInactive), .text(on: .settingsRowSelectedInactive)],
                            summary: "Sidebar text; set it with sidebar.background for a sidebar darker or lighter than the canvas"),
             LumenTokenSpec(.sidebarSecondaryForeground, group: "Window Chrome", fallback: .token(.fgSecondary),
                            contrast: [.text(on: .sidebarBackground)]),

@@ -85,7 +85,7 @@ has a 480 pt floor and a screen-visible-height cap with a margin (720 pt when no
 available); category changes do not resize the window, and taller panes scroll above a real bottom
 inset. A host can supply its preferred size with `.lumenSettingsPreferredSize(_:)`; users can grow
 the window through `.contentMinSize` resizing. Each pane classifies its own width as compact below
-560 pt, regular from 560 through 820 pt, or wide above 820 pt. Compact rows stack their controls;
+560 pt, regular from 560 through 820 pt, or wide above 820 pt. Rows stack their controls only when the label and control do not fit;
 wide panes keep a shared readable measure of about 640 pt with balanced surrounding space.
 Horizontal padding, section separation, grouped-control insets and row rhythm use metrics tokens,
 with compact, regular and comfortable density remaining distinct.
@@ -174,7 +174,7 @@ Equal-priority regions retain inspector-first order. Later archetypes reuse this
 
 | Family | Look |
 |---|---|
-| Navigation lists and tables (source lists, sidebars, `LumenTable`) | Quiet: `bg.selected` (inactive: `bg.selectedInactive`); in a sidebar, `sidebar.rowSelected` (inactive: `sidebar.rowSelectedInactive`), which fall back to them. Across sidebars, selected titles are semi-bold in active and inactive windows; reserve their semi-bold width so selection never shifts text. Subtitles and count badges keep their normal weight |
+| Navigation lists and tables (source lists, sidebars, `LumenTable`) | Quiet: `bg.selected` (inactive: `bg.selectedInactive`); in a sidebar, `sidebar.rowSelected` (inactive: `sidebar.rowSelectedInactive`), which fall back to them. Outside Settings, selected sidebar titles are semi-bold in active and inactive windows; reserve their semi-bold width so selection never shifts text. Subtitles and count badges keep their normal weight |
 | Menus, pickers, command results, completion, master-detail lists, history rows, collections and filter chips | Filled: `accent.filled` under `accent.filledForeground` (white); rows inset with `radius.sm` |
 | Tabs and segmented pickers (document and panel tabs, mode switchers, tabbed boxes, palette scopes) | Shared continuous rounded chrome: `tab.activeFill` for document tabs, `bg.elevated` for panel and segmented selections, `border.subtle` hairline, and `bg.hover` for hover; optional document accent stays a subtle pill tint. `radius.md` scales with control height; inactive windows dim the chrome |
 | Tool tiles | A plate behind the selected item |
@@ -248,6 +248,20 @@ sidebar toggle have matching control sizes. There is exactly one icon-only sideb
 in the actual native toolbar, no labeled “Sidebar” item and no principal “Settings” text. Measure
 the combined titlebar/toolbar height against the system's unified-style reference; a compact-style
 modifier alone is not proof of compact geometry.
+
+Settings windows follow the system Settings composition: one unified toolbar row, native detail
+chrome without a glow or forced toolbar band, and a full-height native sidebar with search below
+the traffic lights. Category rows use regular body labels, 20 pt tiles and a 32 pt rhythm; active
+selection uses the filled accent with white text, inactive selection a muted ground with primary
+text. Grouped forms keep one leading label and trailing control per row; descriptions are captions,
+monospacing belongs to values, empty sections show explanatory text and actions align trailing.
+
+Every palette-rooted window shares one native chrome owner, including app-built roots. Preference
+and expanded toolbar styles normalize to unified while preserving visible content height and the
+top edge; full-size content lets sidebars reach the top. Detachment restores owned native settings.
+An app with an intentional expanded toolbar can opt out with `lumenPreservesExpandedToolbar(true)`
+outside its palette root. Settings scenes and scaffold markers suppress the workspace glow; the
+rendered audit reports two-row chrome, settings paint and settings roots missing the scaffold.
 
 ### Settings composition
 

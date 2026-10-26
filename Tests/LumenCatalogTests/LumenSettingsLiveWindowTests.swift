@@ -13,13 +13,47 @@ import LumenConformance
 @MainActor
 final class LumenSettingsLiveWindowTests: XCTestCase {
     private enum Violation: String, CaseIterable, Sendable {
-        case sourceList, sidebarPalette, detailPalette, historyGroup, controlHeights, navigationTitle, toggleCount, bandHeight, selectionPalette
+        case sourceList, sidebarMaterial, detailPalette, historyGroup, controlHeights, navigationTitle, toggleCount, bandHeight, selectionPalette
     }
 
     private struct Observation: Sendable {
         var violations: Set<Violation> = []
         var details: [String] = []
         var description: String { details.joined(separator: "; ") }
+    }
+
+    func testModelServerOpensAndChangesPanesWithSidebarFocus() throws {
+        let selection = SettingsSelectionBox()
+        selection.value = "model-server"
+        let panes = [
+            LumenSettingsCategory(id: "model-server", title: "Model server", systemImage: "cpu", hue: .hueViolet) {
+                CatalogModelServerSettings()
+            },
+            LumenSettingsCategory(id: "other", title: "Other", systemImage: "gearshape", hue: .hueBlue) {
+                Form { TextField("Other endpoint", text: .constant("example")) }
+            }
+        ]
+        try withWindow(BoundSettingsHost(categories: panes, selection: selection), compact: true,
+                       size: CGSize(width: 1000, height: 760)) { window, host, _ in
+            @MainActor func assertSidebarFocus() throws {
+                let table = try XCTUnwrap(descendants(host).compactMap { $0 as? NSTableView }
+                    .first { $0.effectiveStyle == .sourceList })
+                XCTAssertNotNil(window.firstResponder, "Focus must have an explicit owner")
+                XCTAssertFalse(window.firstResponder is NSText)
+                XCTAssertFalse(window.firstResponder is NSTextField)
+                XCTAssertTrue(window.firstResponder === table, "Initial and selection focus belongs to the sidebar: \(String(describing: window.firstResponder))")
+                XCTAssertFalse(window.isKeyWindow)
+            }
+            XCTAssertEqual(selection.value, "model-server")
+            try assertSidebarFocus()
+            selection.value = "other"
+            settle(window: window, host: host)
+            try assertSidebarFocus()
+            selection.value = "model-server"
+            settle(window: window, host: host)
+            try assertSidebarFocus()
+
+        }
     }
 
     func testFiveCategoryDrawnSettingsWindow() throws {
@@ -69,7 +103,7 @@ final class LumenSettingsLiveWindowTests: XCTestCase {
     /// missing toolbar/table silently interpreted as success) from blessing the old composition.
     func testBareSettingsHostFailsEveryWindowInvariant() throws {
         let result = try observe(BareSettingsHost(categories: categories(2)), compact: false)
-        XCTAssertTrue(result.violations.isSuperset(of: [.sourceList, .sidebarPalette, .historyGroup, .controlHeights, .navigationTitle]), result.description)
+        XCTAssertTrue(result.violations.isSuperset(of: [.sourceList, .historyGroup, .controlHeights, .navigationTitle]), result.description)
         print("BARE_HOST: \(result.description)")
     }
 
@@ -169,13 +203,13 @@ final class LumenSettingsLiveWindowTests: XCTestCase {
 
     func testStockRootOverridesSettingsPreferenceToolbar() throws {
         try withWindow(LumenSettingsSidebarView(categories(2)), compact: false, sizing: [.minSize, .maxSize], initialStyle: .preference) { window, host, _ in
-            XCTAssertEqual(window.toolbarStyle, .unifiedCompact)
+            XCTAssertEqual(window.toolbarStyle, .unified, "Observed style: \(window.toolbarStyle.rawValue)")
             XCTAssertGreaterThanOrEqual(window.contentLayoutRect.height, 480)
             let originalFrame = window.frame
             // Reproduce the real Settings scene overriding the declarative Scene style.
             window.toolbarStyle = .preference
             settle(window: window, host: host)
-            XCTAssertEqual(window.toolbarStyle, .unifiedCompact)
+            XCTAssertEqual(window.toolbarStyle, .unified, "Observed style: \(window.toolbarStyle.rawValue)")
             XCTAssertEqual(window.frame, originalFrame, "Later scene updates must not shrink the window again")
             let height = window.frame.height - window.contentLayoutRect.height
             XCTAssertLessThanOrEqual(height, standardUnifiedBandHeight())
@@ -235,7 +269,7 @@ final class LumenSettingsLiveWindowTests: XCTestCase {
                 window.appearance = NSAppearance(named: scheme == .dark ? .darkAqua : .aqua)
                 // NSHostingView does not instantiate a SwiftUI Scene. Mirror the public
                 // .lumenSettingsScene() scene contract here; all toolbar content remains stock.
-                window.toolbarStyle = initialStyle ?? (compact ? .unifiedCompact : .automatic)
+                window.toolbarStyle = initialStyle ?? (compact ? .unified : .automatic)
                 window.titleVisibility = compact ? .visible : .hidden
                 window.contentView = host
                 window.setContentSize(size)
@@ -268,12 +302,13 @@ final class LumenSettingsLiveWindowTests: XCTestCase {
         if table?.selectionHighlightStyle != NSTableView.SelectionHighlightStyle.none { result.violations.insert(.selectionPalette) }
         result.details.append("native selection fill: \(String(describing: table?.selectionHighlightStyle.rawValue))")
 
-        let expected = store.resolvedColor(.sidebarBackground, for: scheme == .dark ? .dark : .light)
         let frameView = try XCTUnwrap(host.superview, "A live window must have its native frame")
         // cacheDisplay retains the detail-pane pixel check. GPU-backed sidebar pixels are a
         // live-check gap; its actual fill is checked structurally below, with no screen capture.
-        let directory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-            .deletingLastPathComponent().deletingLastPathComponent().appending(path: ".build/settings-captures")
+        let directory = ProcessInfo.processInfo.environment["LUMEN_SETTINGS_CAPTURES_DIR"]
+            .map { URL(fileURLWithPath: $0, isDirectory: true) }
+            ?? URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+                .deletingLastPathComponent().deletingLastPathComponent().appending(path: ".build/settings-captures")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let imageURL = directory.appending(path: "live-\(UUID().uuidString).png")
         try LumenHeadlessHost.png(of: window).write(to: imageURL)
@@ -281,27 +316,34 @@ final class LumenSettingsLiveWindowTests: XCTestCase {
         result.details.append("capture: \(imageURL.path)")
         let split = contentViews.compactMap { $0 as? NSSplitView }
             .first { $0.arrangedSubviews.filter { !$0.isHidden }.count >= 2 }
-        if let sidebar = split?.arrangedSubviews.first,
-           let report = descendants(sidebar).compactMap({ $0 as? LumenSidebarPaletteReportView }).first {
-            var resolved: NSColor?
-            window.effectiveAppearance.performAsCurrentDrawingAppearance {
-                resolved = NSColor(report.color).usingColorSpace(.sRGB)
+        if let sidebar = split?.arrangedSubviews.first {
+            let sidebarFrame = sidebar.convert(sidebar.bounds, to: frameView)
+            let effects = descendants(frameView).compactMap { $0 as? NSVisualEffectView }
+            let sidebarEffect = effects.contains { effect in
+                let frame = effect.convert(effect.bounds, to: frameView)
+                let overlap = frame.intersection(sidebarFrame)
+                return !effect.isHiddenOrHasHiddenAncestor && effect.material == .sidebar
+                    && overlap.width >= sidebarFrame.width * 0.8
+                    && overlap.height >= sidebarFrame.height * 0.8
             }
-            if let color = resolved {
-                let difference = max(abs(Double(color.redComponent) - expected.red),
-                                     abs(Double(color.greenComponent) - expected.green),
-                                     abs(Double(color.blueComponent) - expected.blue))
-                if report.role != .sidebarBackground || color.alphaComponent < 0.98 || difference > 0.045 {
-                    result.violations.insert(.sidebarPalette)
-                }
-                result.details.append("sidebar reported role: \(report.role); resolved RGB distance: \(difference)")
-            } else {
-                result.violations.insert(.sidebarPalette)
-                result.details.append("sidebar reported color could not resolve")
+            // macOS 27's native sidebar glass is composited as a filtered layer rather than
+            // an NSVisualEffectView(.sidebar). Reuse the sole capture's layer evidence.
+            let filteredSidebar = (LumenHeadlessHost.lastCapture?.filteredLayers ?? []).contains { layer in
+                let frame = layer.frameInRoot
+                return abs(frame.width - sidebarFrame.width) <= 4
+                    && abs(frame.minX - sidebarFrame.minX) <= 4
+                    && frame.height >= sidebarFrame.height * 0.8
             }
+            let nativeSidebar = sidebarEffect || filteredSidebar
+            let opaqueOverride = descendants(sidebar).contains { $0 is LumenSidebarPaletteReportView }
+            if !nativeSidebar || opaqueOverride { result.violations.insert(.sidebarMaterial) }
+            let descriptions = effects.map {
+                "material=\($0.material.rawValue), blending=\($0.blendingMode.rawValue), frame=\($0.convert($0.bounds, to: frameView))"
+            }
+            result.details.append("native sidebar material=\(nativeSidebar); filtered sidebar=\(filteredSidebar); opaque override=\(opaqueOverride); effects: \(descriptions)")
         } else {
-            result.violations.insert(.sidebarPalette)
-            result.details.append("sidebar palette report unavailable")
+            result.violations.insert(.sidebarMaterial)
+            result.details.append("native sidebar material unavailable: no sidebar")
         }
 
         // The pane's leading page margin is empty ground at each sample height, away from the

@@ -35,6 +35,7 @@ public enum LumenRenderedAudit {
         var compositeOwners: [Element] = []
         var nativeMaskPreservingInk: [CGRect] = []
         var nativeMaskPreservingSources: [InkSource] = []
+        var windowChromeFindings: [LumenLayoutAudit.Violation] = []
 
         var stateKey: Int {
             var hash = Hasher()
@@ -56,6 +57,7 @@ public enum LumenRenderedAudit {
                     hash.combine(stop.location); hash.combine(stop.red); hash.combine(stop.green); hash.combine(stop.blue)
                 }
             }
+            for finding in windowChromeFindings { hash.combine(finding) }
             hash.combine(margin)
             for declaration in scaffoldMargins {
                 rect(declaration.frame); hash.combine(declaration.margin); hash.combine(declaration.depth)
@@ -219,7 +221,7 @@ public enum LumenRenderedAudit {
                        reports: Set(report.visibleTexts.map(\.text)), ownedChromeInk: ownedChromeInk,
                        protectedButtons: geometry.trafficLights.map {
                            $0.insetBy(dx: -2 / max(1, window.backingScaleFactor), dy: -2 / max(1, window.backingScaleFactor))
-                       }, fullBleedBackgrounds: fullBleedBackgrounds, fullBleedWashes: fullBleedWashes, nativeControlChrome: LumenNativeControlChrome.frames(in: window), compositeOwners: ownership.containers, nativeMaskPreservingInk: nativeMaskPreservingInk, nativeMaskPreservingSources: nativeMaskPreservingSources)
+                       }, fullBleedBackgrounds: fullBleedBackgrounds, fullBleedWashes: fullBleedWashes, nativeControlChrome: LumenNativeControlChrome.frames(in: window), compositeOwners: ownership.containers, nativeMaskPreservingInk: nativeMaskPreservingInk, nativeMaskPreservingSources: nativeMaskPreservingSources, windowChromeFindings: windowChromeFindings(in: window))
     }
 
     /// A transparent representable is geometry, not paint. Explicit owned-ink declarations
@@ -478,7 +480,43 @@ public enum LumenRenderedAudit {
         }
     }
     // One registry for all pixel/text rules; both observer and conformance consume its output.
-    private static let rules: [@Sendable (Context) -> [Evidence]] = [chromeInk, boundaryInk, overlaps, escapes, textRules]
+    private static let rules: [@Sendable (Context) -> [Evidence]] = [windowChrome, chromeInk, boundaryInk, overlaps, escapes, textRules]
+
+    @MainActor static func windowChromeFindings(in window: NSWindow) -> [LumenLayoutAudit.Violation] {
+        let report = LumenWindowAuditReports.record(for: window)
+        guard report.lumenRooted else { return [] }
+        var findings = report.framedTileSymbols.sorted().map { symbol in
+            LumenLayoutAudit.Violation(rule: "icon-tile-frame", view: symbol,
+                message: "Framed artwork is reduced inside this tile; prefer an unframed symbol")
+        }
+        let geometry = LumenWindowGeometry(window: window)
+        let expanded = window.toolbarStyle == .preference || window.toolbarStyle == .expanded
+        let buttonLine = geometry.trafficLights.first?.midY
+        let separateItemRow = buttonLine.map { line in
+            geometry.toolbarItems.contains { abs($0.midY - line) > max(8, $0.height / 2) }
+        } ?? false
+        if window.toolbar?.isVisible == true, expanded || separateItemRow, !report.preservesExpandedToolbar {
+            findings.append(.init(rule: "window-toolbar-rows", view: "Window toolbar",
+                                 message: "two-row toolbar style=\(window.toolbarStyle.rawValue); band=\(geometry.chromeBand.height)"))
+        }
+        if report.settingsWindow {
+            if report.paintsWindowGlow || report.forcesToolbarBand {
+                findings.append(.init(rule: "settings-native-background", view: "Settings toolbar",
+                                     message: "glow=\(report.paintsWindowGlow); forcedBand=\(report.forcesToolbarBand); use the native toolbar background"))
+            }
+            if !report.settingsScaffold {
+                findings.append(.init(rule: "settings-scaffold", view: "Settings root",
+                                     message: "Use LumenSettingsSidebarView for native settings hierarchy, selection and navigation"))
+            }
+        }
+        return findings
+    }
+
+    private static func windowChrome(_ c: Context) -> [Evidence] {
+        c.capture.windowChromeFindings.map {
+            Evidence(rule: $0.rule, rect: c.capture.chrome, subject: $0.view, detail: $0.message)
+        }
+    }
 
     private static func chromeInk(_ c: Context) -> [Evidence] {
         let owned = c.capture.ownedChromeInk.filter { rect in

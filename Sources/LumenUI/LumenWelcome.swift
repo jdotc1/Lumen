@@ -151,7 +151,7 @@ public struct LumenWelcomeAction: Identifiable {
 public struct LumenRecentItem: Identifiable, Hashable, Sendable {
     public let id: String
     public let title: String
-    /// Usually the abbreviated path (`~/Developer/Lumen`).
+    /// Usually the abbreviated path (`~/Projects/Lumen`).
     public let detail: String
     public let date: Date?
     public let systemImage: String

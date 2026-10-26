@@ -115,6 +115,7 @@ private struct SampleWorkspaceSidebar: View {
                 LumenSidebarItem(id: "strings", title: "Strings", systemImage: "text.quote", hue: .hueOrange),
                 LumenSidebarItem(id: "xrefs", title: "Xrefs", systemImage: "lumen.crossReference", hue: .hueTeal),
             ], shortcuts: false)
+            .catalogFirstContent("sidebar-first-control")
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     LumenSidebarHeader(tool == "project" ? "Project" : tool == "strings" ? "Strings" : "Xrefs",
@@ -158,6 +159,7 @@ private struct SampleWorkspaceEditor: View {
             LumenContentTabBar {
                 LumenModeSwitcher(selection: $mode, options: SampleWorkspaceMode.allCases, style: .underline,
                                   title: \.rawValue, systemImage: \.symbol, hue: \.hue)
+                    .catalogFirstContent("detail-first-tabs")
             }
             if mode == .welcome {
                 LumenEmptyHero("No binary open", message: "Open a macOS executable, app bundle, framework, or dylib to begin analysis.",

@@ -80,7 +80,7 @@ final class LumenToolbarStateTests: XCTestCase {
     }
 
     func testIdentityYieldsWhenAToolbarItemProposesLess() {
-        let identity = LumenToolbarIdentity("Lumen Catalog", subtitle: "~/Developer/Lumen", systemImage: "lumen.lens", hue: .hueViolet)
+        let identity = LumenToolbarIdentity("Lumen Catalog", subtitle: "~/Projects/Lumen", systemImage: "lumen.lens", hue: .hueViolet)
         let host = NSHostingController(rootView: identity)
         let ideal = host.sizeThatFits(in: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 60))
         let squeezed = host.sizeThatFits(in: CGSize(width: ideal.width - 30, height: 60))

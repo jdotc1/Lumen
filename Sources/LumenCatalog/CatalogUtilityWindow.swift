@@ -87,6 +87,7 @@ private struct UtilityFileTable: View {
     var body: some View {
         VStack(alignment: .leading, spacing: metrics.spacing.s4) {
             LumenSectionHeader("File Review")
+                .catalogFirstContent("detail-first-header")
             LumenTable(files, selection: $selection, minHeight: 160, columns: [
                 LumenTableColumn("File") { LumenTableText($0.name) }.minWidth(120).priority(1),
                 LumenTableColumn("Size", width: 64) { LumenTableText($0.size) },

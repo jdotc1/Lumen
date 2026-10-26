@@ -266,8 +266,8 @@ struct SheetsPage: View {
 
     private var processes: some View {
         LumenProcessList([
-            LumenProcess(pid: 4312, name: "Sample", path: "~/Developer/Sample/Build/Sample.app", user: "alex"),
-            LumenProcess(pid: 811, name: "Sample Helper", path: "~/Developer/Sample/Build/Helper.app", user: "alex", systemImage: "gearshape", hue: .hueTeal),
+            LumenProcess(pid: 4312, name: "Sample", path: "~/Projects/Sample/Build/Sample.app", user: "alex"),
+            LumenProcess(pid: 811, name: "Sample Helper", path: "~/Projects/Sample/Build/Helper.app", user: "alex", systemImage: "gearshape", hue: .hueTeal),
             LumenProcess(pid: 98, name: "launchd", path: "/sbin/launchd", user: "root", isPrivileged: true, systemImage: "lock", hue: .hueGraphite),
         ], selection: $pid)
     }

@@ -15,6 +15,13 @@ final class LumenWindowAuditReports {
     var pageMargin: CGFloat?
     var scaffoldMargins: [LumenScaffoldMargin] = []
     var ownsTopBar = false
+    var lumenRooted = false
+    var settingsWindow = false
+    var settingsScaffold = false
+    var paintsWindowGlow = false
+    var forcesToolbarBand = false
+    var preservesExpandedToolbar = false
+    var framedTileSymbols: Set<String> = []
     /// The subtree minimum and laid-out frame, expressed in usable points and screen coordinates.
     var contentMinimumView = "window root"
     var contentMinimum: CGSize?
