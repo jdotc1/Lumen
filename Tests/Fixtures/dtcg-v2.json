@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "id": "test.dtcg-v2",
+  "name": "V2 metrics",
+  "inherits": "lumen.standard",
+  "metrics": {
+    "radiusProfile": "rounded",
+    "typeScale": 1.1,
+    "spacingScale": 1.25,
+    "motion": "reduced",
+    "depth": {
+      "glow": { "hero": { "opacity": 0.5, "radius": 24, "y": 6 }, "selection": {} }
+    }
+  }
+}

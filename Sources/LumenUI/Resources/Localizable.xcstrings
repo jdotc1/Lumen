@@ -1,0 +1,5770 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Built with Lumen %@": {
+      "comment": "AboutPanel text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Built with Lumen %@"
+          }
+        }
+      }
+    },
+    "Commit %@": {
+      "comment": "AboutPanel text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commit %@"
+          }
+        }
+      }
+    },
+    "About %@": {
+      "comment": "AboutPanel label. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About %@"
+          }
+        }
+      }
+    },
+    "Go": {
+      "comment": "AddressField label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go"
+          }
+        }
+      }
+    },
+    "That isn’t a hex address.": {
+      "comment": "AddressField label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That isn’t a hex address."
+          }
+        }
+      }
+    },
+    "Address": {
+      "comment": "AddressField label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Address"
+          }
+        }
+      }
+    },
+    "Value": {
+      "comment": "Charts text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value"
+          }
+        }
+      }
+    },
+    "No chart data": {
+      "comment": "Charts text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No chart data"
+          }
+        }
+      }
+    },
+    "Add observations to see this chart.": {
+      "comment": "Charts text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add observations to see this chart."
+          }
+        }
+      }
+    },
+    "Label": {
+      "comment": "Charts text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Label"
+          }
+        }
+      }
+    },
+    "Series": {
+      "comment": "Charts text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Series"
+          }
+        }
+      }
+    },
+    "Count": {
+      "comment": "Charts text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Count"
+          }
+        }
+      }
+    },
+    "Drawn": {
+      "comment": "ChromeStyle text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drawn"
+          }
+        }
+      }
+    },
+    "Glass": {
+      "comment": "ChromeStyle text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glass"
+          }
+        }
+      }
+    },
+    "%lld notes": {
+      "comment": "CodePane text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld notes"
+          }
+        }
+      }
+    },
+    "Space": {
+      "comment": "CommandMenu text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space"
+          }
+        }
+      }
+    },
+    "Back to %@": {
+      "comment": "CommandMenu label. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to %@"
+          }
+        }
+      }
+    },
+    "Checked": {
+      "comment": "CommandMenu text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checked"
+          }
+        }
+      }
+    },
+    "Opens a submenu": {
+      "comment": "CommandMenu text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens a submenu"
+          }
+        }
+      }
+    },
+    "Search commands": {
+      "comment": "CommandPalette text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search commands"
+          }
+        }
+      }
+    },
+    "Search": {
+      "comment": "CommandPalette text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        }
+      }
+    },
+    "Search everything": {
+      "comment": "CommandPalette text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search everything"
+          }
+        }
+      }
+    },
+    "Type %@ to search %@": {
+      "comment": "CommandPalette text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type %@ to search %@"
+          }
+        }
+      }
+    },
+    "No matching commands": {
+      "comment": "CommandPalette text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching commands"
+          }
+        }
+      }
+    },
+    "No matches": {
+      "comment": "CommandPalette text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matches"
+          }
+        }
+      }
+    },
+    "Command palette": {
+      "comment": "CommandPalette label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command palette"
+          }
+        }
+      }
+    },
+    "Results": {
+      "comment": "CommandPalette text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Results"
+          }
+        }
+      }
+    },
+    "Recent": {
+      "comment": "CommandPalette text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent"
+          }
+        }
+      }
+    },
+    "move": {
+      "comment": "CommandPalette text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "move"
+          }
+        }
+      }
+    },
+    "run": {
+      "comment": "CommandPalette text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "run"
+          }
+        }
+      }
+    },
+    "close": {
+      "comment": "CommandPalette text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "close"
+          }
+        }
+      }
+    },
+    "Close Command Palette": {
+      "comment": "CommandPalette label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Command Palette"
+          }
+        }
+      }
+    },
+    "Command Palette": {
+      "comment": "CommandPalette label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command Palette"
+          }
+        }
+      }
+    },
+    "Copy %@": {
+      "comment": "Components label. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy %@"
+          }
+        }
+      }
+    },
+    "Copy": {
+      "comment": "Components label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy"
+          }
+        }
+      }
+    },
+    "Drag to resize; double-click to reset": {
+      "comment": "Controls help text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag to resize; double-click to reset"
+          }
+        }
+      }
+    },
+    "Add": {
+      "comment": "Controls text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        }
+      }
+    },
+    "Remove": {
+      "comment": "Controls text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        }
+      }
+    },
+    "Edit": {
+      "comment": "Controls text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        }
+      }
+    },
+    "No items": {
+      "comment": "Empty table message.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No items"
+          }
+        }
+      }
+    },
+    "No values": {
+      "comment": "Empty key and value editor message.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No values"
+          }
+        }
+      }
+    },
+    "Command": {
+      "comment": "Console input placeholder.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command"
+          }
+        }
+      }
+    },
+    "Add a token": {
+      "comment": "Token field placeholder.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a token"
+          }
+        }
+      }
+    },
+    "Default": {
+      "comment": "Inherited value label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default"
+          }
+        }
+      }
+    },
+    "Dismiss": {
+      "comment": "DataViews label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        }
+      }
+    },
+    "%lld earlier notices": {
+      "comment": "DataViews label. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld earlier notices"
+          }
+        }
+      }
+    },
+    "Show as a tree": {
+      "comment": "DataViews text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show as a tree"
+          }
+        }
+      }
+    },
+    "Show as a list": {
+      "comment": "DataViews text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show as a list"
+          }
+        }
+      }
+    },
+    "Open 1 level": {
+      "comment": "Outline depth help.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open 1 level"
+          }
+        }
+      }
+    },
+    "Open %lld levels": {
+      "comment": "Outline depth help; value is the number of levels.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open %lld levels"
+          }
+        }
+      }
+    },
+    "Depth %lld": {
+      "comment": "DataViews label. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depth %lld"
+          }
+        }
+      }
+    },
+    "Sorted alphabetically": {
+      "comment": "DataViews text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sorted alphabetically"
+          }
+        }
+      }
+    },
+    "In document order": {
+      "comment": "DataViews text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In document order"
+          }
+        }
+      }
+    },
+    "Previous Change": {
+      "comment": "DataViews label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous Change"
+          }
+        }
+      }
+    },
+    "Next Change": {
+      "comment": "DataViews label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next Change"
+          }
+        }
+      }
+    },
+    "Ignore Whitespace": {
+      "comment": "DataViews label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignore Whitespace"
+          }
+        }
+      }
+    },
+    "Ignoring whitespace changes; click to show them": {
+      "comment": "DataViews text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignoring whitespace changes; click to show them"
+          }
+        }
+      }
+    },
+    "Showing whitespace changes; click to ignore them": {
+      "comment": "DataViews text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing whitespace changes; click to ignore them"
+          }
+        }
+      }
+    },
+    "On": {
+      "comment": "DataViews text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On"
+          }
+        }
+      }
+    },
+    "Off": {
+      "comment": "DataViews text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        }
+      }
+    },
+    "Minimap": {
+      "comment": "DataViews label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimap"
+          }
+        }
+      }
+    },
+    "Showing %lld to %lld percent": {
+      "comment": "DataViews text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing %lld to %lld percent"
+          }
+        }
+      }
+    },
+    "No stack frames": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No stack frames"
+          }
+        }
+      }
+    },
+    "Call stack": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Call stack"
+          }
+        }
+      }
+    },
+    "Selected frame %lld": {
+      "comment": "Debugger text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected frame %lld"
+          }
+        }
+      }
+    },
+    "Frame %lld": {
+      "comment": "Debugger text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame %lld"
+          }
+        }
+      }
+    },
+    "Edit %@": {
+      "comment": "Debugger help text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit %@"
+          }
+        }
+      }
+    },
+    "changed": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "changed"
+          }
+        }
+      }
+    },
+    "Console": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Console"
+          }
+        }
+      }
+    },
+    "Warning": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warning"
+          }
+        }
+      }
+    },
+    "Error": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error"
+          }
+        }
+      }
+    },
+    "Disable breakpoint": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disable breakpoint"
+          }
+        }
+      }
+    },
+    "Enable breakpoint": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable breakpoint"
+          }
+        }
+      }
+    },
+    "Breakpoint %@": {
+      "comment": "Debugger label. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Breakpoint %@"
+          }
+        }
+      }
+    },
+    "1 hit": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 hit"
+          }
+        }
+      }
+    },
+    "%@ hits": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ hits"
+          }
+        }
+      }
+    },
+    "%lld hits": {
+      "comment": "Debugger text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld hits"
+          }
+        }
+      }
+    },
+    "Disable": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disable"
+          }
+        }
+      }
+    },
+    "Enable": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable"
+          }
+        }
+      }
+    },
+    "Edit…": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit…"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        }
+      }
+    },
+    "Memory at %@, %lld bytes": {
+      "comment": "Debugger label. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory at %@, %lld bytes"
+          }
+        }
+      }
+    },
+    "No watches yet": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No watches yet"
+          }
+        }
+      }
+    },
+    "Watches": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watches"
+          }
+        }
+      }
+    },
+    "Evaluate": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evaluate"
+          }
+        }
+      }
+    },
+    "Evaluate the watches at this frame. %@": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evaluate the watches at this frame. %@"
+          }
+        }
+      }
+    },
+    "Evaluate the watches at this frame": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evaluate the watches at this frame"
+          }
+        }
+      }
+    },
+    "Remove watch": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove watch"
+          }
+        }
+      }
+    },
+    "Remove watch %@": {
+      "comment": "Debugger label. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove watch %@"
+          }
+        }
+      }
+    },
+    "Evaluate at a stopped frame to see its value": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evaluate at a stopped frame to see its value"
+          }
+        }
+      }
+    },
+    "Remove Watch": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove Watch"
+          }
+        }
+      }
+    },
+    "Add watch": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add watch"
+          }
+        }
+      }
+    },
+    "Watch limit reached": {
+      "comment": "Debugger text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watch limit reached"
+          }
+        }
+      }
+    },
+    "New watch expression": {
+      "comment": "Debugger label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New watch expression"
+          }
+        }
+      }
+    },
+    "Collapse %@": {
+      "comment": "Debugger text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse %@"
+          }
+        }
+      }
+    },
+    "Retry loading %@": {
+      "comment": "Debugger text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry loading %@"
+          }
+        }
+      }
+    },
+    "Expand %@": {
+      "comment": "Debugger text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand %@"
+          }
+        }
+      }
+    },
+    "level %lld": {
+      "comment": "Debugger text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "level %lld"
+          }
+        }
+      }
+    },
+    "Compact": {
+      "comment": "Density text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compact"
+          }
+        }
+      }
+    },
+    "Regular": {
+      "comment": "Density text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regular"
+          }
+        }
+      }
+    },
+    "Comfortable": {
+      "comment": "Density text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comfortable"
+          }
+        }
+      }
+    },
+    "Document title": {
+      "comment": "DocumentWindow label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Document title"
+          }
+        }
+      }
+    },
+    "Edited": {
+      "comment": "DocumentWindow text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edited"
+          }
+        }
+      }
+    },
+    "Unmodified": {
+      "comment": "DocumentWindow text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unmodified"
+          }
+        }
+      }
+    },
+    "Suggestions": {
+      "comment": "Editors text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggestions"
+          }
+        }
+      }
+    },
+    "Array": {
+      "comment": "Value type name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Array"
+          }
+        }
+      }
+    },
+    "Boolean": {
+      "comment": "Value type name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boolean"
+          }
+        }
+      }
+    },
+    "Null": {
+      "comment": "Value type name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Null"
+          }
+        }
+      }
+    },
+    "Number": {
+      "comment": "Value type name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Number"
+          }
+        }
+      }
+    },
+    "Object": {
+      "comment": "Value type name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Object"
+          }
+        }
+      }
+    },
+    "String": {
+      "comment": "Value type name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "String"
+          }
+        }
+      }
+    },
+    "Key": {
+      "comment": "Editors text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key"
+          }
+        }
+      }
+    },
+    "Type": {
+      "comment": "Editors text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type"
+          }
+        }
+      }
+    },
+    "Restore Defaults": {
+      "comment": "Editors text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore Defaults"
+          }
+        }
+      }
+    },
+    "Value type": {
+      "comment": "Editors text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value type"
+          }
+        }
+      }
+    },
+    "Any": {
+      "comment": "Rule matching choice.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Any"
+          }
+        }
+      }
+    },
+    "All": {
+      "comment": "Rule matching choice.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        }
+      }
+    },
+    "None": {
+      "comment": "Rule matching choice.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        }
+      }
+    },
+    "of the following are true": {
+      "comment": "Editors label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "of the following are true"
+          }
+        }
+      }
+    },
+    "Add Condition": {
+      "comment": "Editors text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Condition"
+          }
+        }
+      }
+    },
+    "Remove Condition": {
+      "comment": "Editors text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove Condition"
+          }
+        }
+      }
+    },
+    "Increase": {
+      "comment": "EntryControls text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Increase"
+          }
+        }
+      }
+    },
+    "Decrease": {
+      "comment": "EntryControls text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decrease"
+          }
+        }
+      }
+    },
+    "Date": {
+      "comment": "EntryControls text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
+          }
+        }
+      }
+    },
+    "Time": {
+      "comment": "EntryControls text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time"
+          }
+        }
+      }
+    },
+    "Remove %@": {
+      "comment": "EntryControls label. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %@"
+          }
+        }
+      }
+    },
+    "All tabs": {
+      "comment": "Extras label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All tabs"
+          }
+        }
+      }
+    },
+    "Include %@": {
+      "comment": "Extras label. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include %@"
+          }
+        }
+      }
+    },
+    "Some": {
+      "comment": "Extras text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some"
+          }
+        }
+      }
+    },
+    "Message (press ⌘↩ to commit)": {
+      "comment": "Extras text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message (press ⌘↩ to commit)"
+          }
+        }
+      }
+    },
+    "Amend": {
+      "comment": "Extras label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amend"
+          }
+        }
+      }
+    },
+    "The first line’s length; aim for %lld or fewer": {
+      "comment": "Extras help text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The first line’s length; aim for %lld or fewer"
+          }
+        }
+      }
+    },
+    "Commit": {
+      "comment": "Extras label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commit"
+          }
+        }
+      }
+    },
+    "Options…": {
+      "comment": "Extras label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Options…"
+          }
+        }
+      }
+    },
+    "Font": {
+      "comment": "Extras label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Font"
+          }
+        }
+      }
+    },
+    "Install": {
+      "comment": "Extras label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install"
+          }
+        }
+      }
+    },
+    "Installed": {
+      "comment": "Extras label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed"
+          }
+        }
+      }
+    },
+    "Next": {
+      "comment": "Extras text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        }
+      }
+    },
+    "Previous": {
+      "comment": "Extras text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous"
+          }
+        }
+      }
+    },
+    "Share": {
+      "comment": "Extras label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
+          }
+        }
+      }
+    },
+    "Allowed to:": {
+      "comment": "Extras label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed to:"
+          }
+        }
+      }
+    },
+    "Following the default": {
+      "comment": "Forms text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Following the default"
+          }
+        }
+      }
+    },
+    "Overrides the default (%@)": {
+      "comment": "Forms text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overrides the default (%@)"
+          }
+        }
+      }
+    },
+    "Help": {
+      "comment": "Forms label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help"
+          }
+        }
+      }
+    },
+    "Not Found": {
+      "comment": "Forms text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Found"
+          }
+        }
+      }
+    },
+    "Running": {
+      "comment": "Forms text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Running"
+          }
+        }
+      }
+    },
+    "Check Again": {
+      "comment": "Forms label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check Again"
+          }
+        }
+      }
+    },
+    "Check again": {
+      "comment": "Forms help text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check again"
+          }
+        }
+      }
+    },
+    "Info": {
+      "comment": "Forms label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Info"
+          }
+        }
+      }
+    },
+    "Switch": {
+      "comment": "Forms label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch"
+          }
+        }
+      }
+    },
+    "Nothing selected": {
+      "comment": "Forms text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing selected"
+          }
+        }
+      }
+    },
+    "Choose an item on the right.": {
+      "comment": "Empty master-detail instruction when the item list is on the right.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an item on the right."
+          }
+        }
+      }
+    },
+    "Choose an item on the left.": {
+      "comment": "Forms text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an item on the left."
+          }
+        }
+      }
+    },
+    "%@, configured": {
+      "comment": "Item title followed by its configured state.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, configured"
+          }
+        }
+      }
+    },
+    "Lens": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lens"
+          }
+        }
+      }
+    },
+    "Color Mix": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color Mix"
+          }
+        }
+      }
+    },
+    "Token": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token"
+          }
+        }
+      }
+    },
+    "Binary": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Binary"
+          }
+        }
+      }
+    },
+    "Call Graph": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Call Graph"
+          }
+        }
+      }
+    },
+    "Disassembly": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disassembly"
+          }
+        }
+      }
+    },
+    "Pseudocode": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pseudocode"
+          }
+        }
+      }
+    },
+    "Patched Bytes": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Patched Bytes"
+          }
+        }
+      }
+    },
+    "Breakpoint": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Breakpoint"
+          }
+        }
+      }
+    },
+    "Memory Map": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory Map"
+          }
+        }
+      }
+    },
+    "Entry Point": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry Point"
+          }
+        }
+      }
+    },
+    "Cross-Reference": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cross-Reference"
+          }
+        }
+      }
+    },
+    "Image Series": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image Series"
+          }
+        }
+      }
+    },
+    "Axial Slice": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Axial Slice"
+          }
+        }
+      }
+    },
+    "Anonymize": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anonymize"
+          }
+        }
+      }
+    },
+    "Redacted Field": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redacted Field"
+          }
+        }
+      }
+    },
+    "Window/Level": {
+      "comment": "Built-in glyph display name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window/Level"
+          }
+        }
+      }
+    },
+    "%lld instructions": {
+      "comment": "Number of instructions in the block.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld instructions"
+          }
+        }
+      }
+    },
+    "%@ tag": {
+      "comment": "Graph text. Values identify the item or count described.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ tag"
+          }
+        }
+      }
+    },
+    "in selection": {
+      "comment": "Graph text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in selection"
+          }
+        }
+      }
+    },
+    "selected": {
+      "comment": "Graph text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "selected"
+          }
+        }
+      }
+    },
+    "current block": {
+      "comment": "Graph text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "current block"
+          }
+        }
+      }
+    },
+    "Branch taken": {
+      "comment": "Graph text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branch taken"
+          }
+        }
+      }
+    },
+    "Branch not taken": {
+      "comment": "Graph text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branch not taken"
+          }
+        }
+      }
+    },
+    "Unconditional": {
+      "comment": "Graph text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unconditional"
+          }
+        }
+      }
+    },
+    "Call": {
+      "comment": "Graph text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Call"
+          }
+        }
+      }
+    },
+    "Expanded": {
+      "comment": "Inspector text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expanded"
+          }
+        }
+      }
+    },
+    "Collapsed": {
+      "comment": "Inspector text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapsed"
+          }
+        }
+      }
+    },
+    "Collapses the section": {
+      "comment": "Inspector text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapses the section"
+          }
+        }
+      }
+    },
+    "Expands the section": {
+      "comment": "Inspector text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expands the section"
+          }
+        }
+      }
+    },
+    "Hide Inspector": {
+      "comment": "Inspector text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Inspector"
+          }
+        }
+      }
+    },
+    "Show Inspector": {
+      "comment": "Inspector text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Inspector"
+          }
+        }
+      }
+    },
+    "Color": {
+      "comment": "Inspector label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Color"
+          }
+        }
+      }
+    },
+    "Violet": {
+      "comment": "Built-in color swatch name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Violet"
+          }
+        }
+      }
+    },
+    "Indigo": {
+      "comment": "Built-in color swatch name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indigo"
+          }
+        }
+      }
+    },
+    "Blue": {
+      "comment": "Built-in color swatch name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blue"
+          }
+        }
+      }
+    },
+    "Teal": {
+      "comment": "Built-in color swatch name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teal"
+          }
+        }
+      }
+    },
+    "Green": {
+      "comment": "Built-in color swatch name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Green"
+          }
+        }
+      }
+    },
+    "Yellow": {
+      "comment": "Built-in color swatch name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yellow"
+          }
+        }
+      }
+    },
+    "Orange": {
+      "comment": "Built-in color swatch name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orange"
+          }
+        }
+      }
+    },
+    "Red": {
+      "comment": "Built-in color swatch name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Red"
+          }
+        }
+      }
+    },
+    "Pink": {
+      "comment": "Built-in color swatch name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pink"
+          }
+        }
+      }
+    },
+    "Graphite": {
+      "comment": "Built-in color swatch name.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Graphite"
+          }
+        }
+      }
+    },
+    "Go to %@": {
+      "comment": "Inspector text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to %@"
+          }
+        }
+      }
+    },
+    "Goes to this location": {
+      "comment": "Inspector text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goes to this location"
+          }
+        }
+      }
+    },
+    "Show/Hide Navigator": {
+      "comment": "Shortcut description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show/Hide Navigator"
+          }
+        }
+      }
+    },
+    "Show/Hide Panel": {
+      "comment": "Shortcut description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show/Hide Panel"
+          }
+        }
+      }
+    },
+    "Show/Hide Inspector": {
+      "comment": "Shortcut description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show/Hide Inspector"
+          }
+        }
+      }
+    },
+    "Select Previous Tab": {
+      "comment": "Shortcut description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Previous Tab"
+          }
+        }
+      }
+    },
+    "Select Next Tab": {
+      "comment": "Shortcut description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Next Tab"
+          }
+        }
+      }
+    },
+    "Keyboard Shortcuts": {
+      "comment": "Shortcut description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard Shortcuts"
+          }
+        }
+      }
+    },
+    "Sidebar Pane %lld": {
+      "comment": "Shortcut description.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sidebar Pane %lld"
+          }
+        }
+      }
+    },
+    "View": {
+      "comment": "Shortcut group title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View"
+          }
+        }
+      }
+    },
+    "Window": {
+      "comment": "Shortcut group title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window"
+          }
+        }
+      }
+    },
+    "Show %@": {
+      "comment": "Window command title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show %@"
+          }
+        }
+      }
+    },
+    "Command Palette…": {
+      "comment": "Window command title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Command Palette…"
+          }
+        }
+      }
+    },
+    "Toggle Sidebar": {
+      "comment": "Keyboard label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toggle Sidebar"
+          }
+        }
+      }
+    },
+    "Hide Navigator": {
+      "comment": "Window command title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Navigator"
+          }
+        }
+      }
+    },
+    "Show Navigator": {
+      "comment": "Window command title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Navigator"
+          }
+        }
+      }
+    },
+    "Hide Panel": {
+      "comment": "Window command title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Panel"
+          }
+        }
+      }
+    },
+    "Show Panel": {
+      "comment": "Window command title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Panel"
+          }
+        }
+      }
+    },
+    "program counter": {
+      "comment": "Listing text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "program counter"
+          }
+        }
+      }
+    },
+    "patched": {
+      "comment": "Listing text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "patched"
+          }
+        }
+      }
+    },
+    "Program counter": {
+      "comment": "Listing help text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Program counter"
+          }
+        }
+      }
+    },
+    "at 0x%@": {
+      "comment": "Instruction address in hexadecimal.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "at 0x%@"
+          }
+        }
+      }
+    },
+    "Settings…": {
+      "comment": "MenuBarPanel label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings…"
+          }
+        }
+      }
+    },
+    "Quit": {
+      "comment": "MenuBarPanel label.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit"
+          }
+        }
+      }
+    },
+    "Filter": {
+      "comment": "Default filter text supplied by Lumen when the app omits it.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "comment": "Default cancel text supplied by Lumen when the app omits it.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "Try again": {
+      "comment": "Default tryAgain text supplied by Lumen when the app omits it.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        }
+      }
+    },
+    "Ready": {
+      "comment": "Default ready text supplied by Lumen when the app omits it.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        }
+      }
+    },
+    "Done": {
+      "comment": "Default done text supplied by Lumen when the app omits it.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "New": {
+      "comment": "Default new text supplied by Lumen when the app omits it.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New"
+          }
+        }
+      }
+    },
+    "Drag a sidebar icon here to dock.": {
+      "comment": "Default dockMessage text supplied by Lumen when the app omits it.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag a sidebar icon here to dock."
+          }
+        }
+      }
+    },
+    "New Tab": {
+      "comment": "Default newTab text supplied by Lumen when the app omits it.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Tab"
+          }
+        }
+      }
+    },
+    "%@ %@": {
+      "comment": "PanelBar control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ %@"
+          }
+        }
+      }
+    },
+    "Back": {
+      "comment": "PanelBar control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        }
+      }
+    },
+    "Forward": {
+      "comment": "PanelBar control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forward"
+          }
+        }
+      }
+    },
+    "Clear Filter": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Filter"
+          }
+        }
+      }
+    },
+    "Errors": {
+      "comment": "Log filter scope.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Errors"
+          }
+        }
+      }
+    },
+    "Warnings": {
+      "comment": "Log filter scope.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warnings"
+          }
+        }
+      }
+    },
+    "Logs": {
+      "comment": "Log filter scope.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logs"
+          }
+        }
+      }
+    },
+    "Source": {
+      "comment": "Log table column heading.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source"
+          }
+        }
+      }
+    },
+    "Message": {
+      "comment": "Log table column heading.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message"
+          }
+        }
+      }
+    },
+    "Nothing logged yet": {
+      "comment": "Panels display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing logged yet"
+          }
+        }
+      }
+    },
+    "No entries match the filter": {
+      "comment": "Panels display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No entries match the filter"
+          }
+        }
+      }
+    },
+    "Level": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Level"
+          }
+        }
+      }
+    },
+    "Clear": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        }
+      }
+    },
+    "All Sources": {
+      "comment": "Panels display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Sources"
+          }
+        }
+      }
+    },
+    "Sidebar panes": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sidebar panes"
+          }
+        }
+      }
+    },
+    "Move Left": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Left"
+          }
+        }
+      }
+    },
+    "Move Right": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Right"
+          }
+        }
+      }
+    },
+    "Hide %@": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide %@"
+          }
+        }
+      }
+    },
+    "Show All": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show All"
+          }
+        }
+      }
+    },
+    "Reset Order": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset Order"
+          }
+        }
+      }
+    },
+    "Duplicate Tab in Split On Left": {
+      "comment": "Panels display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate Tab in Split On Left"
+          }
+        }
+      }
+    },
+    "Duplicate Tab in Split On Right": {
+      "comment": "Panels display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate Tab in Split On Right"
+          }
+        }
+      }
+    },
+    "Open Documents": {
+      "comment": "Panels display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Documents"
+          }
+        }
+      }
+    },
+    "Open documents": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open documents"
+          }
+        }
+      }
+    },
+    "Close %@": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close %@"
+          }
+        }
+      }
+    },
+    "Close Tab": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Tab"
+          }
+        }
+      }
+    },
+    "%@, pinned, edited": {
+      "comment": "Tab title followed by pinned and edited states.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, pinned, edited"
+          }
+        }
+      }
+    },
+    "%@, pinned": {
+      "comment": "Tab title followed by pinned state.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, pinned"
+          }
+        }
+      }
+    },
+    "%@, edited": {
+      "comment": "Tab title followed by edited state.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, edited"
+          }
+        }
+      }
+    },
+    "Close Other Tabs": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Other Tabs"
+          }
+        }
+      }
+    },
+    "Close All Tabs": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close All Tabs"
+          }
+        }
+      }
+    },
+    "Unpin Tab": {
+      "comment": "Panels display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpin Tab"
+          }
+        }
+      }
+    },
+    "Pin Tab": {
+      "comment": "Panels display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pin Tab"
+          }
+        }
+      }
+    },
+    "Copy Path": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy Path"
+          }
+        }
+      }
+    },
+    "Choose Icon": {
+      "comment": "Pickers tooltip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Icon"
+          }
+        }
+      }
+    },
+    "Step %lld of %lld": {
+      "comment": "Pickers control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step %lld of %lld"
+          }
+        }
+      }
+    },
+    "User": {
+      "comment": "File permissions owner class.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "User"
+          }
+        }
+      }
+    },
+    "Group": {
+      "comment": "Pickers display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Group"
+          }
+        }
+      }
+    },
+    "World": {
+      "comment": "File permissions other users class.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "World"
+          }
+        }
+      }
+    },
+    "Read": {
+      "comment": "Pickers display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read"
+          }
+        }
+      }
+    },
+    "Write": {
+      "comment": "Pickers display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write"
+          }
+        }
+      }
+    },
+    "Execute": {
+      "comment": "Pickers display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Execute"
+          }
+        }
+      }
+    },
+    "Octal:": {
+      "comment": "Pickers control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Octal:"
+          }
+        }
+      }
+    },
+    "Octal permissions": {
+      "comment": "Pickers control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Octal permissions"
+          }
+        }
+      }
+    },
+    "More": {
+      "comment": "Pickers display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        }
+      }
+    },
+    "Bold": {
+      "comment": "RichText control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bold"
+          }
+        }
+      }
+    },
+    "Italic": {
+      "comment": "RichText control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Italic"
+          }
+        }
+      }
+    },
+    "Underline": {
+      "comment": "RichText control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Underline"
+          }
+        }
+      }
+    },
+    "Bulleted List": {
+      "comment": "RichText control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bulleted List"
+          }
+        }
+      }
+    },
+    "Code font": {
+      "comment": "Rows control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code font"
+          }
+        }
+      }
+    },
+    "System (SF Mono)": {
+      "comment": "Rows display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System (SF Mono)"
+          }
+        }
+      }
+    },
+    "Family": {
+      "comment": "Rows control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Family"
+          }
+        }
+      }
+    },
+    "pt": {
+      "comment": "Rows display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pt"
+          }
+        }
+      }
+    },
+    "No results": {
+      "comment": "Search display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No results"
+          }
+        }
+      }
+    },
+    "%@ result in %@ file": {
+      "comment": "Search summary: result count, then file count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ result in %@ file"
+          }
+        }
+      }
+    },
+    "%@ result in %@ files": {
+      "comment": "Search summary: result count, then file count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ result in %@ files"
+          }
+        }
+      }
+    },
+    "%@ results in %@ file": {
+      "comment": "Search summary: result count, then file count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ results in %@ file"
+          }
+        }
+      }
+    },
+    "%@ results in %@ files": {
+      "comment": "Search summary: result count, then file count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ results in %@ files"
+          }
+        }
+      }
+    },
+    "Nothing matches the search": {
+      "comment": "Search display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing matches the search"
+          }
+        }
+      }
+    },
+    "Search results, %@": {
+      "comment": "Search results summary.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search results, %@"
+          }
+        }
+      }
+    },
+    "Expand All": {
+      "comment": "Search control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand All"
+          }
+        }
+      }
+    },
+    "Collapse All": {
+      "comment": "Search control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse All"
+          }
+        }
+      }
+    },
+    "%@, %lld matches": {
+      "comment": "Search control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %lld matches"
+          }
+        }
+      }
+    },
+    "Line %lld: %@": {
+      "comment": "Search control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Line %lld: %@"
+          }
+        }
+      }
+    },
+    "Contains": {
+      "comment": "Search matching mode.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contains"
+          }
+        }
+      }
+    },
+    "Starts With": {
+      "comment": "Search matching mode.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starts With"
+          }
+        }
+      }
+    },
+    "Whole Word": {
+      "comment": "Search matching mode.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whole Word"
+          }
+        }
+      }
+    },
+    "Regular Expression": {
+      "comment": "Search matching mode.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regular Expression"
+          }
+        }
+      }
+    },
+    "Find": {
+      "comment": "Search display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find"
+          }
+        }
+      }
+    },
+    "Case sensitive": {
+      "comment": "Search control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Case sensitive"
+          }
+        }
+      }
+    },
+    "Ignore case": {
+      "comment": "Search display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignore case"
+          }
+        }
+      }
+    },
+    "Replace": {
+      "comment": "Search display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace"
+          }
+        }
+      }
+    },
+    "Replace All": {
+      "comment": "Search control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace All"
+          }
+        }
+      }
+    },
+    "Go to Line": {
+      "comment": "Search display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to Line"
+          }
+        }
+      }
+    },
+    "Enter a line number (“12”) or a line and column (“12:30”).": {
+      "comment": "Search display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a line number (“12”) or a line and column (“12:30”)."
+          }
+        }
+      }
+    },
+    "Search Settings": {
+      "comment": "Settings display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search Settings"
+          }
+        }
+      }
+    },
+    "Sidebar": {
+      "comment": "Settings control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sidebar"
+          }
+        }
+      }
+    },
+    "Show or hide sidebar": {
+      "comment": "Settings tooltip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show or hide sidebar"
+          }
+        }
+      }
+    },
+    "No matching settings": {
+      "comment": "Settings display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching settings"
+          }
+        }
+      }
+    },
+    "Try a different word, or clear the search.": {
+      "comment": "Settings display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a different word, or clear the search."
+          }
+        }
+      }
+    },
+    "Clear search": {
+      "comment": "Settings display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear search"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "comment": "Settings display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "Text scale": {
+      "comment": "Settings control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text scale"
+          }
+        }
+      }
+    },
+    "Density": {
+      "comment": "Settings control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Density"
+          }
+        }
+      }
+    },
+    "Use the system accent color": {
+      "comment": "Settings control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the system accent color"
+          }
+        }
+      }
+    },
+    "Appearance": {
+      "comment": "Appearance settings heading.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance"
+          }
+        }
+      }
+    },
+    "Theme, accent and how tightly rows are packed.": {
+      "comment": "Description of appearance settings.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme, accent and how tightly rows are packed."
+          }
+        }
+      }
+    },
+    "Theme": {
+      "comment": "Theme selection section.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme"
+          }
+        }
+      }
+    },
+    "No items available": {
+      "comment": "SettingsFormRows display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No items available"
+          }
+        }
+      }
+    },
+    "Close": {
+      "comment": "Sheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "No processes": {
+      "comment": "Sheet display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No processes"
+          }
+        }
+      }
+    },
+    "Processes": {
+      "comment": "Sheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processes"
+          }
+        }
+      }
+    },
+    "process %d": {
+      "comment": "Process identifier in the process list.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "process %d"
+          }
+        }
+      }
+    },
+    "Attach": {
+      "comment": "Attach to the selected process.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attach"
+          }
+        }
+      }
+    },
+    "Search shortcuts": {
+      "comment": "ShortcutsSheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search shortcuts"
+          }
+        }
+      }
+    },
+    "No matching shortcuts": {
+      "comment": "ShortcutsSheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching shortcuts"
+          }
+        }
+      }
+    },
+    "Overview": {
+      "comment": "Sample Overview label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overview"
+          }
+        }
+      }
+    },
+    "12 items": {
+      "comment": "Sample 12 items label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "12 items"
+          }
+        }
+      }
+    },
+    "Inbox": {
+      "comment": "Sample Inbox label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inbox"
+          }
+        }
+      }
+    },
+    "3 new": {
+      "comment": "Sample 3 new label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 new"
+          }
+        }
+      }
+    },
+    "Today": {
+      "comment": "Sample Today label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        }
+      }
+    },
+    "Archive": {
+      "comment": "Sample Archive label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive"
+          }
+        }
+      }
+    },
+    "Project": {
+      "comment": "Sample Project label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Project"
+          }
+        }
+      }
+    },
+    "LIBRARY": {
+      "comment": "Sample LIBRARY label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LIBRARY"
+          }
+        }
+      }
+    },
+    "Verified": {
+      "comment": "Sample Verified label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verified"
+          }
+        }
+      }
+    },
+    "2 warnings": {
+      "comment": "Sample 2 warnings label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 warnings"
+          }
+        }
+      }
+    },
+    "1 error": {
+      "comment": "Sample 1 error label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 error"
+          }
+        }
+      }
+    },
+    "Draft": {
+      "comment": "Sample Draft label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft"
+          }
+        }
+      }
+    },
+    "version": {
+      "comment": "Sample version label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "version"
+          }
+        }
+      }
+    },
+    "items": {
+      "comment": "Sample items label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "items"
+          }
+        }
+      }
+    },
+    "pinned": {
+      "comment": "Sample pinned label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pinned"
+          }
+        }
+      }
+    },
+    "Owner": {
+      "comment": "Sample Owner label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owner"
+          }
+        }
+      }
+    },
+    "Identifier": {
+      "comment": "Sample Identifier label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identifier"
+          }
+        }
+      }
+    },
+    "Selected row": {
+      "comment": "Sample Selected row label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected row"
+          }
+        }
+      }
+    },
+    "A link to more": {
+      "comment": "Sample A link to more label in the theme preview.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A link to more"
+          }
+        }
+      }
+    },
+    "Hide Sidebar": {
+      "comment": "SidebarToggle display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Sidebar"
+          }
+        }
+      }
+    },
+    "Show Sidebar": {
+      "comment": "SidebarToggle display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Sidebar"
+          }
+        }
+      }
+    },
+    "Note": {
+      "comment": "States display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note"
+          }
+        }
+      }
+    },
+    "Purple": {
+      "comment": "Color tag title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purple"
+          }
+        }
+      }
+    },
+    "Gray": {
+      "comment": "Color tag title.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gray"
+          }
+        }
+      }
+    },
+    "%@: %@": {
+      "comment": "States control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %@"
+          }
+        }
+      }
+    },
+    "Loading": {
+      "comment": "States control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading"
+          }
+        }
+      }
+    },
+    "%@, %lld percent": {
+      "comment": "States message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %lld percent"
+          }
+        }
+      }
+    },
+    "%@, loading": {
+      "comment": "States message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, loading"
+          }
+        }
+      }
+    },
+    "Error: %@. %@": {
+      "comment": "States control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error: %@. %@"
+          }
+        }
+      }
+    },
+    "Progress": {
+      "comment": "States control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progress"
+          }
+        }
+      }
+    },
+    "%lld percent": {
+      "comment": "States message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld percent"
+          }
+        }
+      }
+    },
+    "In progress": {
+      "comment": "States display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In progress"
+          }
+        }
+      }
+    },
+    "Colors": {
+      "comment": "Theme editor tab.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colors"
+          }
+        }
+      }
+    },
+    "Metrics": {
+      "comment": "Theme editor tab.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metrics"
+          }
+        }
+      }
+    },
+    "Theme name": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme name"
+          }
+        }
+      }
+    },
+    "Editing %@": {
+      "comment": "ThemeEditor message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editing %@"
+          }
+        }
+      }
+    },
+    "Based on %@": {
+      "comment": "ThemeEditor message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Based on %@"
+          }
+        }
+      }
+    },
+    "Dark": {
+      "comment": "ThemeEditor display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark"
+          }
+        }
+      }
+    },
+    "Light": {
+      "comment": "ThemeEditor display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light"
+          }
+        }
+      }
+    },
+    "Increase Contrast": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Increase Contrast"
+          }
+        }
+      }
+    },
+    "Filter colors": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter colors"
+          }
+        }
+      }
+    },
+    "Filter colors, e.g. sidebar or accent": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter colors, e.g. sidebar or accent"
+          }
+        }
+      }
+    },
+    "Changed only": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changed only"
+          }
+        }
+      }
+    },
+    "No matching colors": {
+      "comment": "ThemeEditor display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching colors"
+          }
+        }
+      }
+    },
+    "You haven’t changed any colors that match.": {
+      "comment": "ThemeEditor display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You haven’t changed any colors that match."
+          }
+        }
+      }
+    },
+    "No color name matches the filter.": {
+      "comment": "ThemeEditor display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No color name matches the filter."
+          }
+        }
+      }
+    },
+    "Clear filter": {
+      "comment": "ThemeEditor display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear filter"
+          }
+        }
+      }
+    },
+    "Revert %@": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revert %@"
+          }
+        }
+      }
+    },
+    "Revert to the theme's value": {
+      "comment": "ThemeEditor tooltip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revert to the theme's value"
+          }
+        }
+      }
+    },
+    "Checks": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks"
+          }
+        }
+      }
+    },
+    "Meets the contrast rules": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meets the contrast rules"
+          }
+        }
+      }
+    },
+    "Fix": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix"
+          }
+        }
+      }
+    },
+    "Undo": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        }
+      }
+    },
+    "Redo": {
+      "comment": "ThemeEditor control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redo"
+          }
+        }
+      }
+    },
+    "Save Changes": {
+      "comment": "ThemeEditor display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Changes"
+          }
+        }
+      }
+    },
+    "Save Theme": {
+      "comment": "ThemeEditor display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Theme"
+          }
+        }
+      }
+    },
+    "Fix the validation errors to save": {
+      "comment": "ThemeEditor display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix the validation errors to save"
+          }
+        }
+      }
+    },
+    "Save as a user theme": {
+      "comment": "ThemeEditor display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save as a user theme"
+          }
+        }
+      }
+    },
+    "%@ Custom": {
+      "comment": "ThemeEditorSession message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Custom"
+          }
+        }
+      }
+    },
+    "Change %@": {
+      "comment": "ThemeEditorSession message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change %@"
+          }
+        }
+      }
+    },
+    "Reset %@": {
+      "comment": "ThemeEditorSession message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset %@"
+          }
+        }
+      }
+    },
+    "Change radius": {
+      "comment": "ThemeEditorSession message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change radius"
+          }
+        }
+      }
+    },
+    "Change type scale": {
+      "comment": "ThemeEditorSession message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change type scale"
+          }
+        }
+      }
+    },
+    "Change spacing scale": {
+      "comment": "ThemeEditorSession message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change spacing scale"
+          }
+        }
+      }
+    },
+    "Change motion": {
+      "comment": "ThemeEditorSession message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change motion"
+          }
+        }
+      }
+    },
+    "Reset depth": {
+      "comment": "ThemeEditorSession message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset depth"
+          }
+        }
+      }
+    },
+    "Fix theme issue": {
+      "comment": "ThemeEditorSession message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fix theme issue"
+          }
+        }
+      }
+    },
+    "Customize %@…": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize %@…"
+          }
+        }
+      }
+    },
+    "New from seed…": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New from seed…"
+          }
+        }
+      }
+    },
+    "Import Theme…": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import Theme…"
+          }
+        }
+      }
+    },
+    "Reveal Themes Folder": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reveal Themes Folder"
+          }
+        }
+      }
+    },
+    "Duplicate %@": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate %@"
+          }
+        }
+      }
+    },
+    "Reload Themes": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload Themes"
+          }
+        }
+      }
+    },
+    "Rename Theme": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename Theme"
+          }
+        }
+      }
+    },
+    "Name": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        }
+      }
+    },
+    "Rename": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename"
+          }
+        }
+      }
+    },
+    "Move “%@” to the Trash?": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move “%@” to the Trash?"
+          }
+        }
+      }
+    },
+    "Move to Trash": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to Trash"
+          }
+        }
+      }
+    },
+    "You can restore the theme file from the Trash in Finder.": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can restore the theme file from the Trash in Finder."
+          }
+        }
+      }
+    },
+    "Theme Problem": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme Problem"
+          }
+        }
+      }
+    },
+    "OK": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "Customize…": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize…"
+          }
+        }
+      }
+    },
+    "Same as window": {
+      "comment": "ThemeGallery display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Same as window"
+          }
+        }
+      }
+    },
+    "%@ theme": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ theme"
+          }
+        }
+      }
+    },
+    "Imported “%@” with %lld contrast problem": {
+      "comment": "Imported theme name and contrast problem count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported “%@” with %lld contrast problem"
+          }
+        }
+      }
+    },
+    "Imported “%@” with %lld contrast problems": {
+      "comment": "Imported theme name and contrast problem count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported “%@” with %lld contrast problems"
+          }
+        }
+      }
+    },
+    "\n\nSome text may be hard to read. Choose Customize… to fix the colors.": {
+      "comment": "ThemeGallery message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\n\nSome text may be hard to read. Choose Customize… to fix the colors."
+          }
+        }
+      }
+    },
+    "Imported %lld themes with contrast problems": {
+      "comment": "ThemeGallery message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Imported %lld themes with contrast problems"
+          }
+        }
+      }
+    },
+    "%@: %lld problem": {
+      "comment": "Theme name and contrast problem count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %lld problem"
+          }
+        }
+      }
+    },
+    "%@: %lld problems": {
+      "comment": "Theme name and contrast problem count.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: %lld problems"
+          }
+        }
+      }
+    },
+    "Duplicate": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate"
+          }
+        }
+      }
+    },
+    "Export…": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export…"
+          }
+        }
+      }
+    },
+    "Rename…": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename…"
+          }
+        }
+      }
+    },
+    "Show in Finder": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in Finder"
+          }
+        }
+      }
+    },
+    "Move to Trash…": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to Trash…"
+          }
+        }
+      }
+    },
+    "1 theme file couldn’t load": {
+      "comment": "ThemeGallery display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 theme file couldn’t load"
+          }
+        }
+      }
+    },
+    "%lld theme files couldn’t load": {
+      "comment": "ThemeGallery message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld theme files couldn’t load"
+          }
+        }
+      }
+    },
+    "%lld theme issues": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld theme issues"
+          }
+        }
+      }
+    },
+    "Selected": {
+      "comment": "ThemeGallery display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected"
+          }
+        }
+      }
+    },
+    "%lld issues": {
+      "comment": "ThemeGallery message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld issues"
+          }
+        }
+      }
+    },
+    "Always dark": {
+      "comment": "ThemeGallery tooltip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Always dark"
+          }
+        }
+      }
+    },
+    "Always light": {
+      "comment": "ThemeGallery tooltip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Always light"
+          }
+        }
+      }
+    },
+    "Light and Dark": {
+      "comment": "ThemeGallery control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light and Dark"
+          }
+        }
+      }
+    },
+    "Follows Light and Dark": {
+      "comment": "ThemeGallery tooltip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follows Light and Dark"
+          }
+        }
+      }
+    },
+    "This file isn’t a theme: %@": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This file isn’t a theme: %@"
+          }
+        }
+      }
+    },
+    "This theme needs a newer version of the app (theme format %lld).": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This theme needs a newer version of the app (theme format %lld)."
+          }
+        }
+      }
+    },
+    "This theme can’t be loaded: it %@.": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This theme can’t be loaded: it %@."
+          }
+        }
+      }
+    },
+    "Built-in themes can’t be removed.": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Built-in themes can’t be removed."
+          }
+        }
+      }
+    },
+    "The theme was saved but can’t be loaded: %@.": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The theme was saved but can’t be loaded: %@."
+          }
+        }
+      }
+    },
+    "the file can’t be read": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the file can’t be read"
+          }
+        }
+      }
+    },
+    "the file is a symbolic link; copy the theme into the folder instead": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the file is a symbolic link; copy the theme into the folder instead"
+          }
+        }
+      }
+    },
+    "the file is larger than %lld KB; a theme is a few KB of colors": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the file is larger than %lld KB; a theme is a few KB of colors"
+          }
+        }
+      }
+    },
+    "the id %@ belongs to a built-in theme": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the id %@ belongs to a built-in theme"
+          }
+        }
+      }
+    },
+    "another theme file already uses the id %@": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "another theme file already uses the id %@"
+          }
+        }
+      }
+    },
+    "it %@": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "it %@"
+          }
+        }
+      }
+    },
+    "“%@” is missing": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” is missing"
+          }
+        }
+      }
+    },
+    "unexpected value at %@": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unexpected value at %@"
+          }
+        }
+      }
+    },
+    "Based on %@.": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Based on %@."
+          }
+        }
+      }
+    },
+    "the folder didn’t load it": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the folder didn’t load it"
+          }
+        }
+      }
+    },
+    "a theme needs a name": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a theme needs a name"
+          }
+        }
+      }
+    },
+    "%@ isn’t in the themes folder": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ isn’t in the themes folder"
+          }
+        }
+      }
+    },
+    "%@ Copy %lld": {
+      "comment": "Original theme name and numbered copy suffix.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Copy %lld"
+          }
+        }
+      }
+    },
+    "%@ Copy": {
+      "comment": "Original theme name and copy suffix.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Copy"
+          }
+        }
+      }
+    },
+    "Your copy of %@. Edit the JSON, then choose Reload Themes.": {
+      "comment": "ThemeLibrary message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your copy of %@. Edit the JSON, then choose Reload Themes."
+          }
+        }
+      }
+    },
+    "Unspecified metrics inherit from the parent theme, then the app. Reset removes your override.": {
+      "comment": "ThemeMetricControls control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unspecified metrics inherit from the parent theme, then the app. Reset removes your override."
+          }
+        }
+      }
+    },
+    "Radius profile": {
+      "comment": "ThemeMetricControls display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Radius profile"
+          }
+        }
+      }
+    },
+    "Standard": {
+      "comment": "ThemeMetricControls control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard"
+          }
+        }
+      }
+    },
+    "Rounded": {
+      "comment": "ThemeMetricControls control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rounded"
+          }
+        }
+      }
+    },
+    "Uniform": {
+      "comment": "ThemeMetricControls control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uniform"
+          }
+        }
+      }
+    },
+    "Type scale": {
+      "comment": "ThemeMetricControls display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type scale"
+          }
+        }
+      }
+    },
+    "Spacing scale": {
+      "comment": "ThemeMetricControls display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spacing scale"
+          }
+        }
+      }
+    },
+    "Motion": {
+      "comment": "ThemeMetricControls display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Motion"
+          }
+        }
+      }
+    },
+    "App default": {
+      "comment": "ThemeMetricControls display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App default"
+          }
+        }
+      }
+    },
+    "Reduced": {
+      "comment": "Theme motion setting.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reduced"
+          }
+        }
+      }
+    },
+    "Locked": {
+      "comment": "ThemeMetricControls control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked"
+          }
+        }
+      }
+    },
+    "Override": {
+      "comment": "ThemeMetricControls display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override"
+          }
+        }
+      }
+    },
+    "Inherited": {
+      "comment": "ThemeMetricControls display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inherited"
+          }
+        }
+      }
+    },
+    "Reset": {
+      "comment": "ThemeMetricControls control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset"
+          }
+        }
+      }
+    },
+    "My Violet Theme": {
+      "comment": "ThemeSeedSheet display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Violet Theme"
+          }
+        }
+      }
+    },
+    "New from seed": {
+      "comment": "ThemeSeedSheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New from seed"
+          }
+        }
+      }
+    },
+    "Choose an accent and paired light / dark grounds. Lumen derives every core color, repairs supported findings, then checks all four appearances.": {
+      "comment": "ThemeSeedSheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an accent and paired light / dark grounds. Lumen derives every core color, repairs supported findings, then checks all four appearances."
+          }
+        }
+      }
+    },
+    "Accent hue": {
+      "comment": "ThemeSeedSheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accent hue"
+          }
+        }
+      }
+    },
+    "Grounds": {
+      "comment": "ThemeSeedSheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grounds"
+          }
+        }
+      }
+    },
+    "Saved and applied · all four appearances pass": {
+      "comment": "ThemeSeedSheet display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved and applied · all four appearances pass"
+          }
+        }
+      }
+    },
+    "Ready · all four appearances pass": {
+      "comment": "ThemeSeedSheet display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready · all four appearances pass"
+          }
+        }
+      }
+    },
+    "Deriving and checking theme…": {
+      "comment": "ThemeSeedSheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deriving and checking theme…"
+          }
+        }
+      }
+    },
+    "Violet is the starting accent. Generate to preview your light and dark palettes.": {
+      "comment": "ThemeSeedSheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Violet is the starting accent. Generate to preview your light and dark palettes."
+          }
+        }
+      }
+    },
+    "Generate": {
+      "comment": "ThemeSeedSheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate"
+          }
+        }
+      }
+    },
+    "Save and Apply": {
+      "comment": "ThemeSeedSheet control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save and Apply"
+          }
+        }
+      }
+    },
+    "This app’s packs need additional changes: %@": {
+      "comment": "Theme generation failure with validation details.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app’s packs need additional changes: %@"
+          }
+        }
+      }
+    },
+    "+%lld": {
+      "comment": "Toast control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%lld"
+          }
+        }
+      }
+    },
+    "%lld earlier notices; dismiss a visible notice to reveal them": {
+      "comment": "Toast tooltip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld earlier notices; dismiss a visible notice to reveal them"
+          }
+        }
+      }
+    },
+    "Tasks": {
+      "comment": "Toolbar control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks"
+          }
+        }
+      }
+    },
+    "Click a pane to add it to the dock or take it out, or drag it onto the dock.": {
+      "comment": "Tools control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Click a pane to add it to the dock or take it out, or drag it onto the dock."
+          }
+        }
+      }
+    },
+    "The last pane in the dock stays": {
+      "comment": "Tools display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last pane in the dock stays"
+          }
+        }
+      }
+    },
+    "Take %@ out of the dock": {
+      "comment": "Tools message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take %@ out of the dock"
+          }
+        }
+      }
+    },
+    "Add %@ to the dock": {
+      "comment": "Tools message; placeholders contain the related value.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add %@ to the dock"
+          }
+        }
+      }
+    },
+    "In the dock": {
+      "comment": "Tools display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the dock"
+          }
+        }
+      }
+    },
+    "Not in the dock": {
+      "comment": "Tools display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not in the dock"
+          }
+        }
+      }
+    },
+    "Type shortcut": {
+      "comment": "Tools display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type shortcut"
+          }
+        }
+      }
+    },
+    "Conflict: %@": {
+      "comment": "Tools control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conflict: %@"
+          }
+        }
+      }
+    },
+    "Clear shortcut": {
+      "comment": "Tools control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear shortcut"
+          }
+        }
+      }
+    },
+    "Shortcut": {
+      "comment": "Tools control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shortcut"
+          }
+        }
+      }
+    },
+    "Completions": {
+      "comment": "Tools control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completions"
+          }
+        }
+      }
+    },
+    "List": {
+      "comment": "Tools display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "List"
+          }
+        }
+      }
+    },
+    "Icon size": {
+      "comment": "Tools tooltip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icon size"
+          }
+        }
+      }
+    },
+    "Grid": {
+      "comment": "Tools display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grid"
+          }
+        }
+      }
+    },
+    "LAST OPENED": {
+      "comment": "Uppercase collection date column heading used for measurement.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LAST OPENED"
+          }
+        }
+      }
+    },
+    "Nothing here yet": {
+      "comment": "Tools display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing here yet"
+          }
+        }
+      }
+    },
+    "Location": {
+      "comment": "Tools display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location"
+          }
+        }
+      }
+    },
+    "Last Opened": {
+      "comment": "Tools display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last Opened"
+          }
+        }
+      }
+    },
+    "Sort by %@": {
+      "comment": "Tools tooltip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sort by %@"
+          }
+        }
+      }
+    },
+    "%@ icon": {
+      "comment": "The application name followed by icon.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ icon"
+          }
+        }
+      }
+    },
+    "Version %@": {
+      "comment": "Welcome control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@"
+          }
+        }
+      }
+    },
+    "Show this window when the app opens": {
+      "comment": "Welcome control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show this window when the app opens"
+          }
+        }
+      }
+    },
+    "RECENT": {
+      "comment": "Welcome control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RECENT"
+          }
+        }
+      }
+    },
+    "Search recents": {
+      "comment": "Welcome display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search recents"
+          }
+        }
+      }
+    },
+    "Nothing recent yet": {
+      "comment": "Welcome display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing recent yet"
+          }
+        }
+      }
+    },
+    "Projects you open appear here.": {
+      "comment": "Welcome display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projects you open appear here."
+          }
+        }
+      }
+    },
+    "Try a different name.": {
+      "comment": "Welcome display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a different name."
+          }
+        }
+      }
+    },
+    "%@, %@": {
+      "comment": "Welcome control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %@"
+          }
+        }
+      }
+    },
+    "Welcome to %@": {
+      "comment": "Welcome control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to %@"
+          }
+        }
+      }
+    },
+    "No steps to show": {
+      "comment": "WizardWindow control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No steps to show"
+          }
+        }
+      }
+    },
+    "Go Back": {
+      "comment": "WizardWindow control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go Back"
+          }
+        }
+      }
+    },
+    "Continue": {
+      "comment": "WizardWindow display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "comment": "Workspace control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop"
+          }
+        }
+      }
+    },
+    "Navigator": {
+      "comment": "Workspace display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navigator"
+          }
+        }
+      }
+    },
+    "Panel": {
+      "comment": "Workspace display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel"
+          }
+        }
+      }
+    },
+    "Inspector": {
+      "comment": "Workspace display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspector"
+          }
+        }
+      }
+    },
+    "Shown": {
+      "comment": "Workspace display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shown"
+          }
+        }
+      }
+    },
+    "Hidden": {
+      "comment": "Workspace display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidden"
+          }
+        }
+      }
+    },
+    "Choose %@": {
+      "comment": "Workspace tooltip.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose %@"
+          }
+        }
+      }
+    },
+    "Choose bottom panel": {
+      "comment": "Workspace control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose bottom panel"
+          }
+        }
+      }
+    },
+    "Editor pane": {
+      "comment": "WorkspaceLayout display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editor pane"
+          }
+        }
+      }
+    },
+    "Close Split": {
+      "comment": "WorkspaceLayout control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Split"
+          }
+        }
+      }
+    },
+    "Restore Splits": {
+      "comment": "WorkspaceLayout display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore Splits"
+          }
+        }
+      }
+    },
+    "Magnify Split": {
+      "comment": "WorkspaceLayout display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magnify Split"
+          }
+        }
+      }
+    },
+    "New Split": {
+      "comment": "WorkspaceLayout control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Split"
+          }
+        }
+      }
+    },
+    "Focused editor pane": {
+      "comment": "WorkspaceLayout display text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focused editor pane"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

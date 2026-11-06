@@ -1,0 +1,51 @@
+:root {
+  --lumen-bg-canvas: #FFFFFF;
+  --lumen-depth-glow-hero: 0px 4px 20px 0px rgb(0 0 0 / 0.4);
+  --lumen-depth-glow-selection: 0px 0px 8px 0px rgb(0 0 0 / 0.45);
+  --lumen-depth-menu: 0px 4px 10px 0px rgb(0 0 0 / 0.12);
+  --lumen-depth-popover: 0px 6px 16px 0px rgb(0 0 0 / 0.14);
+  --lumen-fg-primary: #111111;
+  --lumen-metrics-motion-emphasized: 0.32s;
+  --lumen-metrics-motion-fast: 0.14s;
+  --lumen-metrics-motion-standard: 0.22s;
+  --lumen-metrics-radius-lg: 10px;
+  --lumen-metrics-radius-md: 8px;
+  --lumen-metrics-radius-sm: 6px;
+  --lumen-metrics-radius-xl: 14px;
+  --lumen-metrics-radius-xs: 4px;
+  --lumen-metrics-spacingScale: 1;
+  --lumen-metrics-typeScale: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --lumen-bg-canvas: #111111;
+    --lumen-depth-glow-hero: 0px 4px 20px 0px rgb(0 0 0 / 0.4);
+    --lumen-depth-glow-selection: 0px 0px 8px 0px rgb(0 0 0 / 0.45);
+    --lumen-depth-menu: 0px 4px 10px 0px rgb(0 0 0 / 0.4);
+    --lumen-depth-popover: 0px 6px 16px 0px rgb(0 0 0 / 0.45);
+    --lumen-fg-primary: #EEEEEE;
+  }
+}
+
+@media (prefers-color-scheme: light) and (prefers-contrast: more) {
+  :root {
+    --lumen-bg-canvas: #FFFFFF;
+    --lumen-depth-glow-hero: 0px 4px 20px 0px rgb(0 0 0 / 0.4);
+    --lumen-depth-glow-selection: 0px 0px 8px 0px rgb(0 0 0 / 0.45);
+    --lumen-depth-menu: 0px 4px 10px 0px rgb(0 0 0 / 0.12);
+    --lumen-depth-popover: 0px 6px 16px 0px rgb(0 0 0 / 0.14);
+    --lumen-fg-primary: #000000;
+  }
+}
+
+@media (prefers-color-scheme: dark) and (prefers-contrast: more) {
+  :root {
+    --lumen-bg-canvas: #111111;
+    --lumen-depth-glow-hero: 0px 4px 20px 0px rgb(0 0 0 / 0.4);
+    --lumen-depth-glow-selection: 0px 0px 8px 0px rgb(0 0 0 / 0.45);
+    --lumen-depth-menu: 0px 4px 10px 0px rgb(0 0 0 / 0.4);
+    --lumen-depth-popover: 0px 6px 16px 0px rgb(0 0 0 / 0.45);
+    --lumen-fg-primary: #FFFFFF;
+  }
+}

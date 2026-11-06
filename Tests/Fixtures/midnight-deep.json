@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "id": "test.midnight-deep",
+  "name": "Midnight Deep",
+  "inherits": "lumen.midnight",
+  "metrics": {
+    "depth": {
+      "menu": { "opacity": { "light": 0.18, "dark": 0.48 }, "radius": 14, "y": 5 },
+      "popover": { "opacity": { "light": 0.22, "dark": 0.55 }, "radius": 24, "y": 8 }
+    }
+  }
+}
