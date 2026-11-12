@@ -63,7 +63,7 @@ public struct LumenSettingsPane<Content: View>: View {
             .padding(.bottom, metrics.spacing.s9)
             .frame(maxWidth: 640, alignment: .leading)
             .modifier(LumenSettingsNaturalHeight())
-            .frame(maxWidth: .infinity, alignment: widthClass == .wide ? .center : .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
     }
 
@@ -82,7 +82,7 @@ public struct LumenSettingsPane<Content: View>: View {
         .contentMargins(.bottom, metrics.spacing.s9, for: .scrollContent)
         .modifier(LumenSettingsFormMeasure())
         .frame(maxWidth: 640)
-        .frame(maxWidth: .infinity, alignment: widthClass == .wide ? .center : .leading)
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
@@ -289,14 +289,12 @@ extension EnvironmentValues {
 /// Owns sidebar surfaces, search, selection history, navigation chrome, tint and content sizing.
 /// Keep the pane's header; do not add a second toolbar title or rebuild this root from its parts.
 public struct LumenSettingsSidebarView: View {
-    @Environment(\.layoutDirection) private var layoutDirection
     private let categories: [LumenSettingsCategory]
     private var externalSelection: Binding<String?>?
     @State private var selection: String?
     @State private var query = ""
     @FocusState private var sidebarFocused: Bool
     @State private var history = LumenSettingsHistory()
-    @State private var visibility: NavigationSplitViewVisibility = .all
     @State private var measuredHeights: [String: CGFloat] = [:]
     @State private var fallbackHeights: [String: CGFloat] = [:]
     private var sizingHeights: [String: CGFloat] {
@@ -307,6 +305,8 @@ public struct LumenSettingsSidebarView: View {
     }
     @Environment(\.lumenSettingsPreferredSize) private var preferredSize
     @Environment(\.lumenSettingsSizesWindow) private var sizesWindow
+    /// Set by an enclosing `lumenPaletteRoot`, whose bridge then owns the native toolbar style.
+    @Environment(\.lumenWindowRootScope) private var paletteRootScope
 
     @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenMetrics) private var metrics
@@ -361,7 +361,11 @@ public struct LumenSettingsSidebarView: View {
 
     public var body: some View {
         let shown = categories.filter { $0.matches(query) }
-        NavigationSplitView(columnVisibility: $visibility) {
+        // The category sidebar is always visible, as in System Settings: there is no sidebar
+        // toggle, writes from the split view are ignored and the native sidebar item cannot
+        // collapse (see `ChromeView.configureSidebar`). The window minimum exceeds both columns'
+        // minimums, so the split view never collapses the sidebar to fit.
+        NavigationSplitView(columnVisibility: .constant(.all)) {
             List(shown, selection: categorySelection) { category in
                 Label {
                     VStack(alignment: .leading, spacing: metrics.spacing.s1) {
@@ -401,19 +405,6 @@ public struct LumenSettingsSidebarView: View {
                 if !matching.contains(where: { $0.id == selection }) { visit(matching.first?.id) }
             }
             .toolbar(removing: .sidebarToggle)
-            .toolbar {
-                ToolbarItem(id: "lumen.settings.sidebar", placement: .navigation) {
-                    Button {
-                        visibility = visibility == .detailOnly ? .all : .detailOnly
-                    } label: {
-                        navigationLabel(lumenLocalized(String(localized: "Sidebar", bundle: .module, comment: "Settings control text.")), systemImage: layoutDirection == .rightToLeft ? "sidebar.right" : "sidebar.left")
-                    }
-                    .buttonStyle(.borderless)
-                    .controlSize(.regular)
-                    .help(lumenLocalized(String(localized: "Show or hide sidebar", bundle: .module, comment: "Settings tooltip.")))
-                }
-                .lumenToolbarPlatter(chrome)
-            }
             .navigationSplitViewColumnWidth(min: Self.sidebarMinWidth, ideal: 220, max: 280)
         } detail: {
             ZStack(alignment: .topLeading) {
@@ -455,16 +446,21 @@ public struct LumenSettingsSidebarView: View {
                     .keyboardShortcut("]", modifiers: .command)
                     .help(lumenLocalized(String(localized: "Forward", bundle: .module, comment: "Settings tooltip.")))
                 }
+                // The item hugs its two buttons, so the platter has no dead middle in any layout.
+                .fixedSize()
                 .buttonStyle(.borderless)
                 .controlSize(.regular)
             }
             .lumenToolbarPlatter(chrome)
         }
-        .environment(\.lumenSettingsWindow, true)
         .preference(key: LumenSettingsRootKey.self, value: true)
+        // The scaffold's own chrome modifier reads the Settings marker, so a host without a
+        // palette root or `lumenSettingsScene()` still gets native Settings chrome, not the glow.
         .lumenWindowChrome()
+        .environment(\.lumenSettingsWindow, true)
         .background(LumenSettingsNativeChrome(heights: sizingHeights, categoryIDs: categories.map(\.id),
-                                               preferred: preferredSize, sizesWindow: sizesWindow))
+                                               preferred: preferredSize, sizesWindow: sizesWindow,
+                                               ownsWindowStyle: paletteRootScope == nil))
         .navigationTitle(categories.first(where: { $0.id == selection })?.title ?? lumenLocalized(String(localized: "Settings", bundle: .module, comment: "Settings display text.")))
         .frame(minWidth: Self.windowMinWidth, idealWidth: initialIdealSize.width,
                minHeight: LumenSettingsSizing.minimumHeight,
@@ -535,14 +531,18 @@ public extension Scene {
 }
 
 /// Owns the settings content size and sidebar selection appearance. Native toolbar style
-/// belongs to the shared palette-root bridge, including for app-built Settings roots.
+/// belongs to the shared palette-root bridge, including for app-built Settings roots. When no
+/// palette root encloses the scaffold, the scaffold is that single owner, so its window is still
+/// one unified row (the Settings scene's own default is the two-row `.preference` style).
 private struct LumenSettingsNativeChrome: NSViewRepresentable {
     let heights: [String: CGFloat]
     let categoryIDs: [String]
     let preferred: CGSize?
     let sizesWindow: Bool
+    let ownsWindowStyle: Bool
     func makeNSView(context: Context) -> ChromeView { ChromeView() }
     func updateNSView(_ nsView: ChromeView, context: Context) {
+        nsView.ownsWindowStyle = ownsWindowStyle
         nsView.updateSizing(heights: heights, categoryIDs: categoryIDs, preferred: preferred, enabled: sizesWindow)
         nsView.scheduleConfiguration()
     }
@@ -555,12 +555,17 @@ private struct LumenSettingsNativeChrome: NSViewRepresentable {
         private var scheduled = false
         private weak var sidebarTable: NSTableView?
         private var originalSelectionStyle: NSTableView.SelectionHighlightStyle?
+        private weak var pinnedSidebarItem: NSSplitViewItem?
+        private var sidebarCollapseObservation: NSKeyValueObservation?
+        private var frameBeforeSidebarCollapse: NSRect?
         private var heights: [String: CGFloat] = [:]
         private var categoryIDs: [String] = []
         private var preferred: CGSize?
         private var sizesWindow = true
         private var sizedWindow = false
         private var pendingSize: DispatchWorkItem?
+        var ownsWindowStyle = false
+        private var windowStyle: LumenNativeWindowChrome?
 
         func updateSizing(heights: [String: CGFloat], categoryIDs: [String], preferred: CGSize?, enabled: Bool) {
             guard self.heights != heights || self.categoryIDs != categoryIDs || self.preferred != preferred || sizesWindow != enabled else { return }
@@ -618,9 +623,23 @@ private struct LumenSettingsNativeChrome: NSViewRepresentable {
                 guard let self else { return }
                 self.scheduled = false
                 guard let window = self.ownedWindow, window === self.window else { return }
+                self.configureWindowStyle(window)
                 self.configureSidebar(in: window.contentView)
                 self.scheduleInitialSize()
             }
+        }
+
+        private func configureWindowStyle(_ window: NSWindow) {
+            guard ownsWindowStyle else {
+                windowStyle?.detach()
+                windowStyle = nil
+                return
+            }
+            let chrome = windowStyle ?? LumenNativeWindowChrome()
+            windowStyle = chrome
+            chrome.attach(window: window)
+            // The category sidebar is always visible, so its material owns the title bar band.
+            chrome.update(preservesExpanded: false, hasNativeSidebar: true, settings: true)
         }
 
         private func sourceList(in view: NSView?) -> NSTableView? {
@@ -631,6 +650,7 @@ private struct LumenSettingsNativeChrome: NSViewRepresentable {
 
         private func configureSidebar(in view: NSView?) {
             guard let table = sourceList(in: view) else { return }
+            pinSidebar(containing: table)
             if table !== sidebarTable {
                 restoreSelectionStyle()
                 sidebarTable = table
@@ -643,6 +663,53 @@ private struct LumenSettingsNativeChrome: NSViewRepresentable {
             // Keep native selection, keyboard navigation and table semantics. Only the fill
             // comes from the row's palette role instead of AppKit's grey selection material.
             table.selectionHighlightStyle = .none
+        }
+
+        /// The category sidebar never collapses: not by dragging the divider, not through View ›
+        /// Toggle Sidebar, and not when the window narrows. The split view item belongs to this
+        /// scaffold's own NavigationSplitView and goes away with it, so nothing is restored.
+        private func pinSidebar(containing table: NSTableView) {
+            var view: NSView? = table.superview
+            while let current = view {
+                if let split = current as? NSSplitView, let controller = split.delegate as? NSSplitViewController {
+                    for item in controller.splitViewItems where item.behavior == .sidebar {
+                        if item.canCollapse { item.canCollapse = false }
+                        // A collapse the guard below undoes must not leave the window resized.
+                        if item.collapseBehavior != .preferResizingSiblingsWithFixedSplitView {
+                            item.collapseBehavior = .preferResizingSiblingsWithFixedSplitView
+                        }
+                        if item.isCollapsed { item.isCollapsed = false }
+                        observeCollapse(of: item)
+                    }
+                    return
+                }
+                view = current.superview
+            }
+        }
+
+        /// `canCollapse` stops the divider drag but not View › Toggle Sidebar, which collapses the
+        /// item programmatically. Undo any collapse on the next turn of the run loop so the menu
+        /// command cannot leave Settings without its categories and with no control to restore them.
+        private func observeCollapse(of item: NSSplitViewItem) {
+            guard pinnedSidebarItem !== item else { return }
+            pinnedSidebarItem = item
+            sidebarCollapseObservation = item.observe(\.isCollapsed, options: [.new, .prior]) { [weak self] _, change in
+                if change.isPrior {
+                    // Taken just before the change: the undo below puts the window back at this frame.
+                    let frame = MainActor.assumeIsolated { self?.ownedWindow?.frame }
+                    MainActor.assumeIsolated { self?.frameBeforeSidebarCollapse = frame }
+                    return
+                }
+                guard change.newValue == true else { return }
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    let frame = self.frameBeforeSidebarCollapse
+                    self.pinnedSidebarItem?.isCollapsed = false
+                    if let frame, let window = self.ownedWindow, window.frame != frame {
+                        window.setFrame(frame, display: true)
+                    }
+                }
+            }
         }
 
         private func restoreSelectionStyle(removingFromHierarchy: Bool = false) {
@@ -670,7 +737,11 @@ private struct LumenSettingsNativeChrome: NSViewRepresentable {
             pendingSize?.cancel()
             pendingSize = nil
             sizedWindow = false
+            sidebarCollapseObservation = nil
+            pinnedSidebarItem = nil
             restoreSelectionStyle(removingFromHierarchy: removingFromHierarchy || window !== ownedWindow)
+            windowStyle?.detach()
+            windowStyle = nil
             ownedWindow = nil
         }
     }

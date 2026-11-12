@@ -354,8 +354,7 @@ final class LumenSettingsChromeMatrixTests: XCTestCase {
                 let frame = native.map { window.convertToScreen($0.convert($0.bounds, to: nil)) }
                     ?? semantic.accessibilityFrame()
                 if frame.width > 0.5, frame.height > 0.5, frame.minX.isFinite, frame.minY.isFinite {
-                    let name = semantic.accessibilityLabel() ?? semantic.accessibilityTitle()
-                        ?? (semantic.accessibilityValue() as? String) ?? role.rawValue
+                    let name = LumenAccessibilityText.candidates(of: semantic).first ?? role.rawValue
                     result.append(ContentSubview(name: name, frame: frame, nativeTextEditor: role == .textArea))
                 }
             }
@@ -573,20 +572,22 @@ final class LumenSettingsChromeMatrixTests: XCTestCase {
 
 /// A real Settings Scene, registered through the documented AppKit scene bridge. The process
 /// guard intercepts its front request before dispatch; content attachment records the real identity.
+/// AppKit accepts one Settings scene per process, so every test here shares one registered scene
+/// and swaps its content through `SceneFixture`; the first test to run opens it.
 @MainActor
 final class LumenSettingsSceneIdentityTests: XCTestCase {
-    @MainActor private final class Observation {
+    @MainActor fileprivate final class SceneObservation {
         weak var window: NSWindow?
         var expectedAttempt = false
     }
 
     private struct Probe: NSViewRepresentable {
-        let observation: Observation
+        let observation: SceneObservation
         func makeNSView(context: Context) -> ProbeView { ProbeView(observation: observation) }
         func updateNSView(_ view: ProbeView, context: Context) {}
         final class ProbeView: NSView {
-            let observation: Observation
-            init(observation: Observation) { self.observation = observation; super.init(frame: .zero) }
+            let observation: SceneObservation
+            init(observation: SceneObservation) { self.observation = observation; super.init(frame: .zero) }
             required init?(coder: NSCoder) { nil }
             override func viewDidMoveToWindow() {
                 super.viewDidMoveToWindow()
@@ -598,26 +599,96 @@ final class LumenSettingsSceneIdentityTests: XCTestCase {
         }
     }
 
-    func testRealSwiftUISettingsSceneIdentity() throws {
-        let observation = Observation()
-        let scene = NSHostingSceneRepresentation {
-            Settings {
+    @MainActor @Observable fileprivate final class SceneFixture {
+        enum Mode { case appBuilt, scaffoldInPaletteRoot, scaffoldAlone }
+        var mode = Mode.appBuilt
+        var selection: String? = "general"
+        var preservesExpanded = false
+        @ObservationIgnored let observation = SceneObservation()
+    }
+
+    private struct SceneRoot: View {
+        @Bindable var fixture: SceneFixture
+
+        private static var categories: [LumenSettingsCategory] {
+            [
+                LumenSettingsCategory(id: "general", title: "General", systemImage: "gearshape", hue: .hueBlue) {
+                    Form { Toggle("Enabled", isOn: .constant(true)) }.formStyle(.grouped)
+                },
+                LumenSettingsCategory(id: "advanced", title: "Advanced", systemImage: "slider.horizontal.3", hue: .hueViolet) {
+                    Form { TextField("Name", text: .constant("Sample")) }.formStyle(.grouped)
+                },
+            ]
+        }
+
+        var body: some View {
+            content.background(Probe(observation: fixture.observation))
+        }
+
+        @ViewBuilder private var content: some View {
+            switch fixture.mode {
+            case .appBuilt:
                 NavigationSplitView { List { Text("General") }.listStyle(.sidebar) } detail: {
                     Form { Text("Settings identity fixture") }.formStyle(.grouped)
                 }
-                .background(Probe(observation: observation))
                 .frame(width: 820, height: 600)
                 .lumenPaletteRoot()
+            case .scaffoldInPaletteRoot:
+                LumenSettingsSidebarView(Self.categories, selection: $fixture.selection)
+                    .lumenPaletteRoot()
+                    .lumenPreservesExpandedToolbar(fixture.preservesExpanded)
+            case .scaffoldAlone:
+                // Neither a palette root nor `lumenSettingsScene()`: the scaffold alone.
+                LumenSettingsSidebarView(Self.categories, selection: $fixture.selection)
             }
         }
-        NSApplication.shared.addSceneRepresentation(scene)
-        defer {
-            if observation.expectedAttempt { _ = LumenHeadlessGuardEndExpectedAttempt() }
-            observation.window?.close()
+    }
+
+    private static var fixture: SceneFixture?
+    private static var scene: AnyObject?
+
+    nonisolated override class func tearDown() {
+        MainActor.assumeIsolated {
+            fixture?.observation.window?.close()
         }
-        scene.environment.openSettings()
+        super.tearDown()
+    }
+
+    private func settle() {
         for _ in 0..<30 { RunLoop.current.run(until: Date().addingTimeInterval(0.02)) }
+    }
+
+    /// The shared Settings scene window showing `mode`. Opens the scene on first use; a bare
+    /// `Settings {}` without `lumenSettingsScene()` starts at the Settings scene's own style.
+    private func settingsWindow(_ mode: SceneFixture.Mode) throws -> (NSWindow, SceneFixture) {
+        let fixture = Self.fixture ?? SceneFixture()
+        fixture.mode = mode
+        if Self.fixture == nil {
+            Self.fixture = fixture
+            let scene = NSHostingSceneRepresentation { Settings { SceneRoot(fixture: fixture) } }
+            NSApplication.shared.addSceneRepresentation(scene)
+            Self.scene = scene
+            scene.environment.openSettings()
+        }
+        let observation = fixture.observation
+        defer {
+            if observation.expectedAttempt {
+                _ = LumenHeadlessGuardEndExpectedAttempt()
+                observation.expectedAttempt = false
+            }
+        }
+        settle()
         let window = try XCTUnwrap(observation.window, "Settings scene did not attach its content")
+        if observation.expectedAttempt {
+            let intercepted = LumenHeadlessGuardEndExpectedAttempt()
+            observation.expectedAttempt = false
+            XCTAssertEqual(intercepted, 1, "Settings front requests intercepted=\(intercepted)")
+        }
+        return (window, fixture)
+    }
+
+    func testRealSwiftUISettingsSceneIdentity() throws {
+        let (window, _) = try settingsWindow(.appBuilt)
         let identifier = try XCTUnwrap(window.identifier?.rawValue, "Real Settings window has no identifier; class=\(type(of: window))")
         print("SETTINGS_SCENE_IDENTITY identifier=\(identifier) class=\(NSStringFromClass(type(of: window))) toolbarStyle=\(window.toolbarStyle.rawValue) band=\(window.frame.height - window.contentLayoutRect.height)")
         XCTAssertFalse(identifier.isEmpty, "Settings identity was empty")
@@ -630,13 +701,48 @@ final class LumenSettingsSceneIdentityTests: XCTestCase {
         XCTAssertTrue(window.titlebarAppearsTransparent, "Real Settings has an opaque titlebar over the sidebar")
         XCTAssertTrue(LumenNativeWindowChrome.isSettingsWindow(window),
                       "Real Settings identity is not recognized: identifier=\(identifier), class=\(NSStringFromClass(type(of: window)))")
-        if observation.expectedAttempt {
-            let intercepted = LumenHeadlessGuardEndExpectedAttempt()
-            observation.expectedAttempt = false
-            XCTAssertEqual(intercepted, 1, "Settings front requests intercepted=\(intercepted)")
-        }
         XCTAssertEqual(window.alphaValue, 0, "Settings alpha=\(window.alphaValue)")
         XCTAssertFalse(window.isKeyWindow, "Settings became key")
         XCTAssertFalse(NSScreen.screens.contains { $0.frame.intersects(window.frame) }, "Settings frame=\(window.frame) intersects a screen")
+    }
+
+    /// The stock scaffold in a real Settings scene keeps one unified row through content changes,
+    /// an expanded-toolbar opt-out, the scene reasserting `.preference`, and a host with no palette
+    /// root. It never shows a sidebar toggle: the category sidebar is always visible.
+    func testRealSettingsSceneScaffoldStaysUnified() throws {
+        let (window, fixture) = try settingsWindow(.scaffoldInPaletteRoot)
+        defer {
+            fixture.preservesExpanded = false
+            fixture.selection = "general"
+        }
+        @MainActor func check(_ step: String) {
+            let items = window.toolbar?.items.map(\.itemIdentifier.rawValue) ?? []
+            let band = window.frame.height - window.contentLayoutRect.height
+            let label = "\(step): style=\(window.toolbarStyle.rawValue), band=\(band), title=\(window.title), items=\(items)"
+            print("SETTINGS_SCENE_SCAFFOLD \(label)")
+            XCTAssertEqual(window.toolbarStyle, .unified, label)
+            XCTAssertTrue(items.contains { $0.contains("lumen.settings.history") }, "history item missing: \(label)")
+            XCTAssertFalse(items.contains { $0.contains("lumen.settings.sidebar") || $0.contains("toggleSidebar") },
+                           "Settings shows a sidebar toggle: \(label)")
+        }
+        check("palette root")
+        fixture.selection = "advanced"
+        settle()
+        check("palette root, selection changed")
+        fixture.preservesExpanded = true
+        settle()
+        check("palette root, expanded opt-out")
+        window.toolbarStyle = .preference
+        settle()
+        check("palette root, scene reasserts preference")
+        fixture.mode = .scaffoldAlone
+        settle()
+        check("no palette root")
+        fixture.selection = "general"
+        settle()
+        check("no palette root, selection changed")
+        window.toolbarStyle = .preference
+        settle()
+        check("no palette root, scene reasserts preference")
     }
 }

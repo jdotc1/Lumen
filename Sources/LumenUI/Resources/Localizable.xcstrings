@@ -3357,23 +3357,12 @@
       }
     },
     "Sidebar": {
-      "comment": "Settings control text.",
+      "comment": "SidebarToggle control text.",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Sidebar"
-          }
-        }
-      }
-    },
-    "Show or hide sidebar": {
-      "comment": "Settings tooltip.",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Show or hide sidebar"
           }
         }
       }

@@ -41,7 +41,9 @@ public struct LumenThemeGallery: View {
         explicitStore = nil
     }
 
-    /// A gallery for `store`. Without an argument, `init()` (the window's store) is chosen.
+    /// A gallery for `store`. Without an argument, `init()` (the window's store, from the
+    /// environment) is chosen; `init(store: .active)` reads the active store
+    /// (`LumenThemeStore.active`) even under a second store's `.lumenPaletteRoot(store:)`.
     public init(store: LumenThemeStore = .active) {
         explicitStore = store
     }

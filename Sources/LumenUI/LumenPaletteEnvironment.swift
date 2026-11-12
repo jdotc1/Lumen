@@ -125,7 +125,9 @@ extension LumenThemeStore {
 }
 
 extension Lumen {
-    /// The resolved palette for the active store. Prefer `@Environment(\.lumenPalette)` in views.
+    /// The resolved palette for the active store (`LumenThemeStore.active`), not the window's.
+    /// Prefer `@Environment(\.lumenPalette)` in views; under a second store's
+    /// `.lumenPaletteRoot(store:)` it's the only one that reads that store.
     public static var palette: LumenResolvedPalette { LumenThemeStore.active.resolvedPalette() }
 }
 

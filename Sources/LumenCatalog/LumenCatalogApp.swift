@@ -213,7 +213,9 @@ enum CatalogChrome {
     static var defaults: UserDefaults {
         let isPreview = Bundle.main.object(forInfoDictionaryKey: "LumenCatalogPreview") as? Bool == true
         let suite = isPreview ? Bundle.main.bundleIdentifier : "com.lumen.catalog.demo"
-        return suite.flatMap(UserDefaults.init(suiteName:)) ?? .standard
+        // A suite named for the app's own bundle id is the standard defaults, and Foundation warns on it.
+        guard let suite, suite != Bundle.main.bundleIdentifier else { return .standard }
+        return UserDefaults(suiteName: suite) ?? .standard
     }
 }
 

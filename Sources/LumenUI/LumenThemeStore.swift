@@ -53,8 +53,13 @@ public struct LumenStoreConfiguration: Sendable, Hashable {
     }
 
     /// The defaults the saved choices live in.
-    public var defaults: UserDefaults {
-        defaultsSuiteName.flatMap { UserDefaults(suiteName: $0) } ?? .standard
+    public var defaults: UserDefaults { Self.defaults(suiteName: defaultsSuiteName) }
+
+    /// A suite named for the app's own bundle identifier is the standard defaults, and Foundation
+    /// warns when asked to open it as a suite, so that name resolves to `.standard` instead.
+    static func defaults(suiteName: String?, bundleIdentifier: String? = Bundle.main.bundleIdentifier) -> UserDefaults {
+        guard let suiteName, suiteName != bundleIdentifier else { return .standard }
+        return UserDefaults(suiteName: suiteName) ?? .standard
     }
 }
 
@@ -605,13 +610,16 @@ extension LumenThemeStore {
 /// The Lumen namespace: the active store's theme, and the fixed scales (see `LumenMetrics`
 /// for the per-app ones components use).
 public enum Lumen {
-    /// The theme a surface draws with in the active store.
+    /// The theme a surface draws with in the active store (`LumenThemeStore.active`), not the
+    /// window's. Under a second store's `.lumenPaletteRoot(store:)`, read
+    /// `@Environment(\.lumenStore)` and call `theme(for:)` on it instead.
     public static func theme(for surface: LumenSurface = .window) -> LumenTheme { LumenThemeStore.active.theme(for: surface) }
 }
 
 public extension ShapeStyle where Self == Color {
     /// A themed color: `.foregroundStyle(.lumen(.fgSecondary))`, `.background(.lumen(.bgCanvas))`.
-    /// It reads the active store when called, not the window's: in an app with a second store,
-    /// views in that store's window should read `@Environment(\.lumenPalette)` instead.
+    /// It reads the active store (`LumenThemeStore.active`) when called, not the window's: in an
+    /// app with a second store, views under that store's `.lumenPaletteRoot(store:)` should read
+    /// `@Environment(\.lumenPalette)` and use `palette[token]` instead.
     static func lumen(_ token: LumenToken) -> Color { LumenThemeStore.active.color(token) }
 }

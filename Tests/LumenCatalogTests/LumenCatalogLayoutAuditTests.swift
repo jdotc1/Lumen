@@ -265,8 +265,8 @@ final class LumenCatalogLayoutAuditTests: XCTestCase {
         let actionRoles: Set<NSAccessibility.Role> = [.button, .checkBox, .radioButton, .popUpButton, .menuButton]
 
         func names(_ element: any NSAccessibilityProtocol) -> [String] {
-            [element.accessibilityLabel(), element.accessibilityTitle(), element.accessibilityValue() as? String]
-                .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            LumenAccessibilityText.candidates(of: element)
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
         }
 

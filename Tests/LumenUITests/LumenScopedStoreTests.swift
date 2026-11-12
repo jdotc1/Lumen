@@ -53,6 +53,23 @@ final class LumenScopedStoreTests: XCTestCase {
         XCTAssertEqual(shared.theme().id, sharedTheme, "The shared store's selection is untouched")
     }
 
+    /// The menu bar panel's text color comes from the environment's palette, not the active store.
+    func testMenuBarPanelDrawsTheEnvironmentStore() throws {
+        let ultraviolet = store(LumenThemes.ultravioletID)
+        let panel = LumenMenuBarPanel("Status", showsFooter: false) {
+            VStack(alignment: .leading, spacing: 2) {
+                ForEach(0..<12, id: \.self) { _ in Text("WWWWWWWWWWWWWWWWWWWWWWWWWWWW") }
+            }
+        }
+        let panelSize = CGSize(width: 340, height: 300)
+        let scoped = try XCTUnwrap(LumenSnapshot.png(of: panel, size: panelSize, store: ultraviolet, colorScheme: .dark))
+        let active = try XCTUnwrap(LumenSnapshot.png(of: panel, size: panelSize,
+                                                     variant: .init(themeID: LumenThemes.ultravioletID, colorScheme: .dark),
+                                                     registry: .core))
+        let difference = LumenSnapshot.compare(scoped, active)
+        XCTAssertLessThanOrEqual(difference.differingPixelFraction, 0.005, "\(difference)")
+    }
+
     func testPaletteRootInheritsTheEnvironmentStore() {
         // `.lumenPaletteRoot()` with no store, under a root that set one, keeps that store.
         let ultraviolet = store(LumenThemes.ultravioletID)

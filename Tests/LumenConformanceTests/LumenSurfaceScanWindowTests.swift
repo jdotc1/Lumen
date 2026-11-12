@@ -46,6 +46,29 @@ final class LumenSurfaceScanWindowTests: XCTestCase {
         }, [])
     }
 
+    /// An icon-size plate on the ground (like the Midnight row tiles near `menu.background`) is
+    /// content, not a step; a strip of the same width that runs the pane's height is a step. The
+    /// plate sits well inside the 2 to 60 step window once the capture's color conversion is applied.
+    func testIconSizeEnclosedShapesAreSkipped() {
+        let ground = Color(red: 0.10, green: 0.10, blue: 0.21)
+        let plate = Color(red: 0.10 + 30 / 255, green: 0.10, blue: 0.21)
+        let tiles = VStack(alignment: .leading, spacing: 10) {
+            ForEach(0..<6, id: \.self) { _ in
+                HStack(spacing: 8) {
+                    plate.frame(width: 18, height: 18)
+                    Text("Row").foregroundStyle(.white)
+                }
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(ground)
+        XCTAssertEqual(LumenConformance.surfaceSteps(sizes: size) { tiles }.map(\.message), [])
+        let strip = HStack(spacing: 0) { ground.frame(width: 16); plate.frame(width: 18); ground }
+        XCTAssertEqual(LumenConformance.surfaceSteps(sizes: size) { strip }.map(\.message),
+                       ["the background steps at x = 16 pt (240 pt tall)", "the background steps at x = 34 pt (240 pt tall)"])
+    }
+
     private func pane(header: Color) -> some View {
         VStack(spacing: 0) {
             header.frame(height: 28)

@@ -28,8 +28,12 @@ public struct LumenThemeEditor: View {
     /// The validator's issues for the overrides as they last rested; `nil` until the first run.
     @State private var validated: [LumenIssue]?
 
-    /// - Parameter editsInPlace: for a user theme, Save writes the changes into its own file; otherwise
-    ///   Save makes a new theme based on `base`.
+    /// - Parameters:
+    ///   - store: by default the active store (`LumenThemeStore.active`), not the one an enclosing
+    ///     `.lumenPaletteRoot(store:)` injected. Under a second store, pass it (for example from
+    ///     `@Environment(\.lumenStore)` in the presenting view), as `LumenThemeGallery` does.
+    ///   - editsInPlace: for a user theme, Save writes the changes into its own file; otherwise
+    ///     Save makes a new theme based on `base`.
     public init(base: LumenTheme, store: LumenThemeStore = .active, editsInPlace: Bool) {
         self.base = base
         self.store = store
@@ -39,7 +43,8 @@ public struct LumenThemeEditor: View {
         _editingDark = State(initialValue: base.forcedAppearanceIsDark ?? systemIsDark)
     }
 
-    /// An editor that saves a new theme based on `base`.
+    /// An editor that saves a new theme based on `base`. `store` defaults to the active store, as
+    /// in `init(base:store:editsInPlace:)`; under a second store, pass it.
     public init(base: LumenTheme, store: LumenThemeStore = .active) {
         self.init(base: base, store: store, editsInPlace: false)
     }

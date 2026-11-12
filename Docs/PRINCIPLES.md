@@ -269,7 +269,7 @@ native behavior can only be configured on the Scene, Lumen supplies a companion 
 the integration example includes it. An app supplies its content and state; it must not need to rebuild
 the root from tiles, rows and headers to obtain the intended window.
 
-**A window component owns the native window geometry.** Toolbar height, sidebar toggle size,
+**A window component owns the native window geometry.** Toolbar height, history button size,
 window title placement, window sizing and scene tint remain coherent with sparse and populated
 content in both `.drawn` and `.glass` chrome. The Catalog demonstrates these properties in
 real windows as well as component previews.
@@ -277,9 +277,9 @@ real windows as well as component previews.
 **Settings has one chrome title rule.** The selected category is the native navigation title beside
 the Back/Forward group. Never add another category title as a toolbar item or leave it floating
 alone in an empty band. The pane retains its own tile, title and summary: that header introduces
-the content, while the navigation title identifies the current destination. Back/Forward and the
-sidebar toggle have matching control sizes. There is exactly one icon-only sidebar-toggle item
-in the actual native toolbar, no labeled “Sidebar” item and no principal “Settings” text. Measure
+the content, while the navigation title identifies the current destination. Back and Forward have
+matching control sizes. The sidebar is always visible, so the actual native toolbar has no
+sidebar-toggle item, no labeled “Sidebar” item and no principal “Settings” text. Measure
 the combined titlebar/toolbar height against the system's unified-style reference; a compact-style
 modifier alone is not proof of compact geometry.
 
@@ -294,7 +294,8 @@ Every palette-rooted window shares one native chrome owner, including app-built 
 and expanded toolbar styles normalize to unified while preserving visible content height and the
 top edge; full-size content lets sidebars reach the top. Detachment restores owned native settings.
 An app with an intentional expanded toolbar can opt out with `lumenPreservesExpandedToolbar(true)`
-outside its palette root. Settings scenes and scaffold markers suppress the workspace glow; the
+outside its palette root; Settings windows ignore the opt-out and stay unified. Settings scenes
+and scaffold markers suppress the workspace glow; the
 rendered audit reports two-row chrome, settings paint and settings roots missing the scaffold.
 
 ### Settings composition

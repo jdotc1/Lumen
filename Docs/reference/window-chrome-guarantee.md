@@ -13,7 +13,9 @@ also reaches an app-built root that omits the helper.
 
 An app intentionally using an expanded toolbar can add `.lumenPreservesExpandedToolbar(true)`
 after `.lumenPaletteRoot()`. The Boolean can change without replacing app content. Full-height
-content remains enabled, and the explicit exception is recorded by the layout audit.
+content remains enabled, and the explicit exception is recorded by the layout audit. The opt-out
+never applies to Settings windows: they always use one unified row, whether or not a sidebar is
+visible.
 
 Settings category labels remain regular weight. Active selection uses `accent.filled` and
 `accent.filledForeground`; inactive selection uses `settings.rowSelectedInactive` with the primary

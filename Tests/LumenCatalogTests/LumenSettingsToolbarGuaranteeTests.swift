@@ -17,7 +17,7 @@ final class LumenSettingsToolbarGuaranteeTests: XCTestCase {
         var finalStyle = 0
         var band: CGFloat = 0
         var rows = 0
-        var sidebarButton = CGRect.zero
+        var sidebarToggleItems = 0
         var historyGroup = CGRect.zero
         var chevronGap: CGFloat = -1
         var historyLeading: CGFloat = 0
@@ -86,7 +86,10 @@ final class LumenSettingsToolbarGuaranteeTests: XCTestCase {
                     return walk(view).compactMap { $0 as? NSButton }.filter { !$0.isHidden }
                         .map { $0.convert($0.bounds, to: nil) }.sorted { $0.minX < $1.minX }
                 }
-                m.sidebarButton = buttons("lumen.settings.sidebar").first ?? .zero
+                m.sidebarToggleItems = (window.toolbar?.items ?? []).filter {
+                    $0.itemIdentifier.rawValue.contains("lumen.settings.sidebar")
+                        || $0.itemIdentifier.rawValue.contains("toggleSidebar")
+                }.count
                 let history = buttons("lumen.settings.history")
                 m.historyGroup = history.reduce(CGRect.null) { $0.union($1) }
                 if m.historyGroup.isNull { m.historyGroup = .zero }
@@ -95,11 +98,11 @@ final class LumenSettingsToolbarGuaranteeTests: XCTestCase {
                 m.appKitDirection = NSApp.userInterfaceLayoutDirection.rawValue
                 m.trafficLightFrames = geometry.trafficLights.filter { !$0.isEmpty }
                     .map { window.convertFromScreen($0) }
-                m.toolbarItemFrames = ["lumen.settings.sidebar", "lumen.settings.history"].compactMap { id in
+                m.toolbarItemFrames = ["lumen.settings.history"].compactMap { id in
                     window.toolbar?.visibleItems?.first { $0.itemIdentifier.rawValue.contains(id) }
                         .flatMap { $0.view }.map { $0.convert($0.bounds, to: nil) }
                 }
-                m.overflowed = m.toolbarItemFrames.count < 2
+                m.overflowed = m.toolbarItemFrames.count < 1
                 if let split = (host.superview ?? host).subviewsDeep().compactMap({ $0 as? NSSplitView }).first,
                    let side = split.arrangedSubviews.first {
                     m.sidebarColumnWidth = side.frame.width
@@ -147,6 +150,7 @@ final class LumenSettingsToolbarGuaranteeTests: XCTestCase {
                 .contains(bare.finalStyle), label)
             XCTAssertLessThanOrEqual(bare.band, ref.band + 0.5, label)
             XCTAssertEqual(bare.rows, 1, label)
+            XCTAssertEqual(bare.sidebarToggleItems, 0, "Settings has no sidebar toggle: \(label)")
             XCTAssertGreaterThanOrEqual(bare.chevronGap, 0, label)
             XCTAssertLessThanOrEqual(bare.chevronGap, 4, label)
             XCTAssertLessThanOrEqual(abs(bare.historyLeading - ref.historyLeading), 1, label)
@@ -187,7 +191,8 @@ final class LumenSettingsToolbarGuaranteeTests: XCTestCase {
             XCTAssertFalse(m.sidebarColumn.isEmpty, label)
             XCTAssertEqual(m.rows, 1, "one toolbar row: \(label)")
             XCTAssertFalse(m.overflowed, "no overflow chevron: \(label)")
-            XCTAssertEqual(m.toolbarItemFrames.count, 2, label)
+            XCTAssertEqual(m.toolbarItemFrames.count, 1, label)
+            XCTAssertEqual(m.sidebarToggleItems, 0, "Settings has no sidebar toggle: \(label)")
             for item in m.toolbarItemFrames {
                 XCTAssertFalse(item.intersects(m.sidebarColumn), "toolbar item in the sidebar column: \(label)")
                 XCTAssertGreaterThan(item.midX, 0, label)
@@ -196,10 +201,6 @@ final class LumenSettingsToolbarGuaranteeTests: XCTestCase {
             XCTAssertEqual(m.trafficLightFrames.count, 3, label)
             for light in m.trafficLightFrames {
                 XCTAssertGreaterThanOrEqual(light.minX, m.sidebarColumn.minX, "traffic lights over the right sidebar: \(label)")
-            }
-            // Mirrored order: the sidebar toggle is the rightmost, history to its left.
-            if m.toolbarItemFrames.count == 2 {
-                XCTAssertGreaterThan(m.toolbarItemFrames[0].minX, m.toolbarItemFrames[1].maxX - 1, label)
             }
         }
     }

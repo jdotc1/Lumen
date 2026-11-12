@@ -192,6 +192,81 @@ final class LumenSettingsAdaptiveTests: XCTestCase {
         return window
     }
 
+    /// A pane wider than its 640 pt measure but not in the wide class used to pin that measure to
+    /// the leading edge and leave the slack on the right.
+    func testRichPaneWiderThanItsMeasureIsCentredInTheRegularClass() {
+        final class FrameBox { var frame = CGRect.zero }
+        let box = FrameBox()
+        let root = LumenSettingsPane("Centred sample", systemImage: "gear", hue: .hueBlue, style: .rich) {
+            Color.clear.frame(height: 40)
+                .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .global) }, action: { box.frame = $0 })
+        }
+        .lumenMetrics(.standard)
+        .frame(width: 760, height: 480)
+        let host = NSHostingView(rootView: root)
+        let window = makeWindow(host: host, size: CGSize(width: 760, height: 480))
+        defer { window.close() }
+        settle(host, window: window, iterations: 40)
+        XCTAssertGreaterThan(box.frame.width, 0, "actual probe frame=\(box.frame)")
+        let leading = box.frame.minX
+        let trailing = 760 - box.frame.maxX
+        XCTAssertGreaterThan(leading, 30, "actual leading space=\(leading); the measure must not sit at the leading edge")
+        XCTAssertEqual(leading, trailing, accuracy: 1, "actual leading=\(leading), trailing=\(trailing)")
+    }
+
+    /// The history item holds exactly two buttons, each a 28 pt hit target. Their accessibility
+    /// names are not asserted here: SwiftUI does not materialize accessibility strings in this
+    /// offscreen host (the bridged buttons answer with an unknown role and empty strings whether or
+    /// not a label is set), so the names are checked live in the Catalog's accessibility tree.
+    func testHistoryToolbarItemHoldsTwoButtonsWith28ptTargets() throws {
+        let selection = SelectionModel()
+        let root = LumenSettingsSidebarView(Self.nativeCategories,
+            selection: Binding(get: { selection.category }, set: { selection.category = $0 }))
+            .lumenMetrics(.standard)
+        let host = NSHostingView(rootView: root)
+        let window = makeSettingsWindow(host: host, settingsIdentity: true)
+        defer { window.close() }
+        settle(host, window: window, iterations: 40)
+        let itemIDs = (window.toolbar?.items ?? []).map(\.itemIdentifier.rawValue)
+        let item = try XCTUnwrap(window.toolbar?.items.first { $0.itemIdentifier.rawValue.contains("lumen.settings.history") },
+                                 "actual toolbar items: \(itemIDs)")
+        let itemView = try XCTUnwrap(item.view, "the history item has no view; items: \(itemIDs)")
+        func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(descendants) }
+        let sizes = descendants(itemView).compactMap { $0 as? NSButton }.filter { !$0.isHidden }
+            .map { $0.convert($0.bounds, to: nil).size }
+        XCTAssertEqual(sizes.count, 2, "actual history button sizes: \(sizes)")
+        for size in sizes {
+            XCTAssertGreaterThanOrEqual(size.width, 27.5, "actual history button sizes: \(sizes)")
+            XCTAssertGreaterThanOrEqual(size.height, 27.5, "actual history button sizes: \(sizes)")
+        }
+    }
+
+    /// View › Toggle Sidebar collapses the sidebar item programmatically (the live Catalog showed it),
+    /// which `canCollapse` does not stop. The scaffold undoes any collapse, so Settings never loses
+    /// its categories with no toolbar control to bring them back.
+    func testProgrammaticCollapseOfTheCategorySidebarIsUndone() throws {
+        let selection = SelectionModel()
+        let root = LumenSettingsSidebarView(Self.nativeCategories,
+            selection: Binding(get: { selection.category }, set: { selection.category = $0 }))
+            .lumenMetrics(.standard)
+        let host = NSHostingView(rootView: root)
+        let window = makeSettingsWindow(host: host, settingsIdentity: true)
+        defer { window.close() }
+        settle(host, window: window, iterations: 40)
+        func controller(in view: NSView) -> NSSplitViewController? {
+            if let split = view as? NSSplitView, let controller = split.delegate as? NSSplitViewController {
+                return controller
+            }
+            return view.subviews.lazy.compactMap { controller(in: $0) }.first
+        }
+        let split = try XCTUnwrap(window.contentView.flatMap { controller(in: $0) }, "no split view controller")
+        let sidebar = try XCTUnwrap(split.splitViewItems.first { $0.behavior == .sidebar }, "no sidebar item")
+        XCTAssertFalse(sidebar.isCollapsed)
+        sidebar.isCollapsed = true
+        settle(host, window: window, iterations: 40)
+        XCTAssertFalse(sidebar.isCollapsed, "a programmatic collapse left the category sidebar hidden")
+    }
+
     private static var nativeCategories: [LumenSettingsCategory] {
         [
             LumenSettingsCategory(id: "short", title: "Short", systemImage: "gear", hue: .hueBlue) {
@@ -207,13 +282,18 @@ final class LumenSettingsAdaptiveTests: XCTestCase {
         ]
     }
 
-    private func makeSettingsWindow<Content: View>(host: NSHostingView<Content>) -> NSWindow {
+    private func makeSettingsWindow<Content: View>(host: NSHostingView<Content>,
+                                                   settingsIdentity: Bool = false) -> NSWindow {
         host.sizingOptions = [.minSize]
         host.sceneBridgingOptions = [.toolbars, .title]
         let window = LumenHeadlessHost.window(contentRect: CGRect(x: -10000, y: -10000, width: 820, height: 480),
                               styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
                               backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
+        if settingsIdentity {
+            // The same identity the real Settings scene records; the toolbar guarantee tests use it.
+            window.identifier = NSUserInterfaceItemIdentifier("com_apple_SwiftUI_Settings_window")
+        }
         window.titleVisibility = .visible
         window.toolbarStyle = .unifiedCompact
         window.contentView = host

@@ -201,9 +201,8 @@ public enum LumenLayoutAudit {
                 } else { frame = semantic.accessibilityFrame() }
                 let isText = role == .staticText || native is NSTextField || native is NSTextView
                 let isControl = role.map { interactiveRoles.contains($0) } ?? (native is NSControl)
-                let name = [semantic.accessibilityLabel(), semantic.accessibilityTitle(),
-                            semantic.accessibilityValue() as? String]
-                    .compactMap { $0 }
+                // Never call accessibilityLabel() directly: see LumenAccessibilityText.
+                let name = LumenAccessibilityText.candidates(of: object)
                     .first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
                     ?? native.map { String(describing: type(of: $0)) }
                     ?? role?.rawValue ?? "view"

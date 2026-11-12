@@ -3,7 +3,7 @@ import SwiftUI
 
 /// The version of the linked LumenUI library, updated by the release script.
 public enum LumenLibrary {
-    public static let version = "1.1.0"
+    public static let version = "1.1.1"
 }
 
 /// One named credit line in the About panel; `url` makes the name a clickable link.

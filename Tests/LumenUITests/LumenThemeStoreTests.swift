@@ -120,6 +120,15 @@ final class LumenThemeStoreTests: XCTestCase {
             .hasSuffix("Library/Application Support/TestApp/Themes"))
     }
 
+    func testASuiteNamedForTheBundleIdentifierUsesStandardDefaults() throws {
+        let id = "com.example.lumen-tests.\(UUID().uuidString)"
+        XCTAssertTrue(LumenStoreConfiguration.defaults(suiteName: id, bundleIdentifier: id) === UserDefaults.standard)
+        XCTAssertTrue(LumenStoreConfiguration.defaults(suiteName: nil, bundleIdentifier: id) === UserDefaults.standard)
+        let other = "lumen-tests-\(UUID().uuidString)"
+        addTeardownBlock { UserDefaults().removePersistentDomain(forName: other) }
+        XCTAssertFalse(LumenStoreConfiguration.defaults(suiteName: other, bundleIdentifier: id) === UserDefaults.standard)
+    }
+
     func testHiddenBuiltInsLeaveTheListButStillResolveAsParents() throws {
         let branded = LumenPack(id: "test.brand",
                                 themes: [LumenTheme(id: "test.brand.scope", name: "Scope", inherits: LumenThemes.standardID,

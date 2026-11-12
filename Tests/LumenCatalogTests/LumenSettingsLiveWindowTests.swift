@@ -383,32 +383,30 @@ final class LumenSettingsLiveWindowTests: XCTestCase {
         }
 
         let items = window.toolbar?.items ?? []
-        let sidebarItem = items.first { $0.itemIdentifier.rawValue.contains("lumen.settings.sidebar") }
         let historyItem = items.first { $0.itemIdentifier.rawValue.contains("lumen.settings.history") }
         let historyControls = historyItem.map(controlFrames) ?? []
-        let sidebarControls = sidebarItem.map(controlFrames) ?? []
+        // The category sidebar is always visible, as in System Settings: no toggle of any kind.
         let toggleItems = items.filter {
             $0.itemIdentifier.rawValue.contains("toggleSidebar") ||
             $0.itemIdentifier.rawValue.contains("lumen.settings.sidebar")
         }
-        let duplicateToggle = toggleItems.count != 1
-        if duplicateToggle { result.violations.insert(.toggleCount) }
+        let invalidToggle = !toggleItems.isEmpty
+        if invalidToggle { result.violations.insert(.toggleCount) }
         let band = window.frame.height - window.contentLayoutRect.height
         let standardBand = standardUnifiedBandHeight()
         if band > standardBand + 0.5 { result.violations.insert(.bandHeight) }
         result.details.append("toggle count: \(toggleItems.count); band: \(band) pt; unified standard: \(standardBand) pt; content: \(window.contentLayoutRect.size)")
         let historyPresent = historyItem?.isNavigational == true && historyControls.count >= 2
         if !historyPresent { result.violations.insert(.historyGroup) }
-        if let toggle = sidebarControls.first, historyControls.count >= 2,
-           toggle.height > 0, !duplicateToggle,
-           historyControls.allSatisfy({ abs($0.height - toggle.height) <= 0.5 }) {
-            // All three rendered controls share the same native height.
+        if let first = historyControls.first, historyControls.count >= 2, first.height > 0,
+           historyControls.allSatisfy({ abs($0.height - first.height) <= 0.5 }) {
+            // Both rendered history controls share the same native height.
         } else {
             result.violations.insert(.controlHeights)
         }
         result.details.append("toolbar: \(items.map { $0.itemIdentifier.rawValue })")
-        result.details.append("sidebar controls: \(sidebarControls); history controls: \(historyControls)")
-        result.details.append("invalid sidebar-toggle count: \(duplicateToggle)")
+        result.details.append("history controls: \(historyControls)")
+        result.details.append("invalid sidebar-toggle count: \(invalidToggle)")
 
         // A navigation title is permitted once beside the navigation group. It is never a
         // principal/standalone category label, and the pane header is outside the toolbar.

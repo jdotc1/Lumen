@@ -51,6 +51,7 @@ final class LumenNativeWindowChrome {
     private var normalizing = false
     private var preservedHeight: CGFloat?
     private var preservesExpanded = false
+    private var settings = false
 
     static func isSettingsWindow(_ window: NSWindow) -> Bool {
         // The hosted Settings scene test records this identity on the target SDK.
@@ -83,9 +84,13 @@ final class LumenNativeWindowChrome {
         schedule()
     }
 
-    func update(preservesExpanded: Bool, hasNativeSidebar: Bool) {
+    /// `settings` marks a Settings root (scene identity, scene marker or the stock scaffold).
+    /// Settings always uses one unified row: the Settings scene's own `.preference` default is
+    /// not an application's request for an expanded toolbar, so the opt-out never applies there.
+    func update(preservesExpanded: Bool, hasNativeSidebar: Bool, settings: Bool = false) {
         self.preservesExpanded = preservesExpanded
         self.hasNativeSidebar = hasNativeSidebar
+        self.settings = settings
         schedule()
     }
 
@@ -110,7 +115,9 @@ final class LumenNativeWindowChrome {
         }
         // Native sidebar material must own the band even in Settings scenes and
         // when an application requests an expanded toolbar for other window kinds.
-        if preservesExpanded && !hasNativeSidebar {
+        // Settings windows are unified whether or not their sidebar is visible.
+        let settingsWindow = settings || Self.isSettingsWindow(window)
+        if preservesExpanded && !hasNativeSidebar && !settingsWindow {
             if let installedStyle, window.toolbarStyle == installedStyle, let originalStyle {
                 changeStyle(originalStyle, in: window)
                 self.installedStyle = nil
@@ -154,6 +161,7 @@ final class LumenNativeWindowChrome {
         originalStyle = nil
         originalTitlebarTransparency = nil
         hasNativeSidebar = false
+        settings = false
         installedStyle = nil
         preservedHeight = nil
         addedFullSize = false

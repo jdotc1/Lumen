@@ -59,6 +59,10 @@ extension EnvironmentValues {
 extension View {
     /// Reads the user's density preference (`<appName>.lumen.density` in the store's defaults)
     /// and provides it to the subtree. A store that doesn't persist provides regular.
+    ///
+    /// - Parameter store: by default the active store (`LumenThemeStore.active`), not the one an
+    ///   enclosing `.lumenPaletteRoot(store:)` injected; a window with a store of its own passes
+    ///   that store here too.
     public func lumenDensityRoot(store: LumenThemeStore = .active) -> some View {
         modifier(LumenDensityRootModifier(configuration: store.configuration, persists: store.persistsSelection))
     }

@@ -18,6 +18,7 @@ public struct LumenMenuBarPanel<Content: View, Accessory: View, Footer: View>: V
     @State private var headerHeight: CGFloat = 0
     @State private var footerHeight: CGFloat = 0
     @Environment(\.lumenMetrics) private var metrics
+    @Environment(\.lumenPalette) private var palette
 
     /// The title controls header presence. An accessory is displayed at its trailing edge.
     /// Omit the footer with `showsFooter: false`; its actions operate on the host application.
@@ -70,7 +71,7 @@ public struct LumenMenuBarPanel<Content: View, Accessory: View, Footer: View>: V
         .frame(idealHeight: headerHeight + scrollHeight + footerHeight,
                maxHeight: min(maximumHeight, headerHeight + scrollHeight + footerHeight))
         .font(metrics.typography.callout)
-        .foregroundStyle(.lumen(.fgPrimary))
+        .foregroundStyle(palette[.fgPrimary])
         .lumenRaisedGround()
         .menuBarPanelRegion(.panel, hasHeader: title != nil, hasFooter: showsFooter)
         .lumenScaffoldMargin(metrics.spacing.s5)

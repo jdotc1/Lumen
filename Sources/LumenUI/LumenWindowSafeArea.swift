@@ -162,9 +162,23 @@ private struct LumenWindowContentLayout: Layout {
         }
     }
 
-    private func contentProposal(_ proposal: ProposedViewSize, minimum: CGSize) -> ProposedViewSize {
+    /// The content's minimum height at `width`, not at zero width: there every ViewThatFits
+    /// takes its stacked fallback and wrapping text measures at its narrowest, so the zero-width
+    /// height would become the floor at every width (an inspector reported 784 pt for 504 pt of
+    /// content, a wide header reported its stacked height). Unbounded, unspecified and
+    /// below-minimum widths keep the zero-proposal minimum. Measuring and placement share it, so
+    /// content is never proposed taller than the container reported itself.
+    private func heightFloor(_ subviews: Subviews, width: CGFloat?, minimum: CGSize) -> CGFloat {
+        guard let width, width.isFinite, width > minimum.width else { return minimum.height }
+        return subviews.dropLast().reduce(CGFloat.zero) { result, child in
+            let height = child.sizeThatFits(ProposedViewSize(width: width, height: 0)).height
+            return max(result, height.isFinite ? height : 0)
+        }
+    }
+
+    private func contentProposal(_ proposal: ProposedViewSize, minimum: CGSize, floorHeight: CGFloat) -> ProposedViewSize {
         ProposedViewSize(width: proposal.width.map { max($0, minimum.width) },
-                         height: proposal.height.map { max($0 - topInset, minimum.height) })
+                         height: proposal.height.map { max($0 - topInset, floorHeight) })
     }
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
@@ -178,8 +192,9 @@ private struct LumenWindowContentLayout: Layout {
             let size = child.sizeThatFits(offered)
             return CGSize(width: max(result.width, size.width), height: max(result.height, size.height))
         }
+        let floorHeight = heightFloor(subviews, width: proposal.width, minimum: minimum)
         let natural = CGSize(width: max(minimum.width, response.width),
-                             height: max(minimum.height, response.height) + topInset)
+                             height: max(floorHeight, response.height) + topInset)
         // An oversized layout response is centered by the host before placeSubviews runs.
         // Accept a real viewport at the outer attached root; retain minimum/ideal queries
         // and the full child minimum so overflow is placed only at the trailing/bottom edge.
@@ -193,7 +208,8 @@ private struct LumenWindowContentLayout: Layout {
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let minimum = minimum(subviews)
-        let offered = contentProposal(ProposedViewSize(bounds.size), minimum: minimum)
+        let offered = contentProposal(ProposedViewSize(bounds.size), minimum: minimum,
+                                      floorHeight: heightFloor(subviews, width: bounds.width, minimum: minimum))
         let origin = CGPoint(x: bounds.minX, y: bounds.minY + topInset)
         for child in subviews.dropLast() {
             child.place(at: origin, anchor: .topLeading, proposal: offered)
@@ -408,7 +424,8 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             let nested = input.ancestorScope?.window === window
             if !nested {
                 chrome.attach(window: window)
-                chrome.update(preservesExpanded: input.preservesExpanded, hasNativeSidebar: lastNativeSidebar == true)
+                chrome.update(preservesExpanded: input.preservesExpanded, hasNativeSidebar: lastNativeSidebar == true,
+                              settings: input.settings)
                 let detected = LumenNativeWindowChrome.isSettingsWindow(window)
                 if detected != lastDetectedSettings {
                     lastDetectedSettings = detected
@@ -455,7 +472,8 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             }
             let splitOwnsTop = !nested && window.contentView.map(rootSplit) == true
             if !nested {
-                chrome.update(preservesExpanded: input.preservesExpanded, hasNativeSidebar: nativeSidebar)
+                chrome.update(preservesExpanded: input.preservesExpanded, hasNativeSidebar: nativeSidebar,
+                              settings: input.settings)
             }
             if splitOwnsTop != lastRootSplit || nativeSidebar != lastNativeSidebar {
                 lastRootSplit = splitOwnsTop

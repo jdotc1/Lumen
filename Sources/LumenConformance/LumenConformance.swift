@@ -309,10 +309,9 @@ public enum LumenConformance {
     /// band). Hairlines are fine, since the same color sits on both sides. The pane is drawn in a real
     /// (offscreen) window, so AppKit-backed SwiftUI (List, Table, text views) is scanned as shipped.
     ///
-    /// Known exclusion: an icon tile of 12 pt or more whose plate sits within `maximumStep` of the
-    /// ground reads as a background step at its two edges, because its top and bottom rows are flat
-    /// past the glyph. A tile is content, not a ground; evaluate such findings in context without
-    /// retinting the theme or widening the thresholds.
+    /// A shape enclosed by one ground and no larger than a row icon tile
+    /// (`LumenMetrics.Layout.tileRowDetailed`) in either direction is skipped: a tile's plate is
+    /// content, not a surface, though its rows above and below the glyph are flat.
     @MainActor
     public static func surfaceSteps<Content: View>(sizes: [CGSize], variant: LumenSnapshot.Variant = .init(themeID: LumenThemes.standardID, colorScheme: .dark),
                                                    registry: LumenRegistry = .core, of pane: () -> Content) -> [Finding] {
@@ -535,11 +534,54 @@ private struct SurfaceScan {
         return SIMD3(Double(c.redComponent), Double(c.greenComponent), Double(c.blueComponent)) * 255
     }
 
+    /// The largest enclosed shape that's content rather than a surface, in pixels (one per point):
+    /// the largest row icon tile. A tile's plate is flat above and below its glyph, so without this
+    /// a plate near the ground reads as a step at both of its edges.
+    static let enclosedShape = Int(LumenMetrics.standard.layout.tileRowDetailed.rounded(.up))
+
+    /// The first flat run (of `flatRun` pixels) that starts at `from`, or past a hairline of up to
+    /// `hairline` pixels after it: its first pixel and color.
+    private func nextSurface(from: Int, y: Int) -> (x: Int, color: SIMD3<Double>)? {
+        let width = image.pixelsWide
+        for gap in 0...Self.hairline where from + gap - 1 + Self.flatRun < width {
+            let candidate = color(from + gap, y)
+            var flat = true
+            for k in 1...Self.flatRun where distance(color(from + gap - 1 + k, y), candidate) >= 1.5 { flat = false; break }
+            if flat { return (from + gap, candidate) }
+        }
+        return nil
+    }
+
+    /// Whether the surface `inner` that starts at `start` on row `y` is an enclosed shape no larger
+    /// than `enclosedShape` (an icon tile's plate) on the `ground` it starts from: no wider or taller
+    /// than that, with the same ground after it. Returns the edge where it ends when it is.
+    private func enclosedEnd(start: Int, y: Int, inner: SIMD3<Double>, ground: SIMD3<Double>) -> Int? {
+        let width = image.pixelsWide, height = image.pixelsHigh, bound = Self.enclosedShape
+        var end = start
+        while end + 1 < width, end - start < bound, distance(color(end + 1, y), inner) < 1.5 { end += 1 }
+        // The ground resumes right after it, or past an antialiased hairline. It needn't run flat for
+        // `flatRun` pixels: a row's text can start soon after its tile.
+        let resumes = (0...Self.hairline).contains { gap in
+            end + 2 + gap < width && distance(color(end + 1 + gap, y), ground) < Self.minimumStep
+                && distance(color(end + 2 + gap, y), ground) < Self.minimumStep
+        }
+        guard end - start + 1 <= bound, resumes else { return nil }
+        // Its height, along the column just inside its leading edge (clear of a centered glyph).
+        let column = min(start + 1, end)
+        var top = y, bottom = y
+        while top > 0, y - top < bound, distance(color(column, top - 1), inner) < 1.5 { top -= 1 }
+        while bottom + 1 < height, bottom - y < bound, distance(color(column, bottom + 1), inner) < 1.5 { bottom += 1 }
+        guard bottom - top + 1 <= bound else { return nil }
+        return end + 1
+    }
+
     func steps() -> [String] {
         let width = image.pixelsWide, height = image.pixelsHigh
         var rowsByEdge: [Int: Int] = [:]
         for y in stride(from: 0, to: height, by: 2) {
             var x = 0
+            // The far edges of enclosed shapes found on this row, which aren't steps either.
+            var enclosedEdges: Set<Int> = []
             while x < width - 1 {
                 // Extend a flat run from x.
                 let start = x, base = color(x, y)
@@ -548,16 +590,15 @@ private struct SurfaceScan {
                 guard runEnd - start + 1 >= Self.flatRun, runEnd + Self.flatRun < width else { x += 1; continue }
                 // The next surface starts right after the run, or past a hairline of up to
                 // `hairline` pixels: a line between two surfaces mustn't hide the step between them.
-                var next: SIMD3<Double>?
-                for gap in 0...Self.hairline where runEnd + gap + Self.flatRun < width {
-                    let candidate = color(runEnd + 1 + gap, y)
-                    var flat = true
-                    for k in 1...Self.flatRun where distance(color(runEnd + gap + k, y), candidate) >= 1.5 { flat = false; break }
-                    if flat { next = candidate; break }
-                }
-                if let next, case let step = distance(base, next),
-                   step >= Self.minimumStep, step <= Self.maximumStep, runEnd + 1 > 2, runEnd + 1 < width - 2 {
-                    rowsByEdge[runEnd + 1, default: 0] += 1
+                if let next = nextSurface(from: runEnd + 1, y: y), case let step = distance(base, next.color),
+                   step >= Self.minimumStep, step <= Self.maximumStep, runEnd + 1 > 2, runEnd + 1 < width - 2,
+                   !enclosedEdges.contains(runEnd + 1) {
+                    // An icon-size shape on the run's own ground (a tile's plate) is content.
+                    if let end = enclosedEnd(start: next.x, y: y, inner: next.color, ground: base) {
+                        enclosedEdges.insert(end)
+                    } else {
+                        rowsByEdge[runEnd + 1, default: 0] += 1
+                    }
                 }
                 x = runEnd + 1
             }

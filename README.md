@@ -317,9 +317,10 @@ Settings { LumenSettingsSidebarView(categories) }.lumenSettingsScene()
 Use `LumenAppearanceSettings(textScale: $textScale, showsGallery: false)` for an app-owned text-scale row (optional `store:` and `textScaleSteps:`).
 
 Supply `[LumenSettingsCategory]`, each with its pane content. The stock scaffold owns the searchable
-source-list sidebar and palette surfaces, category tiles, Back/Forward history (⌘[ / ⌘]), matching
-icon-only sidebar toggle, category navigation title, balanced split and stable window frame. The
-Scene helper sets native compact toolbar behavior and window defaults; the scaffold applies its
+source-list sidebar and palette surfaces, category tiles, Back/Forward history (⌘[ / ⌘]), the
+category navigation title beside it in one unified toolbar row, balanced split and stable window
+frame. The sidebar is always visible, as in System Settings, so the toolbar has no sidebar toggle.
+The Scene helper sets native compact toolbar behavior and window defaults; the scaffold applies its
 own palette tint.
 Both `.drawn` and `.glass` use the same complete window, including apps with only two categories.
 `LumenSettingsPane` keeps its tile, title and summary and bounds both `.rich` and `.grouped` content.

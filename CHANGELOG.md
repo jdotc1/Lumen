@@ -2,6 +2,41 @@
 
 Public releases of the Lumen design system and Catalog.
 
+## 1.1.1 (2026-11-12)
+
+### Fixed
+- **Debug builds no longer crash at launch on macOS 27.3.** The Debug-only layout-audit observer that
+  `LumenThemeStore.install` starts read SwiftUI accessibility labels as `String`. SwiftUI can answer
+  with an `NSAttributedString`, and the bridge raised an Objective-C exception inside a main-actor
+  task. Any Debug build that installed a store could crash; Release builds do not run the observer.
+  The window checks in `LumenConformance` share that audit code and read labels the same way now.
+- `lumenPaletteRoot` no longer reports its content's zero-width (fully stacked) height as its minimum
+  at every width, which made conformance overflow checks and `fittingSize` measure inspectors and page
+  headers too tall. The root now floors and places its content at the minimum for the proposed width.
+- **Settings:** windows always use one unified toolbar row, even without a palette root or
+  `lumenSettingsScene()`, and `lumenPreservesExpandedToolbar(true)` does not change that. The category
+  sidebar is always visible: there is no sidebar toggle, the divider cannot collapse it, and
+  View > Toggle Sidebar cannot collapse it either, nor resize the window. Back/Forward hugs its two
+  buttons. A pane wider than its 640 pt measure is centred in every width class, not only above 820 pt.
+- `LumenMenuBarPanel` draws its text with the environment's palette, so a panel under a second
+  store's `lumenPaletteRoot(store:)` uses that store's colors. The doc comments on `.lumen(_:)`,
+  `Lumen.palette`, `Lumen.theme(for:)`, `lumenDensityRoot`, `LumenThemeEditor` and
+  `LumenThemeGallery(store:)` now say that they read the active store and name the alternative.
+- A `LumenStoreConfiguration.defaultsSuiteName` equal to the app's bundle identifier now resolves to
+  the standard defaults, so apps no longer get Foundation's launch warning about using the app's own
+  bundle identifier as an `NSUserDefaults` suite name. The Catalog follows the same rule.
+
+### Visual
+- Settings windows lose the sidebar toggle (the `lumen.settings.sidebar` toolbar item), put the
+  history buttons and title at the leading edge of one toolbar row, and centre the pane when the
+  window is wider than the pane's measure. Review the Settings snapshots; don't record them blind.
+
+### Validator
+- `LumenConformance.surfaceSteps` no longer reports a shape enclosed by one ground that is no larger
+  than a row icon tile (`tileRowDetailed`, 26 pt at standard metrics) in either direction, so tile
+  plates close to the ground, such as Midnight's, no longer need an exclusion. It reports fewer
+  findings and no new ones.
+
 ## 1.1.0 (2026-11-12)
 
 ### Added
