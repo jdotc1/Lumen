@@ -251,7 +251,7 @@ differs stays until a breaking release, since renaming it breaks callers.
   `LumenNewItemButton`, `.newItemButton`. A parameter that takes a whole action value
   (`LumenBarAction`) is named for its place instead (`primary:`, `secondary:`).
   A state's link is `link:` (a `LumenAction`) on `LumenEmptyState` and `.lumenInspectorEmptyState`;
-  the 1.0 form replaces `actionTitle:`/`action:`, which stays as a deprecated alias for one minor.
+  it replaced `actionTitle:`/`action:`, which 1.0 removed.
   `LumenLoadingState` and `LumenErrorState` use `onCancel:`/`onRetry:`.
 - `onX:` an event a view reports, named for the event: `onSelect:`, `onOpen:`, `onClose:`,
   `onDismiss:`, `onToggle:`, `onInstall:`, `onActivate:`.

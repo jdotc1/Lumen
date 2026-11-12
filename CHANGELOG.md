@@ -2,7 +2,7 @@
 
 Public releases of the Lumen design system and Catalog.
 
-## Unreleased
+## 1.0.0 (2026-11-12)
 
 ### Breaking
 This is the 1.0 bundle. It lists exactly these changes. `Scripts/api-check.sh` against
@@ -13,9 +13,9 @@ LumenConformance; the findings below account for all of them.
   `LumenBarAction` and `LumenWelcomeAction` stay as aliases of it, and both initializer shapes still
   compile, so call sites need no change. `systemImage` is now optional on the type; code that read
   `LumenWelcomeAction.systemImage` as a non-optional `String` must unwrap it.
-- **`LumenEmptyState` takes `link: LumenAction?`** in place of `actionTitle:`/`action:`. The old pair
-  stays as a deprecated overload for one minor with both parameters required (no longer optional)
-  and a `@MainActor` closure; pass `link:` instead. `lumenInspectorEmptyState` follows the same shape.
+- **`LumenEmptyState` takes `link: LumenAction?`** in place of `actionTitle:`/`action:`, and
+  `lumenInspectorEmptyState` follows the same shape. The deprecated `actionTitle:`/`action:`
+  overloads are removed; pass `link: LumenAction("Title") { … }`.
 - **`LumenItemCard` and `LumenDetailHeader` default to `.hueBlue`** instead of `.accent`. Pass
   `hue: .accent` for the previous look.
 - **`Lumen.color(_:)` and `Lumen.nsColor(_:)` are removed.** Read the palette from

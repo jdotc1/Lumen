@@ -406,12 +406,6 @@ public struct LumenEmptyState: View {
         self.init(title, message: message, systemImage: systemImage, prominence: .pane, link: link)
     }
 
-    /// A pane empty state with one next step.
-    @available(*, deprecated, message: "Pass `link: LumenAction(\"Title\") { … }`; `actionTitle:`/`action:` is removed in a later release")
-    public init(systemImage: String, title: String, message: String, actionTitle: String, action: @escaping @MainActor () -> Void) {
-        self.init(title, message: message, systemImage: systemImage, prominence: .pane, link: LumenAction(actionTitle, perform: action))
-    }
-
     /// With `.inline`, `message`, `systemImage` and `link` are ignored: an inline state is one
     /// sentence. `LumenEmptyState.inline(_:ink:leading:padding:)` takes only what an inline state
     /// draws.
@@ -427,13 +421,6 @@ public struct LumenEmptyState: View {
         self.message = message
         self.prominence = prominence
         self.link = link
-    }
-
-    /// A state with one next step.
-    @available(*, deprecated, message: "Pass `link: LumenAction(\"Title\") { … }`; `actionTitle:`/`action:` is removed in a later release")
-    public init(_ title: String, message: String? = nil, systemImage: String? = nil, prominence: Prominence = .pane,
-                actionTitle: String, action: @escaping @MainActor () -> Void) {
-        self.init(title, message: message, systemImage: systemImage, prominence: prominence, link: LumenAction(actionTitle, perform: action))
     }
 
     /// An inline empty sentence in a surface's own quiet ink, centered or leading-aligned, with

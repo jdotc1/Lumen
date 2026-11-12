@@ -90,8 +90,8 @@ six 1024 × 1024 PNGs with design generation 27. The standalone installed Icon C
 second lookup location. Preview files are `Default.png`, `Dark.png`, `ClearLight.png`,
 `ClearDark.png`, `TintedLight.png`, and `TintedDark.png`. They render the source document;
 compiled-stack inspection is separate evidence. Each run retains `actool.log`, `assets.json`,
-renderer logs, and a small `report.json` alongside the PNGs. Tool logs and `assets.json` are
-local diagnostics ignored by Git; PNG previews can be retained alongside the source document. A failed compile may still produce previews
+renderer logs, and a small `report.json` alongside the PNGs. Tool logs, `assets.json` and
+`report.json` are local diagnostics ignored by Git; PNG previews can be retained alongside the source document. A failed compile may still produce previews
 for diagnosis, but cannot produce a passing report.
 
 If neither existing app contains `ictool`, `iconutil` extracts the Default PNG from the compiled

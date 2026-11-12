@@ -422,14 +422,6 @@ public extension View {
                                   systemImage: String = "cursorarrow.rays", link: LumenAction) -> some View {
         modifier(LumenInspectorEmptyModifier(isEmpty: isEmpty, title: title, message: message, systemImage: systemImage, link: link))
     }
-
-    @available(*, deprecated, message: "Pass `link: LumenAction(\"Title\") { … }`; `actionTitle:`/`action:` is removed in a later release")
-    func lumenInspectorEmptyState(_ isEmpty: Bool, title: String = LumenOtherDefaultStrings.nothingSelected, message: String,
-                                  systemImage: String = "cursorarrow.rays", actionTitle: String,
-                                  action: @escaping @MainActor () -> Void) -> some View {
-        lumenInspectorEmptyState(isEmpty, title: title, message: message, systemImage: systemImage,
-                                 link: LumenAction(actionTitle, perform: action))
-    }
 }
 
 private struct LumenInspectorEmptyModifier: ViewModifier {

@@ -109,4 +109,48 @@ final class LumenWindowRootPlacementTests: XCTestCase {
             }
         }
     }
+
+    /// An app-composed root (raw `NavigationSplitView` inside the palette root) whose detail asks
+    /// for more height than the screen has: the window and its minimum stop at the screen, the
+    /// title-bar controls stay in the title bar, and the audit names the detail.
+    func testSplitDetailTallerThanScreenCapsAtScreen() throws {
+        _ = NSApplication.shared
+        let visible = try XCTUnwrap(NSScreen.main).visibleFrame
+        let measure = Measurement()
+        let minimum = CGSize(width: 400, height: visible.height + 200)
+        let root = NavigationSplitView {
+            List { Text("Item") }.navigationSplitViewColumnWidth(200)
+        } detail: {
+            OverflowContent(minimum: minimum, measure: measure)
+        }
+        .lumenPaletteRoot()
+        let host = NSHostingView(rootView: root)
+        host.sizingOptions = []
+        let window = LumenHeadlessHost.window(
+            contentRect: .init(x: visible.minX + 40, y: visible.minY + 40, width: 700, height: 400),
+            styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
+            backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.title = "Split overflow"
+        window.contentView = host
+        window.setContentSize(.init(width: 700, height: 400))
+        LumenHeadlessHost.order(window)
+        defer { window.close() }
+        settle(window)
+        XCTAssertLessThanOrEqual(window.frame.height, visible.height + 0.5)
+        let minFrame = window.frameRect(forContentRect: .init(origin: .zero, size: window.contentMinSize))
+        XCTAssertLessThanOrEqual(minFrame.height, visible.height + 0.5)
+        XCTAssertLessThanOrEqual(minFrame.width, visible.width + 0.5)
+        let usable = window.convertToScreen(window.contentLayoutRect)
+        let close = try XCTUnwrap(window.standardWindowButton(.closeButton))
+        let closeFrame = window.convertToScreen(close.convert(close.bounds, to: nil))
+        XCTAssertGreaterThanOrEqual(closeFrame.minY, usable.maxY - 0.5)
+        XCTAssertLessThanOrEqual(closeFrame.maxY, window.frame.maxY + 0.5)
+        let findings = LumenConformance.liveWindow(window)
+        print("SPLIT SCREEN LIMIT frame=\(window.frame) minimum=\(window.contentMinSize) detail=\(measure.frame) findings=\(findings.map { "\($0.subject): \($0.message)" })")
+        XCTAssertTrue(findings.contains {
+            $0.message.contains("content minimum exceeds screen") && $0.subject.contains("OverflowContent")
+        },
+                      "findings: \(findings.map { "\($0.subject): \($0.message)" })")
+    }
 }
