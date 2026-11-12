@@ -450,6 +450,9 @@ public struct LumenSettingsSidebarView: View {
                 .fixedSize()
                 .buttonStyle(.borderless)
                 .controlSize(.regular)
+                // As direct children of the toolbar item viewer, AppKit reports the second button's
+                // plain AXDescription as the first's ("Back" twice). Grouping them gives each its own name.
+                .accessibilityElement(children: .contain)
             }
             .lumenToolbarPlatter(chrome)
         }

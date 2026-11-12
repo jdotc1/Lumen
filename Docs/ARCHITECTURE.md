@@ -157,8 +157,10 @@ those, never a global. So stores are scoped per window:
   another window or a preview lives beside it. A root without an argument inside its subtree keeps
   it; the theme gallery and Appearance settings follow it unless given a store.
 - `LumenThemeStore.active` is the shared store, or a task-local override that tests and variant
-  snapshots install with `withActiveStore(_:_:)`. Only the global lookups read it: `.lumen(_:)`, `Lumen.palette` and
-  `Lumen.theme(for:)`. `LumenSnapshot`'s store-based renders don't install an override, so a view
+  snapshots install with `withActiveStore(_:_:)`. The global lookups read it: `.lumen(_:)`, `Lumen.palette` and
+  `Lumen.theme(for:)`; so does the environment's default store (`\.lumenStore` outside any root), per lookup.
+  Inside a root, `.lumenEnvironmentDensityRoot()` and `LumenThemeEditor(basedOn:)` read `\.lumenStore`
+  instead, and so follow a scoped store (apply them before, so inside, the root). `LumenSnapshot`'s store-based renders don't install an override, so a view
   that still reads one of those shows it in its golden.
 
 ## What lives where

@@ -16,7 +16,8 @@ public struct LumenStoreConfiguration: Sendable, Hashable {
     /// theme disappears. `nil` uses the registry's default theme.
     public var defaultThemeID: String?
     /// A user-defaults suite for the saved choices; `nil` is the app's standard defaults. Tests
-    /// that exercise persistence use a unique suite and remove it afterwards.
+    /// that exercise persistence use a unique suite and remove it afterwards. A name equal to the
+    /// bundle identifier resolves to the standard defaults.
     public var defaultsSuiteName: String?
     /// How the navigation layer's chrome draws (PRINCIPLES §11). `.glass`, the default, uses system
     /// glass there on macOS 27 and later; `.drawn` is Lumen's own chrome, and what `.glass` falls back to.

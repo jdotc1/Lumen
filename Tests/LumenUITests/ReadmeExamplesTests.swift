@@ -24,6 +24,12 @@ final class ReadmeExamplesTests: XCTestCase {
         .lumenMetrics(.standard)
         .lumenDensityRoot(store: store)
         _ = LumenThemeGallery(store: store)
+        let scoped = content
+            .lumenEnvironmentDensityRoot()
+            .lumenMetrics(.standard)
+            .lumenPaletteRoot(store: store, windowChrome: false)
+        _ = LumenThemeEditor(basedOn: LumenThemes.midnight)
+        XCTAssertNotNil(ImageRenderer(content: scoped.frame(width: 320, height: 240)).cgImage)
         XCTAssertNotNil(ImageRenderer(content: content.frame(width: 320, height: 240)).cgImage)
     }
 

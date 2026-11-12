@@ -622,6 +622,25 @@ store without making it active, so a view that still reads the shared store show
 `.lumen(_:)` reads the active store; inside a second store's window read
 `@Environment(\.lumenPalette)` instead.
 
+Density and the theme editor follow a scoped store too, with the environment spellings. Each reads
+only what is above it, so apply the density root before (inside) the palette root; a later modifier is outer:
+
+```swift
+// A window with its own store: density, palette and editor all follow it.
+WindowGroup {
+    content
+        .lumenEnvironmentDensityRoot()   // apply before (inside) the palette root
+        .lumenMetrics(.standard)
+        .lumenPaletteRoot(store: windowStore, windowChrome: true)
+}
+// Inside it: LumenThemeEditor(basedOn: theme)
+// A subtree: .lumenPaletteRoot(store: s, windowChrome: false)  // .environment(\.lumenStore, s) alone does not recolor
+```
+
+Above the store, `lumenEnvironmentDensityRoot()` reads the active store. Scoped persisting stores need
+a distinct `appName` or defaults suite to keep an independent density. Scene content, AppKit hosts
+(`NSHostingController`), Commands and App Intents don't inherit the environment; give each its own root.
+
 ### Validate themes in your tests
 
 ```swift

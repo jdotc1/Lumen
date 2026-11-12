@@ -4,7 +4,7 @@ Text scale is an app preference for dense tools. It is independent of the operat
 settings.
 
 Apply `.lumenTextScale(preference)` at each window root, beside `.lumenPaletteRoot(store:)` and
-`.lumenDensityRoot(store:)`. The public `EnvironmentValues.lumenTextScale` defaults to `1.0` and
+`.lumenDensityRoot(store:)` (or `.lumenEnvironmentDensityRoot()`, applied before, so inside, the palette root, to follow the store in the environment). The public `EnvironmentValues.lumenTextScale` defaults to `1.0` and
 may also be set directly outside a palette root. Within a subtree, use the modifier so the
 stored metrics update with the preference. The app owns persistence. The Catalog stores its
 stepped `1.0`, `1.15`, and `1.3` preference in its own defaults suite and applies changes live to

@@ -1,3 +1,5 @@
+import AppKit
+import LumenTestSupport
 import SwiftUI
 import XCTest
 import LumenTokens
@@ -78,6 +80,188 @@ final class LumenScopedStoreTests: XCTestCase {
             .lumenPaletteRoot(store: ultraviolet, windowChrome: false))
         _ = renderer.cgImage
         XCTAssertTrue(probe.box.store === ultraviolet)
+    }
+
+    // MARK: - Environment density root and environment editor (P2-6)
+
+    /// A store that persists into its own defaults suite, so its density key is its own.
+    private func persistingStore(_ name: String, density: LumenDensity?) -> LumenThemeStore {
+        let suite = "LumenScopedStoreTests.\(name).\(UUID().uuidString)"
+        let configuration = LumenStoreConfiguration(appName: name,
+                                                    themesDirectory: URL(fileURLWithPath: "/dev/null/lumen-scoped"),
+                                                    defaultThemeID: LumenThemes.standardID, defaultsSuiteName: suite)
+        addTeardownBlock { UserDefaults().removePersistentDomain(forName: suite) }
+        if let density { configuration.defaults.set(density.rawValue, forKey: configuration.densityDefaultsKey) }
+        return LumenThemeStore(registry: .core, configuration: configuration, themes: LumenRegistry.core.galleryThemes,
+                               persistsSelection: true)
+    }
+
+    private func densityRead<V: View>(_ content: (DensityProbe) -> V) -> LumenDensity? {
+        let probe = DensityProbe()
+        let renderer = ImageRenderer(content: content(probe))
+        _ = renderer.cgImage
+        return probe.box.density
+    }
+
+    func testT0EnvironmentStoreDefaultIsTheActiveStoreAtEachLookup() {
+        let first = store(LumenThemes.standardID), second = store(LumenThemes.ultravioletID)
+        func lookup() -> LumenThemeStore? {
+            let probe = StoreProbe()
+            let renderer = ImageRenderer(content: probe)
+            _ = renderer.cgImage
+            return probe.box.store
+        }
+        XCTAssertTrue(LumenThemeStore.withActiveStore(first) { lookup() } === first)
+        XCTAssertTrue(LumenThemeStore.withActiveStore(second) { lookup() } === second)
+    }
+
+    func testT1EnvironmentDensityRootFollowsTheEnvironmentStore() {
+        let scoped = persistingStore("T1Scoped", density: .compact)
+        let outer = persistingStore("T1Outer", density: .comfortable)
+        let read = LumenThemeStore.withActiveStore(outer) {
+            densityRead { $0.lumenEnvironmentDensityRoot().environment(\.lumenStore, scoped) }
+        }
+        XCTAssertEqual(read, .compact)
+    }
+
+    func testT2EnvironmentDensityRootInsideAPaletteRoot() {
+        let scoped = persistingStore("T2Scoped", density: .comfortable)
+        let outer = persistingStore("T2Outer", density: .compact)
+        let read = LumenThemeStore.withActiveStore(outer) {
+            densityRead { $0.lumenEnvironmentDensityRoot().lumenPaletteRoot(store: scoped, windowChrome: false) }
+        }
+        XCTAssertEqual(read, .comfortable)
+    }
+
+    func testT2bReadmeChainFollowsTheScopedStore() {
+        let scoped = persistingStore("T2bScoped", density: .compact)
+        let outer = persistingStore("T2bOuter", density: .comfortable)
+        let read = LumenThemeStore.withActiveStore(outer) {
+            densityRead { probe in
+                probe.lumenEnvironmentDensityRoot()
+                    .lumenMetrics(.standard)
+                    .lumenPaletteRoot(store: scoped, windowChrome: true)
+            }
+        }
+        XCTAssertEqual(read, .compact)
+    }
+
+    func testT3ReversedOrderReadsTheActiveStore() {
+        let scoped = persistingStore("T3Scoped", density: .compact)
+        let outer = persistingStore("T3Outer", density: .comfortable)
+        let read = LumenThemeStore.withActiveStore(outer) {
+            densityRead { $0.environment(\.lumenStore, scoped).lumenEnvironmentDensityRoot() }
+        }
+        XCTAssertEqual(read, .comfortable, "The root reads only what is above it")
+    }
+
+    func testT4NonPersistingScopedStoreGivesRegular() {
+        let scoped = store(LumenThemes.standardID)
+        let outer = persistingStore("T4Outer", density: .comfortable)
+        let read = LumenThemeStore.withActiveStore(outer) {
+            densityRead { $0.lumenEnvironmentDensityRoot().environment(\.lumenStore, scoped) }
+        }
+        XCTAssertEqual(read, .regular)
+    }
+
+    func testT5EditorBasedOnEditsTheEnvironmentStore() throws {
+        let scoped = store(LumenThemes.standardID), outer = store(LumenThemes.ultravioletID)
+        let base = LumenThemes.midnight
+        try LumenThemeStore.withActiveStore(outer) {
+            try hosted(LumenThemeEditor(basedOn: base).environment(\.lumenStore, scoped), size: CGSize(width: 900, height: 640)) {
+                XCTAssertEqual(scoped.theme().id, "user.draft", "Preview begins in the environment store")
+                XCTAssertNotEqual(outer.theme().id, "user.draft", "The active store is untouched")
+            }
+            XCTAssertNotEqual(scoped.theme().id, "user.draft", "Preview ends when the editor goes away")
+            // An explicit store beats the environment.
+            try hosted(LumenThemeEditor(base: base, store: outer).environment(\.lumenStore, scoped), size: CGSize(width: 900, height: 640)) {
+                XCTAssertEqual(outer.theme().id, "user.draft")
+                XCTAssertNotEqual(scoped.theme().id, "user.draft")
+            }
+        }
+    }
+
+    func testT6StoreSwapMovesDensityAndRebuildsTheEditor() throws {
+        let first = persistingStore("T6First", density: .compact)
+        let second = persistingStore("T6Second", density: .comfortable)
+        let probe = DensityProbe()
+        func root(_ store: LumenThemeStore) -> some View {
+            VStack {
+                probe
+                LumenThemeEditor(basedOn: LumenThemes.midnight)
+            }
+            .lumenEnvironmentDensityRoot()
+            .environment(\.lumenStore, store)
+        }
+        let host = NSHostingView(rootView: root(first))
+        host.sizingOptions = []
+        let size = CGSize(width: 900, height: 700)
+        let window = LumenHeadlessHost.window(contentRect: CGRect(origin: CGPoint(x: -10000, y: -10000), size: size),
+                                              styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = host
+        window.setContentSize(size)
+        defer { window.close() }
+        func settle() {
+            for _ in 0..<12 {
+                host.layoutSubtreeIfNeeded()
+                window.update()
+                RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            }
+        }
+        settle()
+        XCTAssertEqual(probe.box.density, .compact)
+        XCTAssertEqual(first.theme().id, "user.draft")
+        host.rootView = root(second)
+        settle()
+        XCTAssertEqual(probe.box.density, .comfortable, "Density follows the store swap")
+        XCTAssertEqual(second.theme().id, "user.draft", "The editor session was rebuilt on the new store")
+        XCTAssertNotEqual(first.theme().id, "user.draft", "The old session ended its preview")
+    }
+
+    /// T7: the shipped spellings still compile and bind to the shipped initializers.
+    func testT7ShippedSpellingsStillResolve() {
+        let s = store(LumenThemes.standardID), t = LumenThemes.midnight
+        _ = Color.clear.lumenDensityRoot()
+        _ = Color.clear.lumenDensityRoot(store: s)
+        _ = LumenThemeEditor(base: t)
+        _ = LumenThemeEditor(base: t, store: s)
+        _ = LumenThemeEditor(base: t, editsInPlace: true)
+        _ = LumenThemeEditor(base: t, store: s, editsInPlace: false)
+        _ = LumenThemeEditor(basedOn: t)
+    }
+
+    private func hosted<V: View>(_ view: V, size: CGSize, inspect: () throws -> Void) throws {
+        let host = NSHostingView(rootView: view)
+        host.sizingOptions = []
+        let window = LumenHeadlessHost.window(contentRect: CGRect(origin: CGPoint(x: -10000, y: -10000), size: size),
+                                              styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.contentView = host
+        window.setContentSize(size)
+        for _ in 0..<12 {
+            host.layoutSubtreeIfNeeded()
+            window.update()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+        }
+        defer {
+            window.contentView = nil
+            window.close()
+            for _ in 0..<4 { RunLoop.current.run(until: Date().addingTimeInterval(0.02)) }
+        }
+        try inspect()
+    }
+}
+
+private final class DensityBox: @unchecked Sendable { var density: LumenDensity? }
+
+private struct DensityProbe: View {
+    let box = DensityBox()
+    @Environment(\.lumenDensity) private var density
+
+    var body: some View {
+        box.density = density
+        return Color.clear.frame(width: 4, height: 4)
     }
 }
 

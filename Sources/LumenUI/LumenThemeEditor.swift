@@ -2,12 +2,8 @@ import AppKit
 import LumenTokens
 import SwiftUI
 
-/// Native theme editor: start from any theme, change colors with system color wells, watch the
-/// miniature and the validation update live, and save a partial theme that inherits the rest.
-///
-/// Tokens are listed in the registry's groups (the app's packs decide them), with a filter field
-/// and a "Changed only" toggle. Each check the validator reports links to the color it names.
-public struct LumenThemeEditor: View {
+/// The editor body. `LumenThemeEditor` resolves a store and keys this view on it.
+struct LumenThemeEditorContent: View {
     let base: LumenTheme
     let store: LumenThemeStore
     /// Saving writes into `base`'s own file (a user theme) rather than a new theme.
@@ -28,25 +24,13 @@ public struct LumenThemeEditor: View {
     /// The validator's issues for the overrides as they last rested; `nil` until the first run.
     @State private var validated: [LumenIssue]?
 
-    /// - Parameters:
-    ///   - store: by default the active store (`LumenThemeStore.active`), not the one an enclosing
-    ///     `.lumenPaletteRoot(store:)` injected. Under a second store, pass it (for example from
-    ///     `@Environment(\.lumenStore)` in the presenting view), as `LumenThemeGallery` does.
-    ///   - editsInPlace: for a user theme, Save writes the changes into its own file; otherwise
-    ///     Save makes a new theme based on `base`.
-    public init(base: LumenTheme, store: LumenThemeStore = .active, editsInPlace: Bool) {
+    init(base: LumenTheme, store: LumenThemeStore, editsInPlace: Bool) {
         self.base = base
         self.store = store
         self.editsInPlace = editsInPlace && store.userThemeFile(for: base.id) != nil
         _session = State(initialValue: LumenThemeEditorSession(base: base, store: store, editsInPlace: self.editsInPlace))
         let systemIsDark = NSApp?.effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
         _editingDark = State(initialValue: base.forcedAppearanceIsDark ?? systemIsDark)
-    }
-
-    /// An editor that saves a new theme based on `base`. `store` defaults to the active store, as
-    /// in `init(base:store:editsInPlace:)`; under a second store, pass it.
-    public init(base: LumenTheme, store: LumenThemeStore = .active) {
-        self.init(base: base, store: store, editsInPlace: false)
     }
 
     private var registry: LumenRegistry { store.registry }
@@ -60,7 +44,7 @@ public struct LumenThemeEditor: View {
 
     /// The registry's groups after the filter field and "Changed only": a case-insensitive match
     /// on the token name or its group title. Empty groups are dropped; order is kept.
-    public nonisolated static func groups(in registry: LumenRegistry, matching query: String,
+    nonisolated static func groups(in registry: LumenRegistry, matching query: String,
                               within changed: Set<LumenToken>? = nil) -> [(title: String, tokens: [LumenToken])] {
         let needle = query.trimmingCharacters(in: .whitespaces).lowercased()
         return registry.groups.compactMap { group in
@@ -77,7 +61,7 @@ public struct LumenThemeEditor: View {
     /// fills) and component roles, which may be tints; the validator measures them composited over
     /// the canvas. Foregrounds (anything with contrast requirements, components included) and the
     /// grounds themselves (canvas, window, sidebar, elevated, inset) stay opaque.
-    public nonisolated static func supportsOpacity(_ token: LumenToken, in registry: LumenRegistry) -> Bool {
+    nonisolated static func supportsOpacity(_ token: LumenToken, in registry: LumenRegistry) -> Bool {
         let spec = registry.spec(for: token)
         guard !(spec?.isForeground ?? false) else { return false }
         return tintRoles.contains(token) || (spec?.isComponent ?? false)
@@ -329,6 +313,68 @@ public struct LumenThemeEditor: View {
         } catch {
             saveError = error.localizedDescription
         }
+    }
+}
+
+/// Native theme editor: start from any theme, change colors with system color wells, watch the
+/// miniature and the validation update live, and save a partial theme that inherits the rest.
+///
+/// Tokens are listed in the registry's groups (the app's packs decide them), with a filter field
+/// and a "Changed only" toggle. Each check the validator reports links to the color it names.
+public struct LumenThemeEditor: View {
+    private let base: LumenTheme
+    private let explicitStore: LumenThemeStore?
+    private let editsInPlace: Bool
+    @Environment(\.lumenStore) private var environmentStore
+
+    /// - Parameters:
+    ///   - store: by default the active store (`LumenThemeStore.active`), not the one an enclosing
+    ///     `.lumenPaletteRoot(store:)` injected. Under a second store, pass it (for example from
+    ///     `@Environment(\.lumenStore)` in the presenting view), as `LumenThemeGallery` does, or use
+    ///     `init(basedOn:editsInPlace:)`.
+    ///   - editsInPlace: for a user theme, Save writes the changes into its own file; otherwise
+    ///     Save makes a new theme based on `base`.
+    public init(base: LumenTheme, store: LumenThemeStore = .active, editsInPlace: Bool) {
+        self.base = base
+        self.explicitStore = store
+        self.editsInPlace = editsInPlace
+    }
+
+    /// An editor that saves a new theme based on `base`. `store` defaults to the active store, as
+    /// in `init(base:store:editsInPlace:)`; under a second store, pass it.
+    public init(base: LumenTheme, store: LumenThemeStore = .active) {
+        self.init(base: base, store: store, editsInPlace: false)
+    }
+
+    /// An editor that works in the store found in `\.lumenStore` at render time (the one an enclosing
+    /// `lumenPaletteRoot(store:)` or `.environment(\.lumenStore, _)` supplies; the active store outside
+    /// any). Place it inside that root: the environment flows from outer to inner. A different store in
+    /// the environment starts a fresh editing session.
+    ///
+    /// - Parameter editsInPlace: as in `init(base:store:editsInPlace:)`.
+    public init(basedOn base: LumenTheme, editsInPlace: Bool = false) {
+        self.base = base
+        self.explicitStore = nil
+        self.editsInPlace = editsInPlace
+    }
+
+    /// The registry's groups after the filter field and "Changed only": a case-insensitive match
+    /// on the token name or its group title. Empty groups are dropped; order is kept.
+    public nonisolated static func groups(in registry: LumenRegistry, matching query: String,
+                                          within changed: Set<LumenToken>? = nil) -> [(title: String, tokens: [LumenToken])] {
+        LumenThemeEditorContent.groups(in: registry, matching: query, within: changed)
+    }
+
+    /// Whether the editor offers an opacity slider for `token`: the tint roles and component roles;
+    /// foregrounds and the grounds themselves stay opaque.
+    public nonisolated static func supportsOpacity(_ token: LumenToken, in registry: LumenRegistry) -> Bool {
+        LumenThemeEditorContent.supportsOpacity(token, in: registry)
+    }
+
+    public var body: some View {
+        let store = explicitStore ?? environmentStore
+        LumenThemeEditorContent(base: base, store: store, editsInPlace: editsInPlace)
+            .id(ObjectIdentifier(store))
     }
 }
 

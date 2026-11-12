@@ -2,6 +2,21 @@
 
 Public releases of the Lumen design system and Catalog.
 
+## 1.2.0 (2026-11-12)
+
+### Added
+- `View.lumenEnvironmentDensityRoot()`: a density root that follows the store in `\.lumenStore`, for a
+  window or subtree with a store of its own. Apply it before (inside) the palette root or
+  `.environment(\.lumenStore, _)`; modifiers added later are outer, and the environment flows inward.
+- `LumenThemeEditor(basedOn:editsInPlace:)`: an editor that edits in the environment's store at render
+  time. A different store in the environment starts a fresh editing session.
+- Doc comments on the palette and density roots state the ordering rule (a root reads only what is
+  above it), and `LumenStoreConfiguration.defaultsSuiteName` documents the bundle-identifier case.
+
+### Fixed
+- **Settings:** the Back and Forward history buttons now announce distinct accessible names to
+  VoiceOver and other accessibility clients (both read "Back" before).
+
 ## 1.1.1 (2026-11-12)
 
 ### Fixed

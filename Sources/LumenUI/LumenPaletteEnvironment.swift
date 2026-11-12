@@ -135,7 +135,8 @@ extension EnvironmentValues {
     /// The resolved theme palette. Set by `.lumenPaletteRoot()`; outside it, the active store's.
     @Entry public var lumenPalette: LumenResolvedPalette = LumenThemeStore.active.resolvedPalette()
     /// The store behind `lumenPalette`, for components that resolve more than palette colors (icon
-    /// tiles, swatches). Set by `.lumenPaletteRoot()` and `.lumenSurface(_:)`.
+    /// tiles, swatches). Set by `.lumenPaletteRoot()` and `.lumenSurface(_:)`. Outside any root the
+    /// default is the active store, evaluated at each lookup.
     @Entry public var lumenStore: LumenThemeStore = LumenThemeStore.active
 }
 
@@ -162,6 +163,9 @@ extension View {
 
     /// `lumenPaletteRoot(store:windowChrome:)` for the store already in the environment
     /// (`\.lumenStore`, set by an enclosing root), or the active store outside any root.
+    ///
+    /// Ordering: a root provides the store to what is below it. Apply `lumenMetrics(_:)` and
+    /// `lumenEnvironmentDensityRoot()` before (inside) it, never after it: a later modifier is outer.
     public func lumenPaletteRoot(windowChrome: Bool) -> some View {
         modifier(LumenPaletteRootModifier(contentName: String(reflecting: Self.self), explicitStore: nil, windowChrome: windowChrome))
     }

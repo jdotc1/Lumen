@@ -63,8 +63,31 @@ extension View {
     /// - Parameter store: by default the active store (`LumenThemeStore.active`), not the one an
     ///   enclosing `.lumenPaletteRoot(store:)` injected; a window with a store of its own passes
     ///   that store here too.
+    /// `store` is explicit and read as given; it does not follow `\.lumenStore`. For a window or subtree
+    /// with its own store use `lumenEnvironmentDensityRoot()`.
     public func lumenDensityRoot(store: LumenThemeStore = .active) -> some View {
         modifier(LumenDensityRootModifier(configuration: store.configuration, persists: store.persistsSelection))
+    }
+}
+
+extension View {
+    /// A density root that reads the store from the environment (`\.lumenStore`) instead of from
+    /// `LumenThemeStore.active`. Apply it before (inside) the `lumenPaletteRoot(store:)` or
+    /// `.environment(\.lumenStore, _)` it should follow, so that root is the outer modifier: the
+    /// environment flows outer to inner, and a root applied after it never reaches it, so it reads
+    /// the active store. A non-persisting store provides regular, as
+    /// `lumenDensityRoot(store:)` does. Persisting stores that share an `appName` and defaults suite
+    /// share one density key.
+    public func lumenEnvironmentDensityRoot() -> some View {
+        modifier(LumenEnvironmentDensityRootModifier())
+    }
+}
+
+private struct LumenEnvironmentDensityRootModifier: ViewModifier {
+    @Environment(\.lumenStore) private var store
+
+    func body(content: Content) -> some View {
+        content.modifier(LumenDensityRootModifier(configuration: store.configuration, persists: store.persistsSelection))
     }
 }
 
