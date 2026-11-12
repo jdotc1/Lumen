@@ -2,6 +2,14 @@
 
 Public releases of the Lumen design system and Catalog.
 
+## 1.1.0 (2026-11-12)
+
+### Added
+- **About-panel credit links:** `LumenAboutCredit(name:url:)`, with `credits: [LumenAboutCredit]`
+  and an optional `creditsHeading:` on `LumenAboutPanel.options`, `LumenAboutPanel.show` and
+  `LumenAboutCommands`. Each credit is its own line; one with a URL is a clickable link. The
+  string `credits:` overloads are unchanged.
+
 ## 1.0.0 (2026-11-12)
 
 ### Breaking

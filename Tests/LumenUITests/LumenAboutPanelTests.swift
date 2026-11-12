@@ -61,4 +61,43 @@ final class LumenAboutPanelTests: XCTestCase {
         let text = try XCTUnwrap(options[.credits] as? NSAttributedString)
         XCTAssertEqual(text.string, "github.com/jdotc1/LumenUI\nBuilt with Lumen \(LumenLibrary.version)")
     }
+
+    func testCreditLinksAreClickablePerName() throws {
+        let a = try XCTUnwrap(URL(string: "https://github.com/example/alpha"))
+        let b = try XCTUnwrap(URL(string: "https://github.com/example/beta"))
+        let options = LumenAboutPanel.options(
+            bundle: try bundle([:]),
+            credits: [LumenAboutCredit(name: "Alpha", url: a),
+                      LumenAboutCredit(name: "Plain"),
+                      LumenAboutCredit(name: ""),
+                      LumenAboutCredit(name: "Beta\nTwo", url: b)],
+            creditsHeading: "Acknowledgements")
+        let text = try XCTUnwrap(options[.credits] as? NSAttributedString)
+        XCTAssertEqual(text.string,
+                       "github.com/jdotc1/LumenUI\nBuilt with Lumen \(LumenLibrary.version)\n\nAcknowledgements\nAlpha\nPlain\nBeta\nTwo")
+        func link(_ word: String) -> (URL?, NSRange) {
+            let r = (text.string as NSString).range(of: word, options: .backwards)
+            var effective = NSRange()
+            return (text.attribute(.link, at: r.location, longestEffectiveRange: &effective,
+                                   in: NSRange(location: 0, length: text.length)) as? URL, effective)
+        }
+        XCTAssertEqual(link("Alpha").0, a)
+        XCTAssertEqual(link("Alpha").1, (text.string as NSString).range(of: "Alpha"))
+        XCTAssertNil(link("Plain").0)
+        // A name with a line break stays one link, and the line after it is not shifted.
+        XCTAssertEqual(link("Beta").0, b)
+        XCTAssertEqual(link("Beta").1, (text.string as NSString).range(of: "Beta\nTwo"))
+        XCTAssertNil(link("Acknowledgements").0)
+        XCTAssertEqual(link("github.com/jdotc1/LumenUI").0, URL(string: "https://github.com/jdotc1/LumenUI"))
+        text.enumerateAttributes(in: NSRange(location: 0, length: text.length)) { attributes, _, _ in
+            XCTAssertEqual(attributes[.font] as? NSFont, NSFont.systemFont(ofSize: NSFont.smallSystemFontSize))
+            XCTAssertEqual((attributes[.paragraphStyle] as? NSParagraphStyle)?.alignment, .center)
+        }
+    }
+
+    func testEmptyCreditListAddsNoHeading() throws {
+        let options = LumenAboutPanel.options(bundle: try bundle([:]), credits: [], creditsHeading: "Acknowledgements")
+        let text = try XCTUnwrap(options[.credits] as? NSAttributedString)
+        XCTAssertEqual(text.string, "github.com/jdotc1/LumenUI\nBuilt with Lumen \(LumenLibrary.version)")
+    }
 }
