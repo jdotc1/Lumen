@@ -21,10 +21,10 @@ private struct LumenSidebarToggleModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            // nil restores the native item without replacing the split view's subtree.
-            .toolbar(removing: chromeStyle == .drawn ? .sidebarToggle : nil)
+            // The system toggle sits in a glass bubble; Lumen's bare button replaces it in both styles.
+            .toolbar(removing: .sidebarToggle)
             .toolbar {
-                if chromeStyle == .drawn {
+                do {
                     ToolbarSpacer(.flexible, placement: .automatic)
                     // Automatic placement belongs to this sidebar column; navigation placement
                     // would join the identity after the tracking separator.

@@ -236,6 +236,8 @@ Tile sections keep Title Case titles. Tags and badges are sentence case.
 `status.danger`: error states, console and debugger markers, status chips, banners), warning a
 triangle (`exclamationmark.triangle.fill`, in `status.warning`).
 
+**Boolean switches use `LumenSwitch`.** The system switch (`Toggle` with the default style) measures 1.28:1 in dark and 1.24:1 in light against its surround, below the 3:1 non-text contrast bar; `LumenSwitch` measures 3.51:1. Use `LumenSwitch` for every boolean in a Lumen window. A native switch is acceptable only where the system owns the control (a system sheet or panel Lumen does not draw). Decision: Jeff, 2026-11-12.
+
 ## 11. Glass
 
 macOS 27 draws the system's chrome in Liquid Glass. Lumen treats glass as both a look and a

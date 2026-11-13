@@ -148,6 +148,16 @@ private struct LumenWindowMinimumKey: PreferenceKey {
     }
 }
 
+extension View {
+    /// Publishes a scaffold's declared content minimum straight to the window root. Measuring the
+    /// root content at a zero proposal can miss it: an outer flexible frame with a smaller minimum
+    /// answers that proposal with its own minimum and hides what the scaffold inside needs, so the
+    /// window would never be grown or held to it and the scaffold would overflow under the chrome.
+    func lumenDeclaresWindowMinimum(_ size: CGSize) -> some View {
+        preference(key: LumenWindowMinimumKey.self, value: size)
+    }
+}
+
 /// A permanent layout boundary: attachment and overflow only change numeric proposals.
 /// The final subview reports the content minimum without participating in its layout.
 private struct LumenWindowContentLayout: Layout {

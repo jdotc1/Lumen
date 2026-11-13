@@ -18,7 +18,7 @@ fallback, so the blur can add legibility but never supply it.
 
 | Layer | Surfaces | Glass? |
 |---|---|---|
-| Navigation | The window toolbar's background (the system platter under toolbar items), the unified top bar's band, the sidebar edge, floating palettes (the ⌘K command palette, the input palette), transient toast stacks, popovers | May use system glass under `.glass` |
+| Navigation | The window toolbar's background, the unified top bar's band, the sidebar edge, floating palettes (the ⌘K command palette, the input palette), transient toast stacks, popovers | May use system glass under `.glass` |
 | Content | Lists, source lists and sidebar rows, tables, cards and tiles, editors and code views, inspectors, sheets and their bodies, settings panes, status bars, banners, menus (the command menu, context menus, pop-ups) | Never |
 
 The content layer needs a stable, measured ground: the contrast rules (§2, §3) are checked

@@ -1,4 +1,5 @@
 import SwiftUI
+import LumenTokens
 import LumenUI
 
 /// Static on arrival; each motion starts explicitly.
@@ -13,6 +14,7 @@ struct MotionPage: View {
                 .font(.headline)
             Text("Theme motion: \(metrics.motion.isEnabled ? "Enabled" : "Disabled")")
                 .font(.caption)
+            CatalogMotionPreferenceControl()
             ForEach(LumenMotion.Transition.allCases, id: \.rawValue) { transition in
                 MotionSampleRow(transition: transition)
             }
@@ -91,6 +93,78 @@ private struct MotionContentSamples: View {
                 LumenSymbol(succeeded ? "checkmark.circle.fill" : "circle")
                     .lumenStatusSymbol(value: succeeded)
                 Button("Change Status") { succeeded.toggle() }
+            }
+        }
+    }
+}
+
+/// The Catalog's own motion preference: on (the theme's motion), reduced, or off. It applies to every
+/// Catalog page through `catalogMotionPreference()`, so a background AX client can set it without
+/// opening the theme editor's pop-up.
+enum CatalogMotionPreference: String, CaseIterable, Hashable {
+    case on, reduced, off
+
+    static let storageKey = "catalog.motionPreference"
+
+    var title: String {
+        switch self {
+        case .on: "On"
+        case .reduced: "Reduced"
+        case .off: "Off"
+        }
+    }
+
+    /// `nil` keeps the theme's own motion.
+    var themeMotion: LumenThemeMetrics.Motion? {
+        switch self {
+        case .on: nil
+        case .reduced: .reduced
+        case .off: LumenThemeMetrics.Motion.none
+        }
+    }
+
+    /// Motion as this preference leaves it, starting from the metrics the page would otherwise use.
+    func applying(to metrics: LumenMetrics) -> LumenMetrics {
+        guard let themeMotion else { return metrics }
+        var result = metrics
+        result.motion = LumenMetrics.resolving(LumenThemeMetrics(motion: themeMotion)).motion
+        return result
+    }
+}
+
+private struct CatalogMotionPreferenceModifier: ViewModifier {
+    @AppStorage(CatalogMotionPreference.storageKey) private var raw = CatalogMotionPreference.on.rawValue
+    @Environment(\.lumenMetrics) private var metrics
+
+    func body(content: Content) -> some View {
+        let preference = CatalogMotionPreference(rawValue: raw) ?? .on
+        content.lumenMetrics(preference.applying(to: metrics))
+    }
+}
+
+extension View {
+    func catalogMotionPreference() -> some View { modifier(CatalogMotionPreferenceModifier()) }
+}
+
+private struct CatalogMotionPreferenceControl: View {
+    @AppStorage(CatalogMotionPreference.storageKey) private var raw = CatalogMotionPreference.on.rawValue
+
+    var body: some View {
+        let selection = Binding(get: { CatalogMotionPreference(rawValue: raw) ?? .on }, set: { raw = $0.rawValue })
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Motion preference").font(.headline)
+            LumenSegmentedControl(selection: selection, options: CatalogMotionPreference.allCases,
+                                  title: { $0.title })
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("catalog.motion.preference")
+                .accessibilityLabel("Motion preference")
+            HStack(spacing: 8) {
+                ForEach(CatalogMotionPreference.allCases, id: \.self) { option in
+                    Button(option.title) { raw = option.rawValue }
+                        .accessibilityIdentifier("catalog.motion.preference.\(option.rawValue)")
+                        .accessibilityLabel("Set motion \(option.title)")
+                        .accessibilityValue(selection.wrappedValue == option ? "selected" : "not selected")
+                }
             }
         }
     }

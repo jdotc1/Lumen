@@ -1,0 +1,49 @@
+{
+  "column" : {
+    "height" : 640,
+    "width" : 220,
+    "x" : 0,
+    "y" : 0
+  },
+  "rows" : [
+    {
+      "cell" : {
+        "height" : 32,
+        "width" : 188,
+        "x" : 16,
+        "y" : 98
+      },
+      "frame" : {
+        "height" : 32,
+        "width" : 220,
+        "x" : 0,
+        "y" : 98
+      },
+      "index" : 0,
+      "selected" : true
+    },
+    {
+      "cell" : {
+        "height" : 32,
+        "width" : 188,
+        "x" : 16,
+        "y" : 130
+      },
+      "frame" : {
+        "height" : 32,
+        "width" : 220,
+        "x" : 0,
+        "y" : 130
+      },
+      "index" : 1,
+      "selected" : false
+    }
+  ],
+  "search" : {
+    "height" : 28,
+    "width" : 200,
+    "x" : 10,
+    "y" : 61
+  },
+  "windowWidth" : 820
+}

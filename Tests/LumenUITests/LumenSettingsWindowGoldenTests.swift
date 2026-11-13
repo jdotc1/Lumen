@@ -70,7 +70,7 @@ final class LumenSettingsWindowGoldenTests: XCTestCase {
             try actual.write(to: url, options: .withoutOverwriting)
             XCTFail("Recorded new RTL Settings golden; review the image without repeating this run")
         } else {
-            try LumenFilterConfinedGolden.verify(actual, at: url)
+            try verifyWindow(actual, at: url, categoryCount: 2, rightToLeft: true)
         }
     }
 
@@ -80,7 +80,95 @@ final class LumenSettingsWindowGoldenTests: XCTestCase {
         let name = "settings-window-\(categoryCount)-\(chrome.rawValue)@standard-\(scheme == .dark ? "dark" : "light").png"
         let actual = try render(categoryCount: categoryCount, chrome: chrome, scheme: scheme)
         let url = Self.goldens.appending(path: name)
-        try LumenFilterConfinedGolden.verify(actual, at: url)
+        try verifyWindow(actual, at: url, categoryCount: categoryCount, rightToLeft: false)
+    }
+
+    /// The whole-window comparison masks the sidebar column and the sidebar is checked structurally.
+    /// `cacheDisplay` draws the GPU-composited sidebar blank white, so its pixels carry no information.
+    private func verifyWindow(_ actual: Data, at url: URL, categoryCount: Int, rightToLeft: Bool) throws {
+        let sidebar = try XCTUnwrap(Self.sidebarObservation, "The sidebar must be observed in the view tree")
+        let scale = try XCTUnwrap(LumenHeadlessHost.lastCapture).backingScale
+        let column = sidebar.column
+        let mask = CGRect(x: column.x * scale, y: column.y * scale, width: column.width * scale, height: column.height * scale)
+        try LumenFilterConfinedGolden.verify(actual, at: url, maskingPixels: mask)
+        try verifySidebar(sidebar, windowWidth: sidebar.windowWidth, categoryCount: categoryCount, rightToLeft: rightToLeft,
+                          golden: url.deletingPathExtension().lastPathComponent.replacingOccurrences(
+                            of: "settings-window-", with: "settings-window-sidebar-"))
+    }
+
+    // MARK: Sidebar structure
+
+    /// Frames are points, top-left origin, relative to the whole-window frame view, rounded to 0.01.
+    struct SidebarObservation: Codable, Equatable {
+        struct Rect: Codable, Equatable { var x, y, width, height: Double }
+        struct Row: Codable, Equatable { var index: Int; var frame: Rect; var cell: Rect?; var selected: Bool }
+        var windowWidth: Double
+        var column: Rect
+        var search: Rect?
+        var rows: [Row]
+    }
+    private static var sidebarObservation: SidebarObservation?
+
+    private static func observeSidebar(host: NSView, frameView: NSView) throws -> SidebarObservation {
+        func views(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(views) }
+        func name(_ view: NSView) -> String { String(describing: type(of: view)) }
+        func rect(_ bounds: CGRect, in view: NSView) -> SidebarObservation.Rect {
+            let r = frameView.convert(bounds, from: view)
+            let y = frameView.isFlipped ? r.minY - frameView.bounds.minY : frameView.bounds.maxY - r.maxY
+            func q(_ v: CGFloat) -> Double { (Double(v) * 100).rounded() / 100 }
+            return .init(x: q(r.minX - frameView.bounds.minX), y: q(y), width: q(r.width), height: q(r.height))
+        }
+        let all = views(host)
+        let outline = try XCTUnwrap(all.first { name($0) == "SwiftUIOutlineListView" } as? NSTableView,
+                                    "The settings sidebar must contain its outline list")
+        let wrapper = try XCTUnwrap(sequence(first: outline as NSView, next: { $0.superview })
+            .first { name($0) == "_NSSplitViewItemViewWrapper" }, "The sidebar column wrapper must exist")
+        let rows = (0..<outline.numberOfRows).map { row -> SidebarObservation.Row in
+            let rowView = outline.rowView(atRow: row, makeIfNecessary: false)
+            let cell = rowView.flatMap { views($0).first { name($0) == "ListTableCellView" } }
+            return .init(index: row, frame: rect(outline.rect(ofRow: row), in: outline),
+                         cell: cell.map { rect($0.bounds, in: $0) }, selected: outline.selectedRowIndexes.contains(row))
+        }
+        return .init(windowWidth: Double(frameView.bounds.width), column: rect(wrapper.bounds, in: wrapper),
+                     search: all.first { name($0) == "AppKitSearchField" }.map { rect($0.bounds, in: $0) }, rows: rows)
+    }
+
+    private func verifySidebar(_ sidebar: SidebarObservation, windowWidth: Double, categoryCount: Int,
+                               rightToLeft: Bool, golden: String) throws {
+        // Invariants that hold with no golden at all.
+        XCTAssertEqual(sidebar.rows.count, categoryCount, "One sidebar row per category")
+        XCTAssertEqual(sidebar.rows.map(\.selected), (0..<categoryCount).map { $0 == 0 }, "Only the first category is selected")
+        XCTAssertEqual(sidebar.column.width, 220, accuracy: 0.5, "The sidebar column keeps its ideal width")
+        XCTAssertEqual(sidebar.column.height, 640, accuracy: 0.5)
+        if rightToLeft {
+            XCTAssertEqual(sidebar.column.x + sidebar.column.width, windowWidth, accuracy: 0.5, "The RTL sidebar is on the trailing side")
+        } else {
+            XCTAssertEqual(sidebar.column.x, 0, accuracy: 0.5, "The sidebar is on the leading side")
+        }
+        let minHeight = Double(LumenMetrics.standard.layout.settingsRowHeight)
+        for (index, row) in sidebar.rows.enumerated() {
+            XCTAssertGreaterThanOrEqual(row.frame.height, minHeight - 0.5, "Row \(index) meets the settings row height")
+            XCTAssertEqual(row.frame.x, sidebar.column.x, accuracy: 0.5, "Row \(index) spans the column")
+            XCTAssertEqual(row.frame.width, sidebar.column.width, accuracy: 0.5)
+            XCTAssertNotNil(row.cell, "Row \(index) draws its label cell")
+            if index > 0 {
+                XCTAssertEqual(row.frame.y, sidebar.rows[index - 1].frame.y + sidebar.rows[index - 1].frame.height, accuracy: 0.5,
+                               "Rows are contiguous")
+            }
+        }
+        let search = try XCTUnwrap(sidebar.search, "The sidebar search field must exist")
+        XCTAssertLessThan(search.y, try XCTUnwrap(sidebar.rows.first).frame.y, "Search sits above the rows")
+        // Structural golden of the same facts, recorded with LUMEN_RECORD_SIDEBAR=1 (never overwrites).
+        let url = Self.goldens.appending(path: golden + ".json")
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        if !FileManager.default.fileExists(atPath: url.path), ProcessInfo.processInfo.environment["LUMEN_RECORD_SIDEBAR"] == "1" {
+            try encoder.encode(sidebar).write(to: url, options: .withoutOverwriting)
+            print("RECORDED SIDEBAR STRUCTURE: \(url.lastPathComponent)")
+            return
+        }
+        let expected = try JSONDecoder().decode(SidebarObservation.self, from: Data(contentsOf: url))
+        XCTAssertEqual(sidebar, expected, "\(golden): sidebar structure changed")
     }
 
     private func render(categoryCount: Int, chrome: LumenChromeStyle, scheme: ColorScheme,

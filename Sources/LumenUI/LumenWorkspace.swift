@@ -750,10 +750,19 @@ public extension View {
 public struct LumenDropZone: View {
     private let message: String
     private let isTargeted: Bool
+    private var fillsHeight = true
 
     @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenMetrics) private var metrics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// The zone at its content's height instead of filling the height it's offered, for a zone placed in a
+    /// stack or list rather than as the whole pane. Width still fills.
+    public func intrinsicHeight(_ on: Bool = true) -> LumenDropZone {
+        var copy = self
+        copy.fillsHeight = !on
+        return copy
+    }
 
     public init(_ message: String = LumenOtherDefaultStrings.dockMessage, isTargeted: Bool = false) {
         self.message = message
@@ -774,7 +783,7 @@ public struct LumenDropZone: View {
                 .frame(maxWidth: 160 * max(1, metrics.layout.controlHeight / LumenMetrics.standard.layout.controlHeight))
         }
         .padding(metrics.spacing.s6)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: fillsHeight ? .infinity : nil)
         // One plate in both states, edge to edge, so zones line up with the cards beside them; a
         // drag over it fills it with the accent.
         .background {

@@ -2,6 +2,25 @@
 
 Public releases of the Lumen design system and Catalog.
 
+## 1.3.0 (2026-11-12)
+
+### Visual
+- Toolbar glass bubbles are gone in both chrome styles: `lumenToolbarPlatter(_:)` always hides the system platter, and `.lumenSidebarToggle(columnVisibility:)` always replaces the system toggle with the bare outline button. Command palette and toast glass are unchanged.
+
+### Added
+- `LumenSourceListItem.isEnabled` and `.enabled(_:)`: a source-list item can be shown but not selectable.
+  `LumenSourceList` dims it, ignores clicks on it, and ↑/↓/Home/End skip it. Existing items are enabled.
+- `LumenDropZone.intrinsicHeight(_:)`: the zone at its content's height instead of filling the offered
+  height, for a zone inside a stack or list. The default still fills.
+
+### Fixed
+- The rendered audit resolved a full-bleed pigment under the app-wide appearance, so a dark window's
+  sidebar read as ink; it now resolves under the window's own appearance.
+- The rendered audit now finds text or a control that is cut off by a window or clip edge, text that
+  collides with an image or control that covers it, and light text on a dark background that the
+  accurate OCR model alone missed. The Welcome starfield draws nothing in offscreen captures, so the
+  audit measures layout rather than decorative stars.
+
 ## 1.2.0 (2026-11-12)
 
 ### Added

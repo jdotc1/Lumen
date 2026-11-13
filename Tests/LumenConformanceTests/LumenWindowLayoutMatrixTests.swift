@@ -562,6 +562,8 @@ final class LumenWindowLayoutMatrixTests: XCTestCase {
         _ = NSApplication.shared
         let content = AnyView(VStack(alignment: .leading, spacing: 0) {
             Button("Top content") {}
+            // A shape wider than the window: the window's right edge genuinely cuts it.
+            RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.6)).frame(width: 900, height: 24)
             Spacer(minLength: 0)
             Button("Bottom content") {}
         }.frame(minWidth: 800, minHeight: 700, alignment: .topLeading))

@@ -9,9 +9,12 @@ enum LumenAuditOCR {
         case cpuUnavailable(VNComputeStage)
     }
 
-    static func makeRequest() throws -> VNRecognizeTextRequest {
+    /// The accurate model can return no observation at all for plainly legible light-on-dark text
+    /// that begins with an ellipsis or is cut at a glyph edge (measured: "...ource string" at 1.3x
+    /// in dark). Callers fall back to the fast model only when the accurate one found nothing.
+    static func makeRequest(fast: Bool = false) throws -> VNRecognizeTextRequest {
         let request = VNRecognizeTextRequest()
-        request.recognitionLevel = .accurate
+        request.recognitionLevel = fast ? .fast : .accurate
         request.usesLanguageCorrection = false
         try selectCPU(for: request)
         return request

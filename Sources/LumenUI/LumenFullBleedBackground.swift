@@ -50,7 +50,11 @@ final class LumenFullBleedBackgroundView: LumenNonpaintingReportView {
     var cornerRadius: CGFloat = 0
 
     func declaration(in window: NSWindow) -> LumenFullBleedBackground? {
-        guard let rgb = NSColor(color).usingColorSpace(.deviceRGB), rgb.alphaComponent >= 1 else { return nil }
+        // Resolve under the window's own appearance: a dynamic pigment resolved under the app-wide
+        // appearance reads light inside a dark window and makes the whole fill look like ink.
+        var resolved: NSColor?
+        window.effectiveAppearance.performAsCurrentDrawingAppearance { resolved = NSColor(color).usingColorSpace(.deviceRGB) }
+        guard let rgb = resolved, rgb.alphaComponent >= 1 else { return nil }
         return .init(frame: reportedFrame(in: window),
                      red: Int((rgb.redComponent * 255).rounded()),
                      green: Int((rgb.greenComponent * 255).rounded()),

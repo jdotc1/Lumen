@@ -67,12 +67,13 @@ public extension View {
 }
 
 public extension ToolbarContent {
-    /// The system platter rule for native toolbar items (Docs/GLASS.md › What each surface draws):
-    /// hidden in `.drawn`, so items sit bare on the title bar's band, and the system's own under
-    /// `.glass`. Pass `@Environment(\.lumenResolvedChromeStyle)`.
+    /// The system platter rule for native toolbar items: always hidden (Jeff, 2026-11-12: the
+    /// system's glass bubbles around toolbar items are out of every Lumen app, in either chrome
+    /// style). Items sit bare on the title bar's band. The `style` parameter is kept so existing
+    /// call sites compile; it no longer changes the result.
     @ToolbarContentBuilder
     func lumenToolbarPlatter(_ style: LumenChromeStyle) -> some ToolbarContent {
-        sharedBackgroundVisibility(style == .glass ? .automatic : .hidden)
+        sharedBackgroundVisibility(.hidden)
     }
 }
 

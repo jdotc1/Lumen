@@ -64,8 +64,9 @@ final class LumenSidebarToggleTests: XCTestCase {
         XCTAssertEqual(sidebarFrame.maxX - toggleFrame.maxX, 8, accuracy: 1,
                        "the toggle tracks the actual sidebar trailing edge, including native width restoration")
         model.columns = .detailOnly
+        // The system toggle sits in a glass bubble; Lumen's bare button replaces it in both styles.
         model.style = .glass
-        assertToggle(drawn: false)
+        assertToggle(drawn: true)
         XCTAssertEqual(model.columns, .detailOnly)
         model.style = .drawn
         assertToggle(drawn: true)

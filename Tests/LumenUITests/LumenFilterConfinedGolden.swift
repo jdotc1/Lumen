@@ -56,21 +56,48 @@ enum LumenFilterConfinedGolden {
         ?? URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         .deletingLastPathComponent().deletingLastPathComponent().appending(path: ".build/golden-diagnostics")
 
-    static func verify(_ actual: Data, at url: URL) throws {
+    /// `maskingPixels` (top-left-origin bitmap pixels) is filled with one opaque colour in both images
+    /// before comparison. Use it only for a region `cacheDisplay` cannot draw, such as a GPU-composited
+    /// sidebar, and cover that region with a separate structural check.
+    static func verify(_ actual: Data, at url: URL, maskingPixels: CGRect? = nil) throws {
         guard let capture = LumenHeadlessHost.lastCapture, capture.png == actual else {
             throw Stop.missingCapture
         }
         try verify(actual, expected: Data(contentsOf: url), at: url,
-                   filteredLayers: capture.filteredLayers, backingScale: capture.backingScale, source: "live-bitmap")
+                   filteredLayers: capture.filteredLayers, backingScale: capture.backingScale, source: "live-bitmap",
+                   maskingPixels: maskingPixels)
+    }
+
+    static func masked(_ png: Data, _ rect: CGRect) throws -> Data {
+        let image = try pixels(png)
+        var bytes = image.bytes
+        let clamped = rect.integral.intersection(CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        if !clamped.isNull {
+            for y in Int(clamped.minY)..<Int(clamped.maxY) {
+                for x in Int(clamped.minX)..<Int(clamped.maxX) {
+                    let p = (y * image.width + x) * 4
+                    bytes[p] = 255; bytes[p + 1] = 0; bytes[p + 2] = 255; bytes[p + 3] = 255
+                }
+            }
+        }
+        guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: image.width, pixelsHigh: image.height,
+                                         bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                         colorSpaceName: .deviceRGB, bytesPerRow: image.width * 4, bitsPerPixel: 32),
+              let destination = rep.bitmapData else { throw Stop.unreadablePNG }
+        bytes.withUnsafeBufferPointer { destination.update(from: $0.baseAddress!, count: $0.count) }
+        guard let encoded = rep.representation(using: .png, properties: [:]) else { throw Stop.unreadablePNG }
+        return encoded
     }
 
     /// Retained inputs enter the identical classifier without creating a window or capture.
     static func verify(_ actual: Data, expected: Data, at url: URL,
                        filteredLayers: [LumenHeadlessHost.FilteredLayer], backingScale: CGFloat,
-                       source: String) throws {
-        let difference = LumenSnapshot.compare(actual, expected)
-        let a = try pixels(actual), b = try pixels(expected)
-        let rawA = try pixels(actual, rawLuminance: true), rawB = try pixels(expected, rawLuminance: true)
+                       source: String, maskingPixels: CGRect? = nil) throws {
+        let compareActual = try maskingPixels.map { try masked(actual, $0) } ?? actual
+        let compareExpected = try maskingPixels.map { try masked(expected, $0) } ?? expected
+        let difference = LumenSnapshot.compare(compareActual, compareExpected)
+        let a = try pixels(compareActual), b = try pixels(compareExpected)
+        let rawA = try pixels(compareActual, rawLuminance: true), rawB = try pixels(compareExpected, rawLuminance: true)
         let classification = classify(a, b, rawActual: rawA, rawExpected: rawB, filterFrames: filteredLayers.map(\.pixelFrame), scale: backingScale)
         let matches = !difference.sizeMismatch && difference.differingPixelFraction <= 0.005
             && difference.densestPatchFraction <= LumenSnapshot.patchTolerance

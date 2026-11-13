@@ -4,7 +4,11 @@ import LumenUI
 /// Chart examples live at the top of the existing Data page.
 struct CatalogChartsSection: View {
     @Environment(\.lumenMetrics) private var metrics
-    private static let observations = [
+    /// Fixed ids keep each bar and point the same mark across "Randomize data", so values animate.
+    @State private var observations = CatalogChartsSection.seed
+    @State private var histogramValues: [Double] = CatalogChartsSection.seedHistogram
+    private static let seedHistogram: [Double] = [2, 3, 3, 4, 4, 4, 5, 5, 6, 7, 8, 10]
+    private static let seed = [
         LumenChartDatum(label: "Apr", value: 12, series: "Current"),
         LumenChartDatum(label: "May", value: 18, series: "Current"),
         LumenChartDatum(label: "Jun", value: 15, series: "Current"),
@@ -22,21 +26,37 @@ struct CatalogChartsSection: View {
             Text("Charts follow the active theme’s chart pack. Bars and lines compare three series; the histogram bins raw observations. Each matching empty chart uses the shared empty state.")
                 .font(metrics.typography.caption).foregroundStyle(.lumen(.fgSecondary))
                 .lumenWrapsWithoutTruncating()
+            Button("Randomize data") { randomize() }
+                .accessibilityIdentifier("catalog.charts.randomize")
+                .accessibilityLabel("Randomize data")
+                .accessibilityHint("Replaces the chart values so the charts animate.")
             row("Bars") {
-                LumenBarChart(Self.observations)
+                LumenBarChart(observations)
             } empty: {
                 LumenBarChart([])
             }
             row("Histogram") {
-                LumenHistogram(values: [2, 3, 3, 4, 4, 4, 5, 5, 6, 7, 8, 10], binCount: 4)
+                LumenHistogram(values: histogramValues, binCount: 4)
             } empty: {
                 LumenHistogram(values: [])
             }
             row("Lines") {
-                LumenLineChart(Self.observations)
+                LumenLineChart(observations)
             } empty: {
                 LumenLineChart([])
             }
+        }
+    }
+
+    /// New values for the same marks; every bar and point always changes.
+    func randomize() {
+        withAnimation {
+            observations = observations.map { datum in
+                var next = datum
+                repeat { next.value = Double(Int.random(in: 3...20)) } while next.value == datum.value
+                return next
+            }
+            histogramValues = (0..<12).map { _ in Double(Int.random(in: 1...12)) }
         }
     }
 

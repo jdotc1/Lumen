@@ -244,7 +244,12 @@ import LumenConformance
         let divider = try XCTUnwrap(LumenNativeSplitDividers.frames(in: window).first)
         let helper = try XCTUnwrap(descendants(window.contentView!).first { $0 is CatalogToolbarReport.ReportView })
         let helperFrame = window.convertToScreen(helper.convert(helper.bounds, to: nil))
-        XCTAssertTrue(helperFrame.contains(divider))
+        // On macOS 27 the inspector divider runs under the title bar, taller than the helper, which
+        // fills only the content area. The premise is that the helper covers the divider across its
+        // width and its measured stretch of the content area, where the stroke is later drawn.
+        XCTAssertTrue(helperFrame.minX <= divider.minX && divider.maxX <= helperFrame.maxX
+                      && helperFrame.minY >= divider.minY && helperFrame.maxY <= divider.maxY
+                      && helperFrame.intersects(divider))
         XCTAssertFalse(native.nativeMaskPreservingSources.contains { $0.viewClass.contains("ReportView") })
         let result = try LumenRenderedAudit.analyze(native)
         XCTAssertFalse(zip(result.findings, result.findingRects).contains { $0.1.intersects(divider) }, "\(result.findings)")

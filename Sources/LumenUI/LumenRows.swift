@@ -355,6 +355,8 @@ public struct LumenSourceListItem: Identifiable, Hashable, Sendable {
     public let systemImage: String?
     public let hue: LumenToken?
     public let count: Int?
+    /// Whether the item can be selected. A disabled item draws dimmed, ignores clicks, and ↑/↓/Home/End skip it.
+    public var isEnabled = true
 
     /// - Parameter hue: draws the icon as a tile in this hue; `nil` draws it in `sidebar.accent`.
     public init(id: String, title: String, detail: String? = nil, systemImage: String? = nil, hue: LumenToken? = nil, count: Int? = nil) {
@@ -364,6 +366,13 @@ public struct LumenSourceListItem: Identifiable, Hashable, Sendable {
         self.systemImage = systemImage
         self.hue = hue
         self.count = count
+    }
+
+    /// This item, enabled or disabled (it stays visible; a disabled item can't be selected).
+    public func enabled(_ isEnabled: Bool) -> LumenSourceListItem {
+        var copy = self
+        copy.isEnabled = isEnabled
+        return copy
     }
 }
 
@@ -400,7 +409,7 @@ public struct LumenSourceList: View {
         self.init(sections: [LumenSourceListSection(items: items)], selection: selection)
     }
 
-    private var ids: [String] { sections.flatMap { $0.items.map(\.id) } }
+    private var enabledIDs: [String] { sections.flatMap { $0.items.filter(\.isEnabled).map(\.id) } }
 
     public var body: some View {
         // As in LumenInspector: under a toolbar, the scroll view would inset its content by the
@@ -427,8 +436,10 @@ public struct LumenSourceList: View {
                             }
                             .lumenReportsMarginElement("source-list-row")
                             .id(item.id)
-                            .onTapGesture { selection = item.id }
+                            .opacity(item.isEnabled ? 1 : 0.4)
+                            .onTapGesture { if item.isEnabled { selection = item.id } }
                             .accessibilityAddTraits(.isButton)
+                            .disabled(!item.isEnabled)
                         }
                     }
                 }
@@ -442,6 +453,11 @@ public struct LumenSourceList: View {
             }
             .frame(width: geometry.size.width)
             .ignoresSafeArea(.container, edges: .top)
+            // The scroll view runs under the titlebar, so scrolled rows would otherwise draw beneath
+            // the window buttons. A scrim in the sidebar fill covers that band; rows fade out below it.
+            .overlay(alignment: .top) {
+                LumenSourceListTopScrim(height: geometry.safeAreaInsets.top, color: palette[.sidebarBackground])
+            }
             .onChange(of: selection) { _, id in if let id { proxy.scrollTo(id) } }
         }
         }
@@ -458,14 +474,34 @@ public struct LumenSourceList: View {
         .focusEffectDisabled()
         .onKeyPress(.upArrow) { step(-1) }
         .onKeyPress(.downArrow) { step(1) }
-        .onKeyPress(.home) { selection = ids.first; return .handled }
-        .onKeyPress(.end) { selection = ids.last; return .handled }
+        .onKeyPress(.home) { selection = enabledIDs.first; return .handled }
+        .onKeyPress(.end) { selection = enabledIDs.last; return .handled }
         .lumenSidebarBackground()
         .accessibilityElement(children: .contain)
     }
 
     private func step(_ offset: Int) -> KeyPress.Result {
-        selection = LumenSelectionStep.next(ids, from: selection, by: offset)
+        selection = LumenSelectionStep.next(enabledIDs, from: selection, by: offset)
         return .handled
+    }
+}
+
+/// Covers the titlebar band above a scrolling sidebar list in the sidebar's own fill, fading to
+/// clear just below it, so rows never draw under the window buttons. Draws nothing without an inset.
+struct LumenSourceListTopScrim: View {
+    static let fadeHeight: CGFloat = 8
+    let height: CGFloat
+    let color: Color
+
+    var body: some View {
+        if height > 0 {
+            VStack(spacing: 0) {
+                color.frame(height: height)
+                LinearGradient(colors: [color, color.opacity(0)], startPoint: .top, endPoint: .bottom)
+                    .frame(height: Self.fadeHeight)
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
     }
 }

@@ -76,6 +76,7 @@ public struct LumenWizardWindow<Content: View>: View {
         }
         .frame(minWidth: minimum.width, idealWidth: max(minimum.width, preferred.width), maxWidth: .infinity,
                minHeight: minimum.height, idealHeight: max(minimum.height, preferred.height), maxHeight: .infinity)
+        .lumenDeclaresWindowMinimum(minimum)
         .font(metrics.typography.body)
         .foregroundStyle(palette[.fgPrimary])
         .background(palette[.bgCanvas])

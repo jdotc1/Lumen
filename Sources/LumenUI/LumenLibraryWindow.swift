@@ -152,6 +152,7 @@ public struct LumenLibraryWindow<Leading: View, Center: View, Trailing: View, So
         .lumenPanelCommands(leading: hasSourceList ? panelBinding(\.sourceList) : nil,
                             trailing: hasDetail ? panelBinding(\.detail) : nil)
         .frame(minWidth: contentMinimum, minHeight: minimumSize.height)
+        .lumenDeclaresWindowMinimum(CGSize(width: contentMinimum, height: minimumSize.height))
         .lumenScaffoldMargin(metrics.spacing.s6)
     }
 }

@@ -38,11 +38,19 @@ public struct LumenStarfield: View {
             ? [palette[.fgTertiary], palette[.fgTertiary], palette[.fgSecondary]]
             : [palette[.accent].opacity(0.35), palette[.accent].opacity(0.35), palette[.accent].opacity(0.55)]
         let colors = quiet + accents.map { palette[$0] }
-        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: reduceMotion || rendersOffscreen)) { timeline in
-            Canvas { context, size in
-                state.advance(to: timeline.date.timeIntervalSinceReferenceDate, surging: isSurging && !reduceMotion)
-                state.draw(in: &context, size: size, pointer: pointer, seed: seed, starCount: starCount,
-                           streaks: !reduceMotion, colors: colors)
+        // Offscreen captures (the rendered audit, snapshots) measure layout; the field is
+        // decorative and random-looking, so it contributes no ink there.
+        Group {
+            if rendersOffscreen {
+                Color.clear
+            } else {
+                TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: reduceMotion)) { timeline in
+                    Canvas { context, size in
+                        state.advance(to: timeline.date.timeIntervalSinceReferenceDate, surging: isSurging && !reduceMotion)
+                        state.draw(in: &context, size: size, pointer: pointer, seed: seed, starCount: starCount,
+                                   streaks: !reduceMotion, colors: colors)
+                    }
+                }
             }
         }
         .accessibilityHidden(true)

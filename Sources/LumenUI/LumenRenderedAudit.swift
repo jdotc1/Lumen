@@ -268,7 +268,14 @@ public enum LumenRenderedAudit {
         let request = try LumenAuditOCR.makeRequest()
         let lineGeometry = try LumenAuditOCR.makeLineGeometryRequest()
         let start = Date()
-        try VNImageRequestHandler(cgImage: capture.image).perform([request, lineGeometry])
+        let handler = VNImageRequestHandler(cgImage: capture.image)
+        try handler.perform([request, lineGeometry])
+        var recognized = request.results ?? []
+        if recognized.isEmpty {
+            let fallback = try LumenAuditOCR.makeRequest(fast: true)
+            try handler.perform([fallback])
+            recognized = fallback.results ?? []
+        }
         let seconds = Date().timeIntervalSince(start)
         try Task.checkCancellation()
         func screenRect(_ box: CGRect) -> CGRect {
@@ -286,7 +293,7 @@ public enum LumenRenderedAudit {
         let detectedBands = detectorRegions.flatMap(\.rows)
         let excluded = capture.exclusions.map { $0.insetBy(dx: -2, dy: -2) }
         var lines: [Line] = []
-        for observation in request.results ?? [] {
+        for observation in recognized {
             guard let candidate = observation.topCandidates(1).first else { continue }
             let value = candidate.string
             var groups: [(String, CGRect)] = []
@@ -623,7 +630,8 @@ public enum LumenRenderedAudit {
                 guard first.identity != second.identity, !first.ancestors.contains(second.identity),
                       !second.ancestors.contains(first.identity) else { continue }
                 let overlap = first.frame.intersection(second.frame)
-                guard overlap.width > 2, overlap.height > 2, c.pixels.inkCount(in: overlap) > 8 else { continue }
+                guard overlap.width > 2, overlap.height > 2,
+                      c.pixels.inkCount(in: overlap, backgroundFrom: first.frame.union(second.frame)) > 8 else { continue }
                 let rule = !first.control && !second.control && !first.source.isEmpty && !second.source.isEmpty
                     ? "rendered-text-geometry" : "rendered-overlap"
                 results.append(.init(rule: rule, rect: overlap, subject: first.source,
@@ -660,11 +668,20 @@ public enum LumenRenderedAudit {
 
     private static func textRules(_ c: Context) -> [Evidence] {
         var results: [Evidence] = []
+        // Measuring glyph ink scans pixels; the pairwise overlap pass below would otherwise repeat it
+        // for every pair (quadratic, and seconds per audit in Debug builds).
+        var measuredInk: [Int: CGRect] = [:]
+        func measuredInkFrame(_ index: Int) -> CGRect {
+            if let cached = measuredInk[index] { return cached }
+            let frame = c.inkFrame(c.lines[index])
+            measuredInk[index] = frame
+            return frame
+        }
         for (index, line) in c.lines.enumerated() where !c.excluded(line.frame, includingNativeControlChrome: false) && line.inkPixels > 3 {
             let owner = c.owner(line)
             // Vision's word box includes surrounding background. Ownership is a claim about
             // rendered glyphs, measured with the same foreground classifier as every ink rule.
-            let inkFrame = c.inkFrame(line)
+            let inkFrame = measuredInkFrame(index)
             let geometry = "glyphBand=\(String(describing: line.glyphBand)) owner=\(owner?.identity ?? "none") source=\(owner?.source ?? "none") ownerFrame=\(String(describing: owner?.frame)) recognizedBox=\(line.frame) inkFrame=\(inkFrame)"
             let source = owner?.source ?? c.capture.reports.first(where: { normalize($0) == normalize(line.text) })
             let ownedLines = owner.map { owner in
@@ -693,10 +710,10 @@ public enum LumenRenderedAudit {
                 results.append(.init(rule: "rendered-text-geometry", rect: line.frame, subject: line.text,
                                      detail: "recognized glyph ink crosses its owner or window boundary; \(geometry)"))
             }
-            for other in c.lines.dropFirst(index + 1) where !c.excluded(other.frame, includingNativeControlChrome: false) {
+            for (otherIndex, other) in c.lines.enumerated() where otherIndex > index && !c.excluded(other.frame, includingNativeControlChrome: false) {
                 // Recognition boxes include padding between distinct baselines. Compare the
                 // same measured glyph bounds used for owner containment, not that padding.
-                let otherInkFrame = c.inkFrame(other)
+                let otherInkFrame = measuredInkFrame(otherIndex)
                 let intersection = inkFrame.intersection(otherInkFrame)
                 if intersection.width > 1 && intersection.height > 1 {
                     results.append(.init(rule: "rendered-text-geometry", rect: intersection, subject: line.text,
@@ -894,10 +911,12 @@ public enum LumenRenderedAudit {
             }
             return smooth
         }
-        func inkCount(in rect: CGRect) -> Int {
+        /// `backgroundFrom` estimates the background around a larger frame. An element that fully
+        /// covers another would otherwise make the overlap its own background and read as no ink.
+        func inkCount(in rect: CGRect, backgroundFrom: CGRect? = nil) -> Int {
             let (x0, y0, x1, y1) = region(rect)
             guard x1 > x0, y1 > y0 else { return 0 }
-            let bg = background(rect.insetBy(dx: -3, dy: -3))
+            let bg = background((backgroundFrom ?? rect).insetBy(dx: -3, dy: -3))
             var count = 0
             for y in y0..<y1 { for x in x0..<x1 where ink(x, y, bg) { count += 1 } }
             return count
@@ -975,10 +994,16 @@ public enum LumenRenderedAudit {
             let (x0, _, x1, _) = region(clip)
             let (textX0, y0, textX1, y1) = region(line.insetBy(dx: 0, dy: -1).intersection(clip))
             guard x1 - x0 >= 3, y1 > y0 else { return [] }
+            let candidates = [(x0, x0+1, abs(line.minX-clip.minX) < 2),
+                              (x1-1, x1-2, abs(line.maxX-clip.maxX) < max(3, line.height))].filter {
+                $0.2 && $0.0 >= textX0 && $0.0 < textX1 && $0.1 >= textX0 && $0.1 < textX1
+            }
+            // Most clip/line pairs are nowhere near an edge; the 4,096-sample background estimate is
+            // the audit's hot spot (seconds per pass in Debug), so take it only when an edge qualifies.
+            guard !candidates.isEmpty else { return [] }
             let bg = background(line.insetBy(dx: -6, dy: -6))
             var result: [CGRect] = []
-            for (x, adjacent, close) in [(x0, x0+1, abs(line.minX-clip.minX) < 2),
-                                       (x1-1, x1-2, abs(line.maxX-clip.maxX) < max(3, line.height))] where close && x >= textX0 && x < textX1 && adjacent >= textX0 && adjacent < textX1 {
+            for (x, adjacent, _) in candidates {
                 let ys = (y0..<y1).filter { ink(x,$0,bg) && ink(adjacent,$0,bg) }
                 // A complete leading A or V can have a one-point antialiased tip on the
                 // clip edge. Require a contour segment, not that isolated terminal touch.
@@ -1009,8 +1034,18 @@ public enum LumenRenderedAudit {
             var points: [(Int,Int)] = []
             // A clipped contour has a broad flat cut; a complete ellipse only touches its
             // frame tangentially. Compare the last row with parallel rows deeper inside.
-            func boundary(_ border: [(Int, Int)], _ inner: [(Int, Int)]) {
-                let outerInk = border.filter { ink($0.0, $0.1, bg, surface: localSurface) }
+            func boundary(_ border: [(Int, Int)], _ inner: [(Int, Int)], outward: (Int, Int)) {
+                // Ink that carries on, unchanged, just past the edge was not cut by it: a clip that ends
+                // inside a larger painted shape (a button's label clip inside its capsule) is no clipping.
+                func continuesOutside(_ pixel: (Int, Int)) -> Bool {
+                    let ox = pixel.0 + outward.0, oy = pixel.1 + outward.1
+                    guard ox >= 0, ox < width, oy >= 0, oy < height else { return false }
+                    let a = (pixel.1 * width + pixel.0) * 4, b = (oy * width + ox) * 4
+                    guard bytes[b + 3] > 220 else { return false }
+                    return max(abs(Int(bytes[a]) - Int(bytes[b])), abs(Int(bytes[a + 1]) - Int(bytes[b + 1])),
+                               abs(Int(bytes[a + 2]) - Int(bytes[b + 2]))) < 12
+                }
+                let outerInk = border.filter { ink($0.0, $0.1, bg, surface: localSurface) && !continuesOutside($0) }
                 let innerInk = inner.filter { ink($0.0, $0.1, bg, surface: localSurface) }
                 func runs(_ pixels: [(Int, Int)]) -> [[(Int, Int)]] {
                     var result: [[(Int, Int)]] = []
@@ -1040,7 +1075,9 @@ public enum LumenRenderedAudit {
                     }
                 }
             }
-            for (border, inner) in boundaries { boundary(border, inner) }
+            for (index, (border, inner)) in boundaries.enumerated() {
+                boundary(border, inner, outward: [(0, -1), (0, 1), (-1, 0), (1, 0)][index])
+            }
             guard points.count >= 3 else { return [] }
             return [screenRect(points.map(\.0).min()!,points.map(\.1).min()!,
                                points.map(\.0).max()!+1,points.map(\.1).max()!+1)]

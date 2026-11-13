@@ -309,9 +309,9 @@ enum CatalogPage: String, CaseIterable, Identifiable {
         switch self {
         case .overview: "sparkles"
         case .welcome: "hand.wave.fill"
-        case .toolbar: "menubar.rectangle"
+        case .toolbar: "hammer.fill"
         case .tiles: "square.grid.3x3.fill"
-        case .menus: "filemenu.and.selection"
+        case .menus: "list.bullet.indent"
         case .settings: "gearshape.fill"
         case .components: "puzzlepiece.fill"
         case .forms: "slider.horizontal.3"
@@ -319,11 +319,11 @@ enum CatalogPage: String, CaseIterable, Identifiable {
         case .data: "arrow.triangle.branch"
         case .browse: "square.grid.2x2.fill"
         case .workspace: "rectangle.split.3x1.fill"
-        case .utility: "macwindow"
+        case .utility: "wrench.and.screwdriver.fill"
         case .library: "photo.on.rectangle"
         case .document: "doc.text"
-        case .menuBar: "menubar.rectangle"
-        case .wizard: "list.bullet.rectangle"
+        case .menuBar: "rectangle.grid.1x2.fill"
+        case .wizard: "list.number"
         case .themes: "paintpalette.fill"
         case .conformance: "checkmark.shield"
         case .scale: "chart.bar"
@@ -333,7 +333,7 @@ enum CatalogPage: String, CaseIterable, Identifiable {
         case .states: "list.bullet.rectangle.fill"
         case .debugger: "ladybug.fill"
         case .editor: "chevron.left.forwardslash.chevron.right"
-        case .sheets: "rectangle.on.rectangle"
+        case .sheets: "rectangle.stack.fill"
         }
     }
 
@@ -587,6 +587,7 @@ struct CatalogPageView: View {
             }
         }
         .frame(maxWidth: CatalogLayout.contentMaxWidth(for: page), alignment: .leading)
+        .catalogMotionPreference()
         .padding(28)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
