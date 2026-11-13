@@ -11,5 +11,7 @@ the source it describes; the entries below are the ones people look for first.
 | Token reference: every role, bound and inheritance rule | [`token-reference.md`](token-reference.md) |
 | Theme JSON Schema and built-in theme export | [`theme.schema.json`](theme.schema.json), [`builtin-themes.json`](builtin-themes.json) |
 | Theme command line | [`theme-cli.md`](theme-cli.md) |
-| Window chrome guarantee | [`window-chrome-guarantee.md`](window-chrome-guarantee.md) |
+| Window chrome guarantee and layout audit | [`window-chrome-guarantee.md`](window-chrome-guarantee.md), [`window-chrome-layout-audit.md`](window-chrome-layout-audit.md) |
+| Exact text entry: `.lumenExactText()` for keys, identifiers and hex | [`exact-text.md`](exact-text.md) |
+| Proportional two-pane split: `LumenProportionalSplit` | [`proportional-split.md`](proportional-split.md) |
 | Keyboard behavior | [`../KEYBOARD.md`](../KEYBOARD.md) |

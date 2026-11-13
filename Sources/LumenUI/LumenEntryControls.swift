@@ -72,6 +72,7 @@ private struct EntryDatePicker: View {
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.calendar) private var calendar
     @Environment(\.timeZone) private var timeZone
+    @Environment(\.fontResolutionContext) private var fontContext
     @State private var showsPicker = false
     @FocusState private var focused: Bool
 
@@ -107,6 +108,11 @@ private struct EntryDatePicker: View {
                     .frame(width: LumenNumberField.stepperWidth, height: metrics.layout.controlHeight)
                     .lumenChrome(.popUp)
                 }
+                // The hosted editor reports no text baseline to SwiftUI, and the stepper's chevrons
+                // would answer instead, so a `.firstTextBaseline` row put its label near the
+                // field's top (design review 2026-11 #8). The editor centres one line of body text.
+                .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + centredBaseline }
+                .alignmentGuide(.lastTextBaseline) { $0[VerticalAlignment.center] + centredBaseline }
             case .graphicalPopover:
                 Button { showsPicker.toggle() } label: {
                     HStack(spacing: metrics.spacing.s2) {
@@ -129,6 +135,12 @@ private struct EntryDatePicker: View {
         .font(metrics.typography.body)
         .foregroundStyle(palette[.fgPrimary])
         .lumenDisabledFade(isEnabled)
+    }
+
+    /// How far below the centre the baseline of one centred line of body text sits.
+    private var centredBaseline: CGFloat {
+        let font = metrics.typography.body.resolve(in: fontContext).ctFont
+        return (CTFontGetAscent(font) - CTFontGetDescent(font)) / 2
     }
 
     private func nudge(_ direction: Int) {
@@ -456,7 +468,7 @@ public struct LumenSegmentedControl<Value: Hashable>: View {
                     .frame(minWidth: metrics.layout.minimumHitTarget, minHeight: metrics.layout.controlHeight - 2 * metrics.layout.pillRim)
                     .background {
                         LumenTabChrome(strip: "segmented", selected: option == selection,
-                                       hovered: hovered == option)
+                                       hovered: hovered == option, onWell: true)
                     }
                 }
                 .buttonStyle(.lumenBare)
@@ -466,6 +478,8 @@ public struct LumenSegmentedControl<Value: Hashable>: View {
         }
         .padding(metrics.layout.pillRim)
         .fixedSize()
-        .lumenChrome(.field)
+        // The pill switcher's well, not a field: a field fills `bg.elevated`, the selected plate's
+        // own fill, so the selection showed only as a hairline (design review 2026-11 #6).
+        .background { LumenTabWell() }
     }
 }

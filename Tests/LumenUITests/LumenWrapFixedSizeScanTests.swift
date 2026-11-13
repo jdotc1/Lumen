@@ -26,6 +26,10 @@ final class LumenWrapFixedSizeScanTests: XCTestCase {
         "LumenOverflow.swift · container:",
         // Both texts in every stat cell have lineLimit(1).
         "LumenPanelBar.swift · container:",
+        // Horizontal scroll tiers of a bar: their content is fixed horizontally (one line), so the
+        // vertical fixedSize only keeps the strip at its one-line height.
+        "LumenPanelBar.swift · container: }",
+        "LumenTopBarPlacement.swift · container:",
         // A bounded line limit (3): at most three lines tall at any width.
         "LumenExtras.swift · Text(summary)",
         // A popover's fixed 260 pt width.
@@ -44,8 +48,6 @@ final class LumenWrapFixedSizeScanTests: XCTestCase {
         // ("Breakpoints", "Functions"), because the wrapper places its content at the bounds' height. Each
         // converts only with its own layout check. This list is a regression gate for new sites.
         "LumenCommandMenu.swift · container: level(0)",
-        "LumenCommandPalette.swift · container:",
-        "LumenCommandPalette.swift · container: #2",
         "LumenDataViews.swift · Text(lumenLocalized(String(localized: \"%lld earlier notices\", defaultValue: \"\\(notices.count - visible.count) earlier notices\", bundle: .module, comment: \"DataViews label. Values identify the item or count described.\")))",
         "LumenDataViews.swift · container: Button(primary.title) { primary.perform(); onDismiss() }.buttonStyle(.lumenPrimary)",
         "LumenDataViews.swift · container: Button(secondary.title) { secondary.perform(); onDismiss() }.buttonStyle(.lumenQuiet)",
@@ -69,7 +71,6 @@ final class LumenWrapFixedSizeScanTests: XCTestCase {
         "LumenMenuBarPanel.swift · container: #2",
         "LumenModeSwitcher.swift · container:",
         "LumenPanelBar.swift · container: #2",
-        "LumenPanels.swift · Text(selection ?? lumenLocalized(String(localized: \"All Sources\", bundle: .module, comment: \"Panels display text.\")))",
         "LumenPanels.swift · Text(title)",
         "LumenPanels.swift · container:",
         "LumenPanels.swift · container: #2",
@@ -88,13 +89,11 @@ final class LumenWrapFixedSizeScanTests: XCTestCase {
         "LumenShortcutsSheet.swift · container: shortcutColumns",
         "LumenShowcase.swift · container:",
         "LumenToolbar.swift · container:",
-        "LumenTopBarPlacement.swift · container: trailing",
         "LumenWelcome.swift · Text(date, format: .relative(presentation: .named))",
         "LumenWelcome.swift · Text(item.detail)",
         "LumenWelcome.swift · Text(item.title)",
         "LumenWelcome.swift · container:",
         "LumenWelcome.swift · container: #2",
-        "LumenWorkspaceLayout.swift · Text(pane.title)",
         "LumenWorkspaceLayout.swift · container:",
     ]
 

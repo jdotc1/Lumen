@@ -121,17 +121,11 @@ struct LibraryWindowFixture: View {
         } topCenter: {
             LumenFilterField(text: $query, prompt: "Search images").frame(width: 160)
         } topTrailing: {
-            Menu {
-                Button("All Images") { filter = "All" }
-                Button("Favorites") { filter = "Favorites" }
-                Button("Recent") { filter = "Recent" }
-            } label: {
-                Label("Filter Images", systemImage: "line.3.horizontal.decrease.circle")
-            }
-            .labelStyle(.iconOnly)
-            .menuStyle(.borderlessButton)
-            .fixedSize()
-            .help("Filter Images")
+            LumenToolbarIconMenu("Filter Images", systemImage: "line.3.horizontal.decrease.circle", items: [
+                .init("All Images", isOn: filter == "All") { filter = "All" },
+                .init("Favorites", isOn: filter == "Favorites") { filter = "Favorites" },
+                .init("Recent", isOn: filter == "Recent") { filter = "Recent" },
+            ])
             Button(sparse ? "Show Populated Content" : "Show Sparse Content", systemImage: sparse ? "square.grid.2x2" : "rectangle.compress.vertical") {
                 sparse.toggle()
             }

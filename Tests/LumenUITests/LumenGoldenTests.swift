@@ -226,6 +226,46 @@ final class LumenGoldenTests: XCTestCase {
         }, "icon-tiles", CGSize(width: 420, height: 130))
     }
 
+    /// Toolbar buttons drawn as app icons (design review note 24): rest, hover, pressed and
+    /// selected, at the toolbar's side and enlarged, on the toolbar's own ground, then in the
+    /// Clear and Tinted icon appearances.
+    func testToolbarIcons() {
+        check(ToolbarIconSheet(), "toolbar-icons", CGSize(width: 420, height: 170))
+    }
+
+    private struct ToolbarIconSheet: View {
+        @Environment(\.lumenPalette) private var palette
+        var body: some View {
+            VStack(alignment: .leading, spacing: 0) {
+                row(nil)
+                row("clearautomatic")
+                row("tintedautomatic")
+            }
+            .background(LinearGradient(colors: [palette[.titlebarActiveTop], palette[.titlebarActiveBottom]], startPoint: .top, endPoint: .bottom))
+            .environment(\.lumenIconAppearance, LumenIconAppearance(nil))
+        }
+
+        private func row(_ appearance: String?) -> some View {
+            HStack(spacing: 8) {
+                icon("sidebar.left")
+                icon("hammer", hovered: true)
+                icon("play.fill", pressed: true)
+                icon("rectangle.trailinghalf.inset.filled", selected: true)
+                icon("square.and.arrow.up", side: 44)
+            }
+            .padding(.horizontal, 12)
+            .frame(height: appearance == nil ? 66 : 52, alignment: .center)
+            .environment(\.lumenIconAppearance, LumenIconAppearance(appearance))
+        }
+
+        private func icon(_ symbol: String, side: CGFloat? = nil, hovered: Bool = false, pressed: Bool = false, selected: Bool = false) -> some View {
+            LumenToolbarIcon(isHovered: hovered, isPressed: pressed, isSelected: selected, side: side) {
+                Image(systemName: symbol).font(.system(size: 15))
+                    .foregroundStyle(selected ? palette[.layoutToggleOn] : palette[.toolbarForeground])
+            }
+        }
+    }
+
     static let sampleMenu: [LumenMenuEntry] = [
         .section("Navigate"),
         .item("Go to Address…", subtitle: "Jump to any address or symbol", systemImage: "number", hue: .hueBlue,
@@ -275,7 +315,7 @@ final class LumenGoldenTests: XCTestCase {
         ],
         recents: [
             LumenRecentItem(title: "Lumen", detail: "~/Projects/Lumen", systemImage: "lumen.lens", hue: .hueViolet),
-            LumenRecentItem(title: "Sample Project", detail: "~/Projects/Sample", systemImage: "scope", hue: .hueIndigo),
+            LumenRecentItem(title: "Inspector", detail: "~/Projects/inspector", systemImage: "scope", hue: .hueIndigo),
             LumenRecentItem(title: "Field Notes", detail: "~/Documents/Field Notes", systemImage: "book.closed.fill", hue: .hueOrange),
             LumenRecentItem(title: "Scans", detail: "~/Documents/Scans", systemImage: "doc.viewfinder.fill", hue: .hueTeal),
         ]
@@ -470,7 +510,7 @@ final class LumenGoldenTests: XCTestCase {
                         LumenSidebarSection("Open Pull Requests", accessory: { Image(systemName: "plus") }) {
                             Text("No open pull requests.").font(.callout).foregroundStyle(palette[.fgTertiary]).padding(.vertical, 18)
                         }
-                        // The filter is anchored at the sidebar's foot.
+                        // The filter is anchored at the sidebar's foot, as the workspace's is, not floating under the list.
                         Spacer(minLength: 0)
                         Capsule().fill(palette[.fieldBackground]).frame(height: 24).padding(10)
                             .overlay(alignment: .leading) {
@@ -611,7 +651,7 @@ final class LumenGoldenTests: XCTestCase {
     }
 
     func testWelcomePanel() {
-        check(LumenWelcomePanel(appName: "Lumen", tagline: "Open a binary to start analyzing.", markSymbol: "lumen.lens",
+        check(LumenWelcomePanel(appName: "Inspector", tagline: "Open a binary to start analyzing.", markSymbol: "lumen.lens",
                                 markHue: .hueIndigo, actions: [
             LumenWelcomeAction("Open…", subtitle: "Browse for a binary", systemImage: "folder.fill", hue: .hueBlue,
                                shortcut: KeyboardShortcut("o", modifiers: .command)) {},
@@ -757,7 +797,7 @@ final class LumenGoldenTests: XCTestCase {
 
     func testHexDump() {
         let bytes: [UInt8] = [0xa8, 0xf2, 0xdf, 0x6f, 0x01, 0, 0, 0, 0x44, 0x41, 0, 0, 0x01, 0, 0, 0]
-            + Array("Hello, Lumen!".utf8) + [0x0a, 0x09, 0x1b, 0x5b, 0x33, 0x31, 0x6d, 0]
+            + Array("Hello, world!".utf8) + [0x0a, 0x09, 0x1b, 0x5b, 0x33, 0x31, 0x6d, 0]
         check(VStack(alignment: .leading, spacing: 12) {
             LumenHexDump(bytes, baseAddress: 0x16fdff280, selection: .constant(16..<21))
             LumenHexDump(Array(bytes.prefix(16)), baseAddress: 0x16fdff280, selection: .constant(nil)).frame(width: 300)
@@ -964,7 +1004,7 @@ final class LumenGoldenTests: XCTestCase {
         let view = VStack(alignment: .leading, spacing: 8) {
             LumenModeSwitcher(selection: .constant("All"), options: ["All", "C", "CF", "ObjC"], style: .pill, title: { $0 })
             VStack(spacing: 2) {
-                LumenStringRow("Hello, Lumen!", address: 0x100008000, section: "__cstring", length: 16)
+                LumenStringRow("Hello, world!", address: 0x100008000, section: "__cstring", length: 13)
                 LumenStringRow("%s: invalid header (%d)\\n", address: 0x100008011, section: "__cstring", length: 24, isSelected: true)
                 LumenStringRow("/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit", address: 0x10000802a,
                                section: "__cstring", length: 61)
@@ -1149,8 +1189,8 @@ final class LumenGoldenTests: XCTestCase {
         ]
         let items = [
             LumenCollectionItem(id: "lumen", title: "Lumen", detail: "~/Projects/Lumen", systemImage: "lumen.lens", hue: .hueViolet),
-            LumenCollectionItem(id: "sample", title: "Sample Project", detail: "~/Projects/Sample", systemImage: "scope", hue: .hueBlue, group: "Apps"),
-            LumenCollectionItem(id: "files", title: "File Collection", detail: "~/Projects/Files", systemImage: "cross.case", hue: .hueTeal, group: "Apps"),
+            LumenCollectionItem(id: "inspector", title: "Inspector", detail: "~/Projects/Inspector", systemImage: "scope", hue: .hueBlue, group: "Apps"),
+            LumenCollectionItem(id: "ImageBatch", title: "Batch Tool", detail: "~/Projects/ImageBatch", systemImage: "cross.case", hue: .hueTeal, group: "Apps"),
         ]
         check(TypeScaledFixture { scaled in
             HStack(alignment: .top, spacing: scaled ? 8 : 16) {
@@ -1175,7 +1215,7 @@ final class LumenGoldenTests: XCTestCase {
                         LumenCompletion("anyMatches(_:)", detail: "(String) -> Bool", kind: .function),
                     ], typed: "Any", selection: .constant("AnyCollection")) { _ in }
                     .frame(width: 320)
-                    LumenCollection(items, mode: .list, selection: .constant("sample"), sort: .constant(.title)) { _ in }
+                    LumenCollection(items, mode: .list, selection: .constant("inspector"), sort: .constant(.title)) { _ in }
                         .frame(width: scaled ? 440 : 400)
                     LumenCollection(items, mode: .grid, size: 90, selection: .constant("lumen"), sort: .constant(.title)) { _ in }
                         .frame(width: 400)
@@ -1308,8 +1348,8 @@ final class LumenGoldenTests: XCTestCase {
                     .frame(width: 320)
                 LumenChecklistTree(nodes, checked: .constant(["a", "n"]), selection: .constant("b")).frame(width: 320)
                 LumenFontPicker(family: .constant("Menlo"), style: .constant("Regular"), size: .constant(13), families: ["Menlo"], onOptions: {})
-                LumenCodeSample(["editor ~/MyProject", "editor extras/index.html --line 740"]).frame(width: 360)
-                LumenStatusRow("Installed", value: "/usr/local/bin/editor v1.0", monospaced: true,
+                LumenCodeSample(["workspace ~/MyProject", "workspace extras/index.html --line 740"]).frame(width: 360)
+                LumenStatusRow("Installed", value: "/usr/local/bin/workspace v14.1", monospaced: true,
                                action: LumenBarAction("Reveal", systemImage: "magnifyingglass") {})
             }
             VStack(alignment: .leading, spacing: 12) {
@@ -1357,7 +1397,7 @@ final class LumenGoldenTests: XCTestCase {
             LumenStatusStrip(status: LumenStripStatus("Ready", tone: .statusSuccess),
                              chips: [LumenStripChip("Truncated", help: "The listing was cut short.")],
                              actions: [LumenBarAction("Refresh", systemImage: "arrow.clockwise") {}]) {
-                LumenModeSwitcher(selection: .constant("Native"), options: ["Native", "Styled", "Compare"], style: .pill, title: { $0 })
+                LumenModeSwitcher(selection: .constant("Native"), options: ["Native", "Inspector", "Compare"], style: .pill, title: { $0 })
             }
             .frame(width: width)
         }
@@ -1584,7 +1624,7 @@ final class LumenGoldenTests: XCTestCase {
         .lumenHoverForced(), "hover-states", CGSize(width: 420, height: 190))
     }
 
-    /// The unified top bar as the window toolbar hosts it: the leading groups, the status and the
+    /// the workspace's unified top bar as the window toolbar hosts it: the leading groups, the status and the
     /// trailing panels, each in its compact toolbar form, past the window buttons' inset, on the
     /// title bar glow. (The real toolbar can't render offscreen; the live-window test checks it.)
     func testUnifiedTopBar() {

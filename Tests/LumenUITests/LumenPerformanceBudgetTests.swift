@@ -5,7 +5,7 @@ import XCTest
 import LumenTokens
 @testable import LumenUI
 
-/// Speed budgets: dense listings and graphs use these paths, so a slowdown
+/// Speed budgets: dense views (the inspector example's listings, the graph) lean on these paths, so a slowdown
 /// should fail here before anyone sees it. Each budget is several times today's debug-build time, so
 /// a slower CI machine passes and a real regression doesn't. `LUMEN_BENCH=1` prints the timings.
 @MainActor
@@ -102,7 +102,7 @@ final class LumenPerformanceBudgetTests: XCTestCase {
 
     // MARK: Interaction budgets
     //
-    // Typing, selecting and scrolling through large data sets, hosted in
+    // Typing, selecting and scrolling at the sizes Inspector and Batch Tool produce, hosted in
     // windows that are never shown. Each step is one change, then layout and display until settled.
     // Ceilings are generous for debug builds and catch multi-second stalls
     // rather than small timing drifts. Table reports are off, as in a shipping app.
@@ -181,7 +181,7 @@ final class LumenPerformanceBudgetTests: XCTestCase {
     }
 
     private static func symbol(_ i: Int) -> String {
-        let modules = ["Swift", "Foundation", "SampleCore", "AnalysisCore", "DebuggerCore"]
+        let modules = ["Swift", "Foundation", "InspectorCore", "AnalysisCore", "DebuggerCore"]
         return "\(modules[i % 5]).Dictionary<Swift.String, \(modules[(i + 1) % 5]).Array<Swift.Int>>.Index.Storage.symbolicatedValue\(i)"
     }
 
@@ -191,7 +191,7 @@ final class LumenPerformanceBudgetTests: XCTestCase {
             let level: LumenLogEntry.Level = i % 31 == 0 ? .error : (i % 7 == 0 ? .warning : .log)
             return LumenLogEntry(date: base.addingTimeInterval(Double(i) * 0.01), source: "source\(i % 12)",
                                  level: level,
-                                 message: "Processed file \(i) of batch: /Volumes/Data/Files/Group\(i % 200)/Series\(i % 9)/File\(i).bin")
+                                 message: "Processed image \(i) of batch: /Volumes/Data/ImageBatch/Batch\(i % 200)/Group\(i % 9)/Image\(i).png")
         }
     }
 

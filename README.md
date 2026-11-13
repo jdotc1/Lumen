@@ -14,16 +14,7 @@ Use **LumenTokens** for UI-independent theme data and validation, **LumenUI** fo
 
 ## Visual workflow
 
-A single theme pipeline connects app-specific design decisions to reusable native controls.
-
-```mermaid
-flowchart TB
-  A["App tokens"] --> B["Validate theme"]
-  C["Edited theme"] --> B
-  B --> D["Theme store"]
-  D --> E["UI controls"]
-  E --> F["Host / Catalog"]
-```
+Lumen has its own plans and serves apps with different workflows and identities.
 
 - **macOS 27+**, Swift 6.1+ toolchain, SwiftUI first with AppKit where it matters.
 - **Design:** `Design/LumenAppTemplate.icon` and `Design/app-icon-build.py` provide client app icons; `Docs/reference/app-icon.md` covers generation, native checks and appearance previews.
@@ -41,7 +32,7 @@ flowchart TB
   a live toolbar, an inspector, popovers, Lumen's glyphs, live pages for forms and controls, search
   and navigation, data and Git, and browsing, and a workspace window. Launch options
   for screenshots and demos: `LUMEN_CATALOG_PAGE=<page>`, `THEME=<theme id>`, `APPEARANCE=light|dark`,
-  `CHROME=glass|drawn` (the chrome style, Docs/GLASS.md), `WORKSPACE=1`, `SPLIT=1` (a split workspace), `WELCOME=1`, `SETTINGS=1`, `PALETTE=1|<query>`, `COMMANDS=1`, `POPOVER=1`,
+  `CHROME=glass|drawn` (the chrome style, Docs/GLASS.md), `WORKSPACE=1`, `SPLIT=1` (a custom split workspace), `WELCOME=1`, `SETTINGS=1`, `PALETTE=1|<query>`, `COMMANDS=1`, `POPOVER=1`,
   `LAUNCH=<seconds>`, `DOCK=1`, `PANEL=<tab>`, `INSPECTOR=0`, `ACTIVITY=working`, `SCROLL=bottom` and
   `LOGSTREAM=1` (a log line every 0.3 s), each prefixed `LUMEN_CATALOG_`.
   `LUMEN_CATALOG_PAGE=scale` measures one 10× workload at a time; `LumenScaleTimingTests` writes observations to `.build/lumen-scale-report.json` (collection uses the 1,000-row list reference; no collection budget exists).
@@ -86,7 +77,8 @@ flowchart TB
 Start with [Docs/PRINCIPLES.md](Docs/PRINCIPLES.md) (compatible with macOS, drawn by Lumen) and
 [Docs/ARCHITECTURE.md](Docs/ARCHITECTURE.md). Releases and what each changes are in
 [CHANGELOG.md](CHANGELOG.md). [Docs/KEYBOARD.md](Docs/KEYBOARD.md) covers keyboard
-operation, shortcuts, menu bar commands and click targets. The generated token
+operation, shortcuts, menu bar commands and click targets. Adoption plans are in
+[Docs/adoption](Docs/adoption) (migration, client versioning and batch utilities). The generated token
 reference and theme JSON Schema are in [Docs/reference](Docs/reference).
 
 ![Settings window with colored category tabs, light and dark](Docs/images/settings-window.png)
@@ -103,7 +95,7 @@ reference and theme JSON Schema are in [Docs/reference](Docs/reference).
 
 ![The Catalog in Midnight: the title bar glow, a themed sidebar and source list selection, banners, loading and error states](Docs/images/catalog-midnight.png)
 
-![A split workspace: hidden title bar with Lumen's top bar under the window buttons, HSplitView columns, a debugger deck and an inspector pane](Docs/images/split-workspace.png)
+![A custom split workspace: hidden title bar with Lumen's top bar under the window buttons, HSplitView columns, a debugger deck and an inspector pane](Docs/images/split-workspace.png)
 
 ![The workspace window in Ultraviolet: glowing title bar, panel toggles, sidebar switcher and sections, document tabs, status bar, console tabs and log, and the new menu](Docs/images/workspace.png)
 
@@ -332,7 +324,7 @@ in the content. Use the scaffold's selection API for deep links and
 `.lumenSettingsQuery(_:)` when embedding settings rows in another search context. The Catalog's
 real Settings window (⌘,) demonstrates this recipe, including the sparse two-category case and
 an Engine sample built from public rows; the tabbed sample remains on its Catalog page.
-See `Docs/reference/settings.md` for category definitions, selection hooks and window composition.
+See `Docs/adoption/settings.md` for category definitions, selection hooks and the batch utility lesson.
 
 A welcome window and a toolbar with live task state:
 
@@ -673,7 +665,7 @@ swift build --scratch-path /tmp/lumen-build
 swift test --scratch-path /tmp/lumen-build
 ```
 
-Keep build output outside the repository.
+Keep build output outside the repository. Commits carry no assistant co-author trailers.
 
 ## App conformance checks
 
@@ -697,7 +689,9 @@ For a view, pass a named `AnyView` subject, sizes, registry, themes and snapshot
 context. Minimum text size and semantic labels are not currently checked.
 
 The source helper matches literal text, including comments and strings, and reports unreadable
-files. The Catalog's Conformance page lists built-in check metadata without running checks. The runner preserves context/check ordering and the existing finding format.
+files. The example pack’s `InspectorStyleRatchet` shows how an app can allow a fixed occurrence
+budget and fail above it. The Catalog's Conformance page groups app checks by `owner` without
+running them. The runner preserves context/check ordering and the existing finding format.
 
 ### Window notices and keyboard reference
 

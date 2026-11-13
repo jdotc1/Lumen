@@ -46,10 +46,11 @@ public struct LumenRichTextView: View {
         .lumenDisabledFade(isEnabled)
     }
 
+    // A pane icon, not a toolbar icon: the format bar sits inside the field, not on the window's top bar.
     private func formatButton(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
         Button(action: action) { Label(title, systemImage: symbol) }
             .labelStyle(.iconOnly)
-            .buttonStyle(LumenToolbarIconButtonStyle())
+            .buttonStyle(LumenPanelIconButtonStyle())
             .lumenIconOnlyControl(title)
             .help(title)
     }

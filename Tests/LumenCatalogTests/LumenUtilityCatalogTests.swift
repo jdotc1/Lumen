@@ -125,8 +125,8 @@ final class LumenUtilityCatalogTests: XCTestCase {
             let pane = CGRect(x: size.width > 640 ? 201 : 0, y: 50,
                               width: size.width > 640 ? size.width - 442 : size.width,
                               height: size.height - 110)
-            for expected in ["FILE REVIEW", "FILE", "SIZE", "STATE", "Sample 01.dcm",
-                             "Sample 02.dcm", "Sample 03.dcm", "Sample 04.dcm"] {
+            for expected in ["FILE REVIEW", "FILE", "SIZE", "STATE", "Sample 01.png",
+                             "Sample 02.png", "Sample 03.png", "Sample 04.png"] {
                 let boxes = observations.filter { $0.topCandidates(1).first?.string == expected }.map {
                     CGRect(x: $0.boundingBox.minX * size.width,
                            y: (1 - $0.boundingBox.maxY) * size.height,

@@ -29,7 +29,7 @@ struct WorkspacePage: View {
     ]
 
     /// The identity and the task cluster, the bar's fixed groups.
-    private var toolbarGroups: some View {
+    private var workspaceGroups: some View {
         HStack(spacing: 8) {
             LumenToolbarIdentity("Lumen", subtitle: "main", systemImage: "lumen.lens", hue: .hueViolet)
             LumenToolbarDivider()
@@ -80,7 +80,7 @@ struct WorkspacePage: View {
                     LumenStackedPane(id: "bp", title: "Breakpoints", systemImage: "lumen.breakpoint", hue: .hueBlue, count: 0,
                                      emptyMessage: "Click a line number to add one.") { EmptyView() },
                     LumenStackedPane(id: "str", title: "Strings", systemImage: "text.quote", hue: .hueOrange, count: 1284) {
-                        VStack(alignment: .leading, spacing: 3) { Text("Hello, Lumen!"); Text("/usr/lib/libSystem.B.dylib") }
+                        VStack(alignment: .leading, spacing: 3) { Text("Hello, world!"); Text("/usr/lib/libSystem.B.dylib") }
                             .font(.caption.monospaced()).padding(.leading, 34)
                     },
                 ], collapsed: $collapsed)
@@ -94,18 +94,18 @@ struct WorkspacePage: View {
                 .frame(width: 260).lumenSidebarBackground().clipShape(.rect(cornerRadius: 8))
             Text("Arrangement: \(arrangement)").font(.caption.monospaced()).foregroundStyle(.lumen(.fgTertiary))
 
-            LumenSectionHeader("Toolbar groups")
+            LumenSectionHeader("workspace toolbar groups")
             Text("The Split Workspace window shows the whole layout: one unified bar with the window buttons inside it, and the editor modes in the content’s tab bar.")
                 .font(.caption).foregroundStyle(.lumen(.fgTertiary))
             // One row when it fits; in a narrow page the status wraps to its own line without the
             // slash, which only ever goes between groups on one row.
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 8) {
-                    toolbarGroups
+                    workspaceGroups
                     LumenToolbarStatus(indexing ? .working("Indexing… 16 of 92", progress: 0.17) : nil, width: 220).fixedSize()
                 }
                 VStack(alignment: .leading, spacing: 8) {
-                    toolbarGroups
+                    workspaceGroups
                     if indexing { LumenActivityStatus(.working("Indexing… 16 of 92", progress: 0.17), width: 220) }
                 }
             }

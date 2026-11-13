@@ -4,7 +4,7 @@ import XCTest
 import LumenTokens
 @testable import LumenUI
 
-/// Workspace controls, stored layout, and narrow-column sizing.
+/// The components the inspector example's parity table listed as gaps (0.8.0).
 @MainActor
 final class LumenGapComponentTests: XCTestCase {
     private let tools = ["files", "symbols", "search", "graph"]
@@ -65,7 +65,7 @@ final class LumenGapComponentTests: XCTestCase {
                                                                      recovery: "Choose it again.", onRetry: {})), 240),
             ("row", LumenLayout.minimumWidth(of: LumenListRow("a_very_long_symbol_name_that_keeps_going", detail: "0x100003F40",
                                                                systemImage: "lumen.pseudocode", hue: .hueIndigo) { LumenCount(1234) }), 160),
-            ("welcome", LumenLayout.minimumWidth(of: LumenWelcomePanel(appName: "Lumen", tagline: "Open a binary to begin.",
+            ("welcome", LumenLayout.minimumWidth(of: LumenWelcomePanel(appName: "Inspector", tagline: "Open a binary to begin.",
                                                                         markSymbol: "lumen.lens", actions: [
                 LumenWelcomeAction("Open…", subtitle: "Browse for a binary", systemImage: "folder.fill", hue: .hueBlue) {}]
             )), 320),

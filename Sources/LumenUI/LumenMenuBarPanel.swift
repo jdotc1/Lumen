@@ -44,7 +44,7 @@ public struct LumenMenuBarPanel<Content: View, Accessory: View, Footer: View>: V
                 VStack(spacing: 0) {
                     MenuBarPanelHeader(title: title, accessory: accessory)
                         .menuBarPanelRegion(.header)
-                    Divider()
+                    Divider().padding(.horizontal, metrics.spacing.s5)
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headerHeight = $0 }
             }
@@ -60,7 +60,7 @@ public struct LumenMenuBarPanel<Content: View, Accessory: View, Footer: View>: V
             .menuBarPanelRegion(.content)
             if showsFooter {
                 VStack(spacing: 0) {
-                    Divider()
+                    Divider().padding(.horizontal, metrics.spacing.s5)
                     MenuBarPanelFooter(content: footer)
                         .menuBarPanelRegion(.footer)
                 }

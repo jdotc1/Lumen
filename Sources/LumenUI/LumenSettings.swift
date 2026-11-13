@@ -24,8 +24,8 @@ public struct LumenSettingsPane<Content: View>: View {
         self.init(title, systemImage: systemImage, hue: hue, summary: summary, style: .grouped, content: content)
     }
 
-    /// - Parameter style: `.rich` for `LumenSettingsRow`s in `LumenFormSection`s under the header;
-    /// `.grouped` for a native grouped form.
+    /// - Parameter style: `.rich` for `LumenSettingsRow`s in `LumenFormSection`s under the header
+    ///, `.grouped` for a native grouped form.
     public init(_ title: String, systemImage: String, hue: LumenToken, summary: String? = nil,
                 style: LumenSettingsPaneStyle, @ViewBuilder content: () -> Content) {
         self.title = title
@@ -74,11 +74,17 @@ public struct LumenSettingsPane<Content: View>: View {
             } header: {
                 LumenSettingsHeader(title, systemImage: systemImage, hue: hue, summary: summary)
                     .padding(.bottom, widthClass.sectionSpacing(metrics))
+                    // The section header sits at the rows' text; pull it out to the box edge so the
+                    // tile does not jump between grouped and rich panes (design review 2026-11 #7).
+                    .padding(.leading, -LumenGroupedFormInsets.row)
             }
         }
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
-        .contentMargins(.horizontal, widthClass.horizontalPadding(metrics), for: .scrollContent)
+        // The form adds its own box margin; Lumen's margin is the rest, so boxes start at the
+        // pane padding like a rich pane's rows.
+        .contentMargins(.horizontal, max(0, widthClass.horizontalPadding(metrics) - LumenGroupedFormInsets.box),
+                        for: .scrollContent)
         .contentMargins(.bottom, metrics.spacing.s9, for: .scrollContent)
         .modifier(LumenSettingsFormMeasure())
         .frame(maxWidth: 640)
@@ -202,12 +208,13 @@ public struct LumenSettingsHeader: View {
         .textCase(nil)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
+        .lumenReportsMarginElement("settings-pane-header")
     }
 }
 
 public extension View {
     /// Makes this view a tab of a Settings `TabView` with a colored category tile, as in System
-    /// Settings' preference panes. Use it inside `Settings { TabView { … } }`.
+    /// Settings' old preference panes and workspace. Use it inside `Settings { TabView { … } }`.
     func lumenSettingsTab(_ title: String, systemImage: String, hue: LumenToken) -> some View {
         modifier(LumenSettingsTabModifier(title: title, systemImage: systemImage, hue: hue))
     }
@@ -374,7 +381,7 @@ public struct LumenSettingsSidebarView: View {
                         if !found.isEmpty {
                             Text(found.joined(separator: " · ")).font(metrics.typography.caption)
                                 .foregroundStyle(palette[selection == category.id && activeState == .key
-                                    ? .accentFilledForeground : .sidebarSecondaryForeground]).lineLimit(2)
+                                    ? .accentFilledForeground : .sidebarSecondaryForeground]).lineLimit(1).truncationMode(.middle)
                                 .help(found.joined(separator: " · "))
                         }
                     }
@@ -432,23 +439,21 @@ public struct LumenSettingsSidebarView: View {
         .defaultFocus($sidebarFocused, true, priority: .userInitiated)
         .toolbar {
             ToolbarItem(id: "lumen.settings.history", placement: .navigation) {
-                HStack(spacing: 0) {
-                    Button { move(backward: true) } label: {
-                        navigationLabel(lumenLocalized(String(localized: "Back", bundle: .module, comment: "Settings control text.")), systemImage: "chevron.backward")
-                    }
-                    .disabled(!history.canGoBack)
-                    .keyboardShortcut("[", modifiers: .command)
-                    .help(lumenLocalized(String(localized: "Back", bundle: .module, comment: "Settings tooltip.")))
-                    Button { move(backward: false) } label: {
-                        navigationLabel(lumenLocalized(String(localized: "Forward", bundle: .module, comment: "Settings control text.")), systemImage: "chevron.forward")
-                    }
-                    .disabled(!history.canGoForward)
-                    .keyboardShortcut("]", modifiers: .command)
-                    .help(lumenLocalized(String(localized: "Forward", bundle: .module, comment: "Settings tooltip.")))
+                HStack(spacing: Lumen.Space.s1) {
+                    // Back and Forward are toolbar icons like every other top-bar button (note 24),
+                    // and native NSButtons, so AppKit keeps their names, enabled state and ⌘[ / ⌘].
+                    // `.disabled` keeps SwiftUI's own enabled state (which it writes to the control) in step.
+                    LumenToolbarIconNativeButton(title: lumenLocalized(String(localized: "Back", bundle: .module, comment: "Settings tooltip.")),
+                                                 systemImage: "chevron.backward", isEnabled: history.canGoBack,
+                                                 keyEquivalent: "[", modifiers: .command) { move(backward: true) }
+                        .disabled(!history.canGoBack)
+                    LumenToolbarIconNativeButton(title: lumenLocalized(String(localized: "Forward", bundle: .module, comment: "Settings tooltip.")),
+                                                 systemImage: "chevron.forward", isEnabled: history.canGoForward,
+                                                 keyEquivalent: "]", modifiers: .command) { move(backward: false) }
+                        .disabled(!history.canGoForward)
                 }
                 // The item hugs its two buttons, so the platter has no dead middle in any layout.
                 .fixedSize()
-                .buttonStyle(.borderless)
                 .controlSize(.regular)
                 // As direct children of the toolbar item viewer, AppKit reports the second button's
                 // plain AXDescription as the first's ("Back" twice). Grouping them gives each its own name.
@@ -503,12 +508,6 @@ public struct LumenSettingsSidebarView: View {
         }
     }
 
-    private func navigationLabel(_ title: String, systemImage: String) -> some View {
-        Label(title, systemImage: systemImage)
-            .labelStyle(.iconOnly)
-            .font(.system(size: 14, weight: .medium))
-            .frame(width: 28, height: 28)
-    }
 }
 
 public extension View {
@@ -837,9 +836,13 @@ public struct LumenAppearanceSettings: View {
     public var body: some View {
         let store = explicitStore ?? environmentStore
         // Keyed by the store, so the density storage follows a store swapped in the environment.
-        LumenAppearanceSettingsForm(store: store, showsGallery: showsGallery,
-                                    textScale: textScale, textScaleSteps: textScaleSteps)
-            .id(ObjectIdentifier(store))
+        // Its own width class, so its boxes share the pane padding of a `LumenSettingsPane`.
+        GeometryReader { geometry in
+            LumenAppearanceSettingsForm(store: store, showsGallery: showsGallery,
+                                        textScale: textScale, textScaleSteps: textScaleSteps)
+                .id(ObjectIdentifier(store))
+                .environment(\.lumenSettingsWidthClass, LumenSettingsWidthClass(width: geometry.size.width))
+        }
     }
 }
 
@@ -852,6 +855,7 @@ private struct LumenAppearanceSettingsForm: View {
 
     @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenMetrics) private var metrics
+    @Environment(\.lumenSettingsWidthClass) private var widthClass
 
     init(store: LumenThemeStore, showsGallery: Bool, textScale: Binding<Double>?, textScaleSteps: [Double]) {
         self.store = store
@@ -885,15 +889,22 @@ private struct LumenAppearanceSettingsForm: View {
                 LumenSettingsHeader(lumenLocalized(String(localized: "Appearance", bundle: .module, comment: "Appearance settings heading.")), systemImage: "paintpalette.fill", hue: .hueViolet,
                                     summary: lumenLocalized(String(localized: "Theme, accent and how tightly rows are packed.", bundle: .module, comment: "Description of appearance settings.")))
                     .padding(.bottom, metrics.spacing.s3)
+                    // At the box edge, as in `LumenSettingsPane` (design review 2026-11 #7).
+                    .padding(.leading, -LumenGroupedFormInsets.row)
             }
             if showsGallery {
                 Section(lumenLocalized(String(localized: "Theme", bundle: .module, comment: "Theme selection section."))) { LumenThemeGallery(store: store) }
             }
         }
         .formStyle(.grouped)
+        .contentMargins(.horizontal, max(0, widthClass.horizontalPadding(metrics) - LumenGroupedFormInsets.box),
+                        for: .scrollContent)
         .contentMargins(.bottom, metrics.spacing.s9, for: .scrollContent)
         .modifier(LumenSettingsFormMeasure())
         .scrollContentBackground(.hidden)
+        // The same readable column as `LumenSettingsPane`.
+        .frame(maxWidth: 640)
+        .frame(maxWidth: .infinity, alignment: .center)
         .background(palette[.panelBackground])
     }
 }

@@ -149,9 +149,10 @@ public enum LumenConformance {
     }
 
     /// The workspace window stays intact whatever the user shows or hides: at each size and each
-    /// combination of panels, the top bar stays at the top of the window at a consistent height.
+    /// combination of panels, the top bar is there, at the top of the window, at one height. Hiding
+    /// the inspector once pushed the inspector example's top bar off screen; this catches that in the app's tests.
     ///
-    /// A unified bar starts at the window's top edge, its content
+    /// A unified bar (the workspace's, the default from 0.44) starts at the window's top edge, its content
     /// starts after the window buttons, and the buttons are centered in it. A bar under the title bar
     /// (`.underTitleBar`) starts right under the buttons' band. Either way no panel starts above the
     /// bar's bottom edge. The checks use the real window's title bar: its buttons' frames, and the
@@ -185,7 +186,8 @@ public enum LumenConformance {
     }
 
     /// PRINCIPLES §6, for table columns and lists of one-line values: no two different `values` of
-    /// one column show the same text at `width`. For a column the app lays out itself;
+    /// one column show the same text at `width` (the inspector example's members table showed "triggerAna…"
+    /// twice, audit M14; each passed the 8-character floor). For a column the app lays out itself;
     /// cells that report themselves (`.lumenReportsVisibleText`) are checked by `truncation` and
     /// `workspaceWindow` as rendered.
     public static func visibleDuplicates(column: String, values: [String], width: CGFloat, font: NSFont,
@@ -430,7 +432,7 @@ public enum LumenConformance {
             return frame
         }
         recorder.windowButtons = buttons.isEmpty ? nil : buttons.dropFirst().reduce(buttons[0]) { $0.union($1) }
-        // The toolbar-hosted bar's items: where AppKit put them.
+        // The toolbar-hosted bar's items (the workspace's unified placement): where AppKit put them.
         recorder.hasToolbar = window.toolbar != nil
         recorder.toolbarItems = (window.toolbar?.items ?? []).compactMap { item -> CGRect? in
             guard let view = item.view, view.window != nil, !view.isHidden, view.bounds.width > 1 else { return nil }
@@ -447,7 +449,7 @@ public enum LumenConformance {
             recorder.droppedToolbarItems = hosted.enumerated().compactMap { index, item in
                 guard !visible.contains(item.itemIdentifier) else { return nil }
                 if index == hosted.count - 1 && hosted.count > 1 { return "Panels" }
-                // The status is temporary and gives way first: dropping it is by design.
+                // The status is temporary and gives way first, workspace-style: dropping it is by design.
                 return index == 0 ? "Leading" : nil
             }
         }

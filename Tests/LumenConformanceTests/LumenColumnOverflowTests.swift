@@ -5,7 +5,7 @@ import LumenUI
 import LumenConformance
 
 /// PRINCIPLES §6 for columns: content wider than its column is centered by SwiftUI and cut off on
-/// both edges with no label shortened. Lumen's columns report it
+/// both edges with no label shortened (the inspector example's Types inspector). Lumen's columns report it
 /// themselves; `overflow`, `truncation` and `workspaceWindow` all surface it.
 @MainActor
 final class LumenColumnOverflowTests: XCTestCase {
@@ -41,7 +41,7 @@ final class LumenColumnOverflowTests: XCTestCase {
         XCTAssertEqual(findings.map(\.message), ["“Types” content is 50 pt wider than its column"])
     }
 
-    /// The workspace window's inspector holds a view wider than the column.
+    /// the inspector example's case: the workspace window's inspector holds a view wider than the column.
     func testAWorkspaceInspectorHoldingAFixed300PointViewIsReported() {
         let findings = LumenConformance.workspaceWindow(panels: [LumenWorkspacePanels(leading: true, bottom: false, trailing: true)]) { panels in
             LumenWorkspaceWindow(panels: .constant(panels)) {

@@ -3,7 +3,7 @@ import SwiftUI
 import LumenTokens
 
 // Windows that draw their own structure: a hidden title bar with the app's top bar, and HSplitView
-// columns instead of NavigationSplitView and `.inspector`. The same visual
+// columns instead of NavigationSplitView and `.inspector` (the inspector example's structure). The same visual
 // language as the toolbar-based workspace, and the same rule: every column declares its minimum,
 // and the window's minimum is their sum (PRINCIPLES §6).
 
@@ -12,7 +12,7 @@ extension LumenLayout {
     public static let sidebarColumn: (min: CGFloat, ideal: CGFloat, max: CGFloat) = (200, 240, 320)
     /// The space macOS's window buttons take at the leading edge of a hidden title bar.
     public static let windowButtonsInset: CGFloat = 78
-    /// A custom top bar's height, under the window buttons' band.
+    /// A custom top bar's height, under the window buttons' band (the inspector example's is 46).
     public static let topBarHeight: CGFloat = 44
 }
 
@@ -24,7 +24,7 @@ public extension View {
     }
 
     /// Paints a NavigationSplitView sidebar (or any list) in the theme's `sidebar.background` instead of
-    /// the system's translucent gray material. Apply to the sidebar's content.
+    /// the system's translucent gray material, as the inspector example's sidebar is. Apply to the sidebar's content.
     func lumenSidebarBackground() -> some View {
         modifier(LumenSidebarBackgroundModifier())
     }
@@ -135,17 +135,17 @@ public struct LumenInspectorPane<Content: View>: View {
 /// The app's own top bar under a hidden title bar (`.windowStyle(.hiddenTitleBar)`; place it with
 /// `.lumenTopBar { }`):
 /// leading, center and trailing content on the title bar glow, with a hairline below. Placed with
-/// `.lumenTopBar` (or in a `LumenWorkspaceWindow`) it's a unified row by default: its leading
+/// `.lumenTopBar` (or in a `LumenWorkspaceWindow`) it's the workspace's unified row by default: its leading
 /// content and center become the window toolbar's `.navigation` items and its trailing content a
 /// `.primaryAction` item, so they sit on the window buttons' center line in AppKit's compact band
 /// (give the scene `.windowToolbarStyle(.unifiedCompact(showsTitle: false))`). With
 /// `.lumenTopBarPlacement(.underTitleBar)` it's a SwiftUI row under the window buttons' band,
-/// inside the same glow; dragging it moves the window and
+/// inside the same glow, as the inspector example's top bar had it; dragging it moves the window and
 /// double-clicking it does what System Settings › Desktop & Dock says (zoom or minimize), as a real
 /// title bar does.
 ///
-/// The leading and trailing content keep their size; the center gives way first (truncating), so the
-/// bar's minimum width is the leading and trailing content plus the window buttons.
+/// Free-text content yields before fixed controls. Compact labels and overflow menus preserve
+/// the remaining items at narrow widths. Supply full help text for free-text slot content.
 public struct LumenTopBar<Leading: View, Center: View, Trailing: View>: View {
     private let leading: Leading
     private let center: Center
@@ -180,10 +180,9 @@ public struct LumenTopBar<Leading: View, Center: View, Trailing: View>: View {
         }
     }
 
-    /// Leading content, the status, and the trailing panels as three items. AppKit sizes each SwiftUI
-    /// item at its ideal width (it can't be made flexible) and, short of room, drops items whole, last
-    /// first and never back into the overflow menu; so the status goes first (`LumenToolbarPriorities`
-    /// gives it the low native priority) and the panels, leading content and flexible space are kept.
+    /// Leading content, status, and trailing controls are separate native items. Their capped
+    /// fitting ladders collapse labels or expose overflow before AppKit removes an item. Native
+    /// visibility priorities let the status yield before identity and icon controls.
     @ToolbarContentBuilder private var toolbarItems: some ToolbarContent {
         // Bare on the glow in `.drawn`: no shared glass platter behind them. `.glass` lets the
         // system's platter show (PRINCIPLES §11).
@@ -200,13 +199,30 @@ public struct LumenTopBar<Leading: View, Center: View, Trailing: View>: View {
     }
 
     private var leadingItem: some View {
-        compact(leading).onGeometryChange(for: CGFloat.self) { $0.size.width } action: { leadingWidth = $0 }
+        LumenCappedWidth(maxWidth: max(metrics.layout.minimumHitTarget,
+                                      (barWidth ?? 1200) - Self.toolbarLeadingInset - trailingWidth - Self.toolbarSpacing)) {
+            ViewThatFits(in: .horizontal) {
+                compact(leading)
+                compact(leading).environment(\.lumenBarIconsOnly, true).labelStyle(.iconOnly)
+                overflow { leading }
+            }
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { leadingWidth = $0 }
     }
 
     private var trailingItem: some View {
         // A trailing gutter to match the leading items' clearance of the window buttons: AppKit
-        // alone leaves about 8 pt, which put the last button against the window's corner.
-        compact(trailing).padding(.trailing, Self.trailingGutter).onGeometryChange(for: CGFloat.self) { $0.size.width } action: { trailingWidth = $0 }
+        // alone leaves about 8 pt, which put the last button against the window's corner (L7).
+        LumenCappedWidth(maxWidth: max(metrics.layout.minimumHitTarget,
+                                      ((barWidth ?? 1200) - Self.toolbarLeadingInset - Self.toolbarSpacing) / 2)) {
+            ViewThatFits(in: .horizontal) {
+                compact(trailing)
+                compact(trailing).environment(\.lumenBarIconsOnly, true).labelStyle(.iconOnly)
+                overflow { trailing }
+            }
+        }
+        .padding(.trailing, Self.trailingGutter)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { trailingWidth = $0 }
     }
 
     /// The status, told how much room the window leaves it: the window less the window buttons'
@@ -227,18 +243,43 @@ public struct LumenTopBar<Leading: View, Center: View, Trailing: View>: View {
     /// AppKit's spacing between the three items and at the trailing edge, with a margin.
     private static var toolbarSpacing: CGFloat { 40 }
 
-    private var row: some View {
+    private func overflow<Items: View>(@ViewBuilder items: () -> Items) -> some View {
+        let title = lumenLocalized(String(localized: "More controls", bundle: .module, comment: "SplitLayout control text."))
+        return LumenMenuButton(help: title, items: items) {
+            LumenToolbarIcon { LumenSymbol("ellipsis") }
+        }
+        .help(title).accessibilityLabel(title).fixedSize()
+    }
+
+    private func contentRow(compact: Bool) -> some View {
         HStack(spacing: metrics.spacing.s5) {
-            leading.fixedSize()
-                .background {
-                    GeometryReader { proxy in
-                        Color.clear.preference(key: LumenTopBarContentFrameKey.self, value: proxy.frame(in: .global))
-                    }
-                }
+            leading.lineLimit(1).truncationMode(.middle).layoutPriority(-1)
             Spacer(minLength: metrics.spacing.s4)
-            center.layoutPriority(-1)
+            center.lineLimit(1).truncationMode(.middle)
+                .frame(minWidth: Center.self == EmptyView.self ? 0 : LumenActivityStatus.minimumWidth * metrics.floatingTextGrowth)
+                .layoutPriority(-2)
             Spacer(minLength: metrics.spacing.s4)
             trailing.fixedSize()
+        }
+        .environment(\.lumenBarIconsOnly, compact)
+    }
+
+    private var row: some View {
+        ViewThatFits(in: .horizontal) {
+            contentRow(compact: false)
+            contentRow(compact: true).labelStyle(.iconOnly)
+            HStack(spacing: metrics.spacing.s3) {
+                leading.lineLimit(1).truncationMode(.middle).layoutPriority(-1)
+                Spacer(minLength: 0)
+                overflow { center; trailing }
+            }
+            .environment(\.lumenBarIconsOnly, true).labelStyle(.iconOnly)
+            overflow { leading; center; trailing }
+        }
+        .background {
+            GeometryReader { proxy in
+                Color.clear.preference(key: LumenTopBarContentFrameKey.self, value: proxy.frame(in: .global))
+            }
         }
         .padding(.horizontal, metrics.spacing.s4)
         .frame(height: LumenLayout.topBarHeight)
@@ -257,9 +298,10 @@ public struct LumenTopBar<Leading: View, Center: View, Trailing: View>: View {
 
 public extension View {
     /// Puts `bar` (a `LumenTopBar`) at the top of a hidden-title-bar window, with the content under
-    /// it. By default the bar's content becomes the window's own toolbar items,
+    /// it. By default (`.unified`, the workspace's) the bar's content becomes the window's own toolbar items,
     /// on the window buttons' center line, over Lumen's title bar glow; give the scene
-    /// `.windowToolbarStyle(.unifiedCompact(showsTitle: false))` for the compact band. With `.lumenTopBarPlacement(.underTitleBar)` the window buttons keep their band at the top and the bar sits under it, its
+    /// `.windowToolbarStyle(.unifiedCompact(showsTitle: false))` for the workspace's compact band. With `.lumenTopBarPlacement(.underTitleBar)` (the inspector example's
+    /// look before 0.44) the window buttons keep their band at the top and the bar sits under it, its
     /// glow reaching up behind them. Either way the content starts under the bar and can never push it
     /// off screen. Apply to the window's root view.
     func lumenTopBar<Bar: View>(@ViewBuilder _ bar: () -> Bar) -> some View {

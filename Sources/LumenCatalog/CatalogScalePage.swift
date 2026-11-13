@@ -1,4 +1,5 @@
 import SwiftUI
+import LumenTokens
 import LumenUI
 
 struct ScalePage: View {
@@ -11,7 +12,7 @@ struct ScalePage: View {
         VStack(alignment: .leading, spacing: 20) {
             PageHeader(title: "Scale", summary: "Build one data-heavy component at a time at 10× its reference size. No workload is built until requested.")
             Text("First layout includes three layout/display passes in an unshown 700 × 800 host. Data preparation is excluded. Reference budgets below are for their original sizes and operations; these timings are observations, not pass/fail gates.")
-                .font(.caption).lumenWrapsWithoutTruncating()
+                .foregroundStyle(.lumen(.fgSecondary)).lumenWrapsWithoutTruncating()
             Picker("Component", selection: $selected) {
                 ForEach(LumenScaleComponent.allCases) { component in
                     Text(component.title).tag(component)

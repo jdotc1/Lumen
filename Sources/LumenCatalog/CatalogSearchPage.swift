@@ -58,7 +58,7 @@ struct SearchPage: View {
                     opened = "Opened \(file.name) at line \(match.line)"
                 }
             }
-            .frame(width: 320)
+            .frame(maxWidth: 480)
             .lumenSidebarBackground()
             .clipShape(.rect(cornerRadius: 8))
             Text(opened).font(.caption).foregroundStyle(.lumen(.fgTertiary))
@@ -101,7 +101,7 @@ struct SearchPage: View {
                     Text("No completions for “\(typed)”.").font(.caption).foregroundStyle(.lumen(.fgTertiary))
                 } else {
                     LumenCompletionList(items, typed: typed, selection: $completion) { accepted = $0.name }
-                        .frame(width: 320)
+                        .frame(maxWidth: 480)
                 }
                 if !accepted.isEmpty { Text("Accepted \(accepted)").font(.caption).foregroundStyle(.lumen(.fgTertiary)) }
             }
@@ -112,7 +112,7 @@ struct SearchPage: View {
                 recorder("Go to Line…", $goToLine)
                 recorder("Jump to Selection", $jump, conflict: jump == KeyboardShortcut("l", modifiers: [.command, .option]) ? "Also used by Run Latest Test" : nil)
             }
-            .frame(width: 320)
+            .frame(maxWidth: 480)
 
             LumenSectionHeader("Filter chips")
             LumenFilterChips(selection: $filter, groups: [["All"], ["Menu", "Extensions"], ["Customized", "Conflicts"]],

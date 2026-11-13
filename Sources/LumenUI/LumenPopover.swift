@@ -192,9 +192,12 @@ public struct LumenHuePickerButton: View {
                 LumenSymbol("chevron.up.chevron.down").font(.system(size: metrics.layout.disclosureGlyph, weight: .bold)).foregroundStyle(palette[.fgTertiary])
             }
             .padding(.horizontal, metrics.spacing.s3)
-            .frame(height: metrics.layout.minimumHitTarget)
-            .background(palette[isHovered || isPresented ? .bgHover : .bgElevated], in: .rect(cornerRadius: metrics.radius.sm, style: .continuous))
-            .overlay { RoundedRectangle(cornerRadius: metrics.radius.sm, style: .continuous).strokeBorder(palette[.borderSubtle], lineWidth: metrics.stroke.hairline) }
+            .frame(height: metrics.layout.controlHeight)
+            .lumenChrome(.popUp)
+            .overlay {
+                RoundedRectangle(cornerRadius: metrics.radius.sm, style: .continuous)
+                    .fill(isHovered || isPresented ? palette.hoverFill(metrics) : .clear).allowsHitTesting(false)
+            }
             .contentShape(.rect)
         }
         .buttonStyle(.lumenPlain).lumenFocusRing()

@@ -2674,6 +2674,39 @@
         }
       }
     },
+    "Status details": {
+      "comment": "Panels control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status details"
+          }
+        }
+      }
+    },
+    "Scopes": {
+      "comment": "CommandPalette control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scopes"
+          }
+        }
+      }
+    },
+    "More controls": {
+      "comment": "SplitLayout control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More controls"
+          }
+        }
+      }
+    },
     "Sidebar panes": {
       "comment": "Panels control text.",
       "localizations": {
@@ -5710,6 +5743,17 @@
         }
       }
     },
+    "Split Options": {
+      "comment": "WorkspaceLayout control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Split Options"
+          }
+        }
+      }
+    },
     "Restore Splits": {
       "comment": "WorkspaceLayout display text.",
       "localizations": {
@@ -5750,6 +5794,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Focused editor pane"
+          }
+        }
+      }
+    },
+    "Resize Panes": {
+      "comment": "ProportionalSplit control text.",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resize Panes"
           }
         }
       }

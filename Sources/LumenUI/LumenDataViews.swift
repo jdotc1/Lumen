@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import LumenTokens
 
-// Data views (Lumen 0.32): notification cards, outline depth, history rows with ref
+// Data views, after workspace (Lumen 0.32): notification cards, outline depth, history rows with ref
 // pills and avatars, comparison headers, a diff navigator, a floating status pill and a minimap.
 
 // MARK: Notices
@@ -171,7 +171,7 @@ public enum LumenOutlineMode: String, CaseIterable, Sendable {
     case tree, list
 }
 
-/// An outline's toolbar: tree or flat list, how deep the tree opens as level pills
+/// An outline's toolbar (the workspace's Symbols): tree or flat list, how deep the tree opens as level pills
 /// 1 to `maximumDepth`, and alphabetical sorting.
 public struct LumenOutlineControls: View {
     @Binding private var mode: LumenOutlineMode
@@ -400,7 +400,7 @@ public struct LumenAvatar: View {
     }
 }
 
-/// A commit as a row: a rail of nodes and lines down the leading edge, the
+/// A commit as a row (the workspace's Git history): a rail of nodes and lines down the leading edge, the
 /// message with its short hash and ref pills under it, then the time and author.
 public struct LumenHistoryRow: View {
     private let message: String
@@ -496,7 +496,7 @@ public struct LumenComparisonSide {
     }
 }
 
-/// The header over a side-by-side comparison: each side's version as a tinted capsule in its
+/// The header over a side-by-side comparison (the workspace's): each side's version as a tinted capsule in its
 /// color (a chevron when it opens a menu of others), each at the leading edge of its half, and a
 /// detail (the commit's message) after the trailing one.
 public struct LumenComparisonHeader: View {
@@ -522,15 +522,26 @@ public struct LumenComparisonHeader: View {
         HStack(spacing: metrics.spacing.s3) {
             capsule(leading).frame(maxWidth: .infinity, alignment: .leading)
             HStack(spacing: metrics.spacing.s2) {
-                capsule(trailing)
+                capsule(trailing).layoutPriority(1)
                 if let detail {
-                    // Two caption lines fit the subheader, so a message wraps before it's cut.
-                    Text(detail).font(metrics.typography.caption).foregroundStyle(palette[.fgSecondary]).lineLimit(2).truncationMode(.tail).help(detail)
+                    // Secondary detail yields before either side's title: one line, then two caption
+                    // lines (the subheader fits two, so a message wraps before it's cut, G7), then
+                    // middle truncation, and it drops out only when not even a short run fits.
+                    ViewThatFits(in: .horizontal) {
+                        Text(detail).lineLimit(1).fixedSize(horizontal: true, vertical: false)
+                        Text(detail).lineLimit(2).truncationMode(.middle)
+                            .frame(minWidth: metrics.layout.minimumHitTarget * 2,
+                                   idealWidth: metrics.layout.minimumHitTarget * 2, alignment: .leading)
+                        Color.clear.frame(width: 0, height: 0)
+                    }
+                    .font(metrics.typography.caption).foregroundStyle(palette[.fgSecondary])
+                    .help(detail).layoutPriority(-1)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(minHeight: metrics.layout.subheaderHeight)
+        .help([leading.title, trailing.title, detail].compactMap(\.self).joined(separator: " — "))
     }
 
     /// The tint behind a side's capsule.
@@ -551,6 +562,7 @@ public struct LumenComparisonHeader: View {
         let label = HStack(spacing: metrics.spacing.s2) {
             // A 24 pt pop-up: 13 pt text, as every one-line control (§10).
             Text(side.title).font(metrics.typography.body.weight(.semibold))
+                .lineLimit(1).truncationMode(.middle).help(side.title)
             if !side.choices.isEmpty { LumenSymbol("chevron.down").font(.system(size: metrics.layout.disclosureGlyph, weight: .bold)) }
         }
         .foregroundStyle(colors.ink)
@@ -558,13 +570,17 @@ public struct LumenComparisonHeader: View {
         .frame(height: metrics.layout.controlHeight)
         .background(colors.fill, in: .capsule)
         .overlay { Capsule(style: .circular).strokeBorder(palette[side.tone].opacity(0.45), lineWidth: metrics.stroke.hairline) }
-        .fixedSize()
+        // Natural width, never stretched or centered; the title compresses (middle truncation) only
+        // when its half cannot hold it.
+        .help(side.title)
         if side.choices.isEmpty {
             label
         } else {
-            LumenMenuButton {
+            Menu {
                 ForEach(side.choices) { choice in Button(choice.title, action: choice.perform) }
             } label: { label }
+            .menuStyle(.button).buttonStyle(.lumenBare).menuIndicator(.hidden)
+            .help(side.title).accessibilityLabel(side.title)
         }
     }
 }
@@ -621,7 +637,7 @@ public struct LumenDiffNavigator: View {
 // MARK: Floating status
 
 public extension View {
-    /// Floats a status pill at the bottom trailing corner, over the content:
+    /// Floats a status pill at the bottom trailing corner, over the content (the workspace's editor status):
     /// `content` while it fits, `folded` (fewer items, an overflow menu) when the view is narrow.
     func lumenFloatingStatus<Content: View, Folded: View>(@ViewBuilder content: () -> Content,
                                                           @ViewBuilder folded: () -> Folded) -> some View {
@@ -667,7 +683,7 @@ private struct LumenFloatingStatus<Status: View, Folded: View>: ViewModifier {
 
 // MARK: Minimap
 
-/// A document in miniature down the editor's trailing edge: one bar per line, as
+/// A document in miniature down the editor's trailing edge (the workspace's minimap): one bar per line, as
 /// long as the line and in its color, with the visible part highlighted. Drag or click to scroll.
 public struct LumenMinimap: View {
     private let lineLengths: [Int]

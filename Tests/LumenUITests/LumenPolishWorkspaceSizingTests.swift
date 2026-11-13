@@ -18,7 +18,7 @@ final class LumenPolishWorkspaceSizingTests: XCTestCase {
         }
     }
 
-    func testBreadcrumbActivityWrapsInFinalFallback() throws {
+    func testD21BreadcrumbActivityStaysOneLineInFinalFallback() throws {
         for scale in [1.0, 1.3] {
             let row = LumenToolbarBreadcrumb(["Workspace", "Sources"], systemImage: "folder",
                 activity: .working("Indexing every configuration and dependency in the research workspace", progress: 0.5),
@@ -26,11 +26,12 @@ final class LumenPolishWorkspaceSizingTests: XCTestCase {
             let narrow = try fittedSize(row, width: 240, scale: scale)
             let wide = try fittedSize(row, width: 1000, scale: scale)
             XCTAssertLessThanOrEqual(narrow.width, 241)
-            XCTAssertGreaterThan(narrow.height, wide.height + 10)
+            // The activity label is free text: it truncates in the middle (with help) on one line.
+            XCTAssertLessThanOrEqual(narrow.height, wide.height + 0.5, "Bar text stays on one line at scale \(scale)")
         }
     }
 
-    func testSidebarHeaderWrapsAndScrollHasBottomInset() throws {
+    func testD22SidebarHeaderStaysOneLineAndScrollHasBottomInset() throws {
         for scale in [1.0, 1.3] {
             let title = "Repository configuration and analysis resources requiring review"
             let sidebar = LumenStackedSidebar([
@@ -43,8 +44,10 @@ final class LumenPolishWorkspaceSizingTests: XCTestCase {
                 let document = try XCTUnwrap(scroll.documentView)
                 XCTAssertGreaterThanOrEqual(document.bounds.height, 1000 + LumenMetrics.standard.spacing.s2 - 1,
                                             "The final content needs breathing room before the clipped edge")
-                XCTAssertLessThan(scroll.contentView.bounds.height, 500 - LumenMetrics.resolving(nil, textScale: scale).layout.paneHeaderHeight - 10,
-                                  "Wrapped headers must reserve their measured height before allocating pane content")
+                // The pane header is a bar: its title truncates in the middle on one line, so the
+                // content gets everything below one header height.
+                XCTAssertLessThanOrEqual(scroll.contentView.bounds.height, 500 - LumenMetrics.resolving(nil, textScale: scale).layout.paneHeaderHeight + 0.5,
+                                         "The header must reserve its height before allocating pane content")
                 XCTAssertLessThanOrEqual(scroll.convert(scroll.bounds, to: host).maxX, 221)
             }
         }

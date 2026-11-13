@@ -28,7 +28,7 @@ public struct LumenTruncationKey: PreferenceKey {
 
 private struct LumenTruncationWatch: ViewModifier {
     let label: String
-    /// The smallest scale the label may shrink to (`minimumScaleFactor`); shrinking within it isn't
+    /// The smallest scale the label may shrink to (legacy allowance); shrinking within it isn't
     /// truncation.
     var minimumScale: CGFloat = 1
 
@@ -58,8 +58,9 @@ public extension View {
         modifier(LumenTruncationWatch(label: label))
     }
 
-    /// A one-line primary label that may shrink to `minimumScale` (its `minimumScaleFactor`) to fit,
+    /// A one-line primary label that may shrink to `minimumScale` (a legacy scale allowance) to fit,
     /// but must never be cut short at that scale. Shrinking within it isn't reported.
+    @available(*, deprecated, message: "Keep labels at natural size and use a compact or overflow presentation.")
     func lumenNeverTruncates(_ label: String, minimumScale: CGFloat) -> some View {
         modifier(LumenTruncationWatch(label: label, minimumScale: minimumScale))
     }

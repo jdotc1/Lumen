@@ -1,6 +1,114 @@
 # Changelog
 
-Public releases of the Lumen design system and Catalog.
+Lumen follows semantic versioning (see Docs/ARCHITECTURE.md › Versioning). Every release lists, for
+the people moving an app's pin:
+
+- **Breaking:** source changes an app must make.
+- **Visual:** things that look or lay out differently with no code change (review snapshots, don't
+  record them blind).
+- **Validator:** new checks that run on an app's own themes and may flag them.
+- **Added** and **Fixed.**
+
+Apps pin exact commits; each release names its commit and tag.
+
+## 1.4.0 (2026-11-13)
+
+### Visual
+- Every top-bar button is an app icon (design review 2026-11, note 24): the glyph centered on its own
+  continuous-corner rounded square in app-icon proportions, drawn as one vector unit with a subtle
+  elevation off the bar. This covers `LumenToolbarIconButtonStyle` (and so `LumenTaskCluster`, the
+  sidebar toggle and app toolbar buttons), `LumenPanelToggle`, the New Tab button and Settings' Back
+  and Forward. Review toolbar snapshots; Settings' Back and Forward are still native `NSButton`s.
+- `LumenToolbarGroup` and `LumenPanelToggles` no longer draw a capsule behind their buttons: each
+  button is its own icon, and a group reads as a group by its tighter spacing.
+- The rich-text format bar uses pane icon buttons (`LumenPanelIconButtonStyle`): it sits inside the
+  field, not on the window's top bar.
+- No window offers a Drawn/Glass chrome switch; the Catalog's toggle is gone. The `.drawn` fallback
+  for Reduce Transparency and offscreen rendering is unchanged.
+- Design review 2026-11 fixes (findings 1–4, 6–9, 12–22): the main sidebar's top rows are no longer
+  hidden under a titlebar band, the text scale applies live, segmented controls and Settings panes
+  share one selection and leading edge, chart y-axis ticks no longer read as minus signs, form rows
+  align on their baselines, and RTL disclosure chevrons mirror.
+
+- Bar labels keep their natural width in every Lumen bar (toolbar, editor bar, header strip, panel
+  bar, status bar, tab strip, palette footer). When items don't fit they fall back to icon-only
+  (keeping their help and accessibility label) or to an overflow menu; only free text (titles,
+  paths, file names) yields, by truncating in the middle with the full text as help. Stats, register
+  values and graph details no longer shrink; a stats card stacks instead. Counts and chips hold one
+  natural-width line with roomier padding. The status bar, top bar, content tabs, palette scopes and
+  footer gained compact and overflow tiers before scrolling. Review bar snapshots.
+- A toolbar status that can't show its whole label shows its mark (with the label as help) instead
+  of disappearing. `LumenActivityStatus` truncates its label down to its readable width, then shows
+  its mark. `LumenCount` pills reserve half their height at each end, so they are slightly wider.
+- Bar text that used to wrap in its last fallback (a breadcrumb activity, a stacked sidebar pane
+  header) stays on one line and truncates in the middle, with the full text as help.
+- Catalog and sample text use neutral names (a binary inspector demo, sample workspaces and paths).
+
+### Validator
+- New layout-audit rules: `bar-label-squeezed`, `bar-label-clipped`, `bar-free-text-mode`,
+  `bar-yield-order` and `bar-pill-proportions` (padding at least the cap height, horizontal padding
+  at least vertical), plus a native toolbar check that a visible item is never narrower than its
+  fitting size. The rendered audit adds `rendered-bar-squeeze` (owned ink narrower than 0.96 of the
+  natural text width). Lumen's own bar components report their items.
+
+### Added
+- `LumenFlowLayout` gains `alignsColumns:`, so wrapped lines share their columns; the 1.3
+  initializer `init(spacing:lineSpacing:)` is kept.
+- `LumenBarItemReport`, `LumenBarItemKey` and `.lumenBarItem(_:bar:role:mode:fontSize:pillInsets:)`:
+  an app's own bar items report their natural and allocated size so the bar rules can check them.
+- `LumenToolbarIcon`: the app-icon toolbar button drawing, for apps that build their own controls.
+- `LumenToolbarIconMenu`: a toolbar pull-down drawn as a toolbar icon. A SwiftUI `Menu` in a toolbar
+  becomes the system's menu item, which ignores button styles and draws a bare glyph with a chevron.
+- `LumenMetadataRow`: a label and a selectable value that wraps at any character (hashes, paths,
+  bundle IDs, long hex) and never truncates. It follows the Lumen text scale, mirrors in right-to-left
+  layouts, lines up with `LumenPropertyRow`'s label column and keeps the exact string for copying.
+- `LumenSelectableText`: read-only, selectable text for large content (reports, dumps), backed by a
+  native text view with non-contiguous layout. `LumenTextHighlight` marks exact `NSRange` or
+  `String.Index` ranges (`.match` on `accent.subtle`, `.current` with an accent underline), and
+  `LumenTextReveal` scrolls a range into view. Ranges are clamped and never split a character. A
+  `pages:` initializer and `offset(ofPage:in:separator:)` cover paged content.
+- `View.lumenExactText(_:)`: text fields inside it keep exactly what is typed or pasted, for
+  entitlement keys, identifiers and hex. Smart quotes and dashes, text replacement, spelling and
+  grammar correction, link detection, completion, inline prediction, Writing Tools and smart
+  insert/delete are all off. The shared field editor is restored when editing moves to another field.
+- `.lumenRoot(tint:appearance:windowChrome:)` and `LumenRootAppearance`: an app with no
+  `LumenThemeStore` sets the Lumen accent and light, dark or system appearance with one modifier at
+  its root. Accent roles are derived from the tint with the system accent's contrast rules.
+  `\.lumenRootTint`, `LumenThemeStore.resolvedPalette(tint:)` and `LumenPaletteKey.tint` expose the
+  same to store-backed apps, which are unchanged when no tint is set. See
+  `Docs/adoption/minimal-palette.md`.
+- `LumenProportionalSplit`: a two-pane split (top over bottom, or side by side) whose panes keep
+  their ratio as the window resizes. Its divider can be dragged, moved from the keyboard and adjusted
+  with VoiceOver. Each pane has a minimum size, and the app persists the `ratio` binding with
+  `@AppStorage` or `@SceneStorage`. See `Docs/reference/proportional-split.md`.
+
+### Fixed
+- `LumenStatusBar` fills its width again in its full and icon-only tiers, so a `Spacer` pushes
+  trailing items to the trailing edge instead of centering the whole bar.
+- `LumenComparisonHeader` keeps both side capsules at their natural width at the leading edge of
+  their halves instead of stretching and centering them, and its secondary detail wraps to two caption
+  lines before it truncates, instead of dropping out.
+- `LumenHexDump` draws a selected byte run as one continuous band again; each selected byte had
+  picked up a rounded shape of its own.
+- The layout audit's content-bounds and ancestor-clip messages name the element's kind and frame.
+- `LumenSelectableText` shows its find indicator only in a visible window; in an offscreen window
+  it opened an overlay window of its own.
+- `LumenStatusStrip` keeps its leading text at full width whenever the strip has room; the
+  middle's spacer had taken that room, so the leading text vanished even in a wide pane. When
+  narrow, the leading text still shortens first, before the chips fold.
+- The rendered bar-squeeze check compares measured ink with the label's glyph ink, not its advance,
+  so a short label such as a count is no longer reported as squeezed.
+- The rendered text-geometry check treats text that recognition reads across adjacent segments of
+  one native control (a segmented picker's labels and divider) as owned by that control, not as one
+  segment's text crossing its boundary. The rendered-overlap check likewise treats a segmented
+  control's bezel (one connected shape across its segments in dark mode) as owned by the control.
+- The rendered truncation differential no longer reports two complete button labels that recognition
+  merges at the larger layout when their recognition boxes overlap by a few points or a capsule edge
+  between them reads as a lone bar glyph.
+
+### Deprecated
+- `lumenNeverTruncates(_:minimumScale:)`: keep labels at their natural size and use a compact or
+  overflow presentation instead.
 
 ## 1.3.0 (2026-11-12)
 

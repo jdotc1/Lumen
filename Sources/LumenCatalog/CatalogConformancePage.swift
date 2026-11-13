@@ -1,5 +1,6 @@
 import LumenConformance
 import LumenUI
+import InspectorPack
 import SwiftUI
 
 /// Metadata only: browsing this page never reads source files or runs a check.
@@ -39,22 +40,35 @@ struct ConformancePage: View {
         .init(id: "narrowSizing", title: "Narrow sizing"), .init(id: "surfaceSteps", title: "Surface steps"),
         .init(LumenConformance.forbiddenSourcePatterns([], in: [])),
     ]
+    static let appGroups = groups(for: [InspectorStyleRatchet(files: [], budget: 120)])
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            PageHeader(title: "Conformance", summary: "Design checks share a context and finding format. Run them in a test target to evaluate themes and layouts.")
+            PageHeader(title: "Conformance", summary: "Lumen and app checks share a context and finding format. Run them in your app’s tests at each pin bump.")
             LumenSectionHeader("Lumen")
             entries(Self.builtIns)
-            Text("This page lists the available checks without running them.")
+            LumenSectionHeader("App checks")
+            ForEach(Self.appGroups) { group in
+                VStack(alignment: .leading, spacing: 10) {
+                    LumenSectionHeader(group.owner)
+                    entries(group.checks)
+                }
+            }
+            Text("The inspector example fails above its allowed source occurrence budget. This page lists checks; it does not run them.")
                 .foregroundStyle(.lumen(.fgSecondary))
         }
     }
 
     private func entries(_ checks: [Entry]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(checks) { check in
-                Text(check.title).lumenNeverTruncates(check.title)
+        // Static metadata, so no row is interactive: no hover plate, and a neutral glyph rather
+        // than a pass/fail mark (this page never runs a check).
+        VStack(spacing: 0) {
+            ForEach(Array(checks.enumerated()), id: \.element.id) { index, check in
+                if index > 0 { Divider() }
+                LumenListRow(check.title, detail: check.id, systemImage: "checklist")
+                    .allowsHitTesting(false)
             }
         }
+        .lumenCard(padding: 0)
     }
 }

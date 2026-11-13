@@ -224,13 +224,21 @@ public struct LumenCount: View {
 
     public init(_ value: Int) { self.value = value }
 
+    /// PRINCIPLES "Proportion": a pill's ends reserve at least half its height, which at the
+    /// caption size is more than its cap height; it grows with the text.
+    private var endInset: CGFloat { max(metrics.spacing.s3, metrics.spacing.s4 * metrics.floatingTextGrowth) }
+
     public var body: some View {
         Text(value, format: .number)
             .lumenNumericText(value: value)
             .font(metrics.typography.caption.monospacedDigit())
-            .padding(.horizontal, metrics.spacing.s2)
-            .padding(.vertical, 1)
+            .lumenBarItem(value.formatted(), bar: "count", role: .pill, fontSize: 10,
+                          pillInsets: CGSize(width: endInset, height: metrics.spacing.s1 / 2))
+            .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+            .padding(.horizontal, endInset)
+            .padding(.vertical, metrics.spacing.s1 / 2)
             .background(palette[.bgInset], in: .capsule)
+            .fixedSize().layoutPriority(2)
     }
 }
 
@@ -388,7 +396,7 @@ public struct LumenSourceListSection: Identifiable, Sendable {
     }
 }
 
-/// A sidebar source list drawn in the theme: the selection in `sidebar.rowSelected`
+/// A sidebar source list drawn in the theme, as the inspector example's is: the selection in `sidebar.rowSelected`
 /// (quiet in an inactive window) rather than the system's blue highlight, hover fills, density-driven
 /// rows. It's one keyboard stop: ↑/↓ move the selection, Home and End jump to the ends.
 public struct LumenSourceList: View {
@@ -455,8 +463,13 @@ public struct LumenSourceList: View {
             .ignoresSafeArea(.container, edges: .top)
             // The scroll view runs under the titlebar, so scrolled rows would otherwise draw beneath
             // the window buttons. A scrim in the sidebar fill covers that band; rows fade out below it.
+            // An overlay's content keeps the safe area even though its host ignores it: without its
+            // own `ignoresSafeArea` the scrim sat one titlebar-height below the titlebar, hiding the
+            // first rows and leaving the window buttons over scrolled rows (design review 2026-11 #1).
             .overlay(alignment: .top) {
                 LumenSourceListTopScrim(height: geometry.safeAreaInsets.top, color: palette[.sidebarBackground])
+                    .lumenReportsMarginElement("source-list-top-scrim")
+                    .ignoresSafeArea(.container, edges: .top)
             }
             .onChange(of: selection) { _, id in if let id { proxy.scrollTo(id) } }
         }

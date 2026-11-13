@@ -79,7 +79,7 @@ import LumenConformance
         XCTAssertEqual(findings.map(\.description), [])
     }
 
-    /// A workspace arrangement as toolbar items: the window's real toolbar in the compact style hosts them,
+    /// the workspace's arrangement as toolbar items: the window's real toolbar in the compact style hosts them,
     /// every item on the window buttons' center line (±1 pt), none under the buttons, the content
     /// under the band. (The check reads the items' frames from the window's toolbar.)
     func testWorkspaceArrangementFitsTheUnifiedBar() {
@@ -296,7 +296,7 @@ import LumenConformance
         XCTAssertEqual(Set(LumenWorkspacePanels.allCombinations).count, 8)
     }
 
-    /// A bar stacked over content taller than the window. The check must
+    /// the inspector example's bug, rebuilt: a bar stacked over content taller than the window. The check must
     /// see the bar pushed off the top.
     func testTheCheckCatchesABarPushedOffScreen() {
         let findings = LumenConformance.workspaceWindow(panels: [LumenWorkspacePanels()]) { _ in
@@ -347,11 +347,13 @@ import LumenConformance
         XCTAssertEqual(findings, [])
     }
 
-    func testASqueezedBreadcrumbIsReported() {
+    func testASqueezedBreadcrumbYieldsCleanly() {
+        // A breadcrumb title is free text: squeezed, it truncates in the middle and carries help,
+        // which the truncation rule accepts.
         let findings = LumenConformance.truncation(sizes: [CGSize(width: 900, height: 200)]) {
             LumenToolbarBreadcrumb(["Untitled Workspace"], systemImage: "cpu").frame(width: 120, alignment: .leading)
         }
-        XCTAssertFalse(findings.isEmpty)
+        XCTAssertEqual(findings.map(\.description), [])
     }
 
     func testRuleEditorOperatorsAreNeverCutShort() {

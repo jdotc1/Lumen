@@ -11,6 +11,7 @@ final class LumenWindowAuditReports {
     private static let windows = NSMapTable<NSWindow, LumenWindowAuditReports>.weakToStrongObjects()
     var truncated: Set<String> = []
     var visibleTexts: Set<LumenVisibleTextEntry> = []
+    var barItems: [LumenBarItemReport] = []
     var bottomBars: [CGRect] = []
     var pageMargin: CGFloat?
     var scaffoldMargins: [LumenScaffoldMargin] = []
@@ -82,6 +83,7 @@ public enum LumenLayoutAudit {
         let elements: [Element]
         let reports: LumenWindowAuditReports
         let toolbarOwners: Set<ObjectIdentifier>
+        let window: NSWindow
     }
 
     private struct Rule {
@@ -91,7 +93,7 @@ public enum LumenLayoutAudit {
     // Adding a rule changes this registry, not either caller's traversal or lifecycle.
     private static let rules = [
         Rule(evaluate: chrome), Rule(evaluate: bounds), Rule(evaluate: overlaps),
-        Rule(evaluate: edges), Rule(evaluate: truncation), Rule(evaluate: overflow),
+        Rule(evaluate: edges), Rule(evaluate: truncation), Rule(evaluate: overflow), Rule(evaluate: barLabels),
     ]
 
     public static func findings(in window: NSWindow) -> [Violation] {
@@ -101,10 +103,63 @@ public enum LumenLayoutAudit {
                                 reports: LumenWindowAuditReports.record(for: window),
                                 toolbarOwners: Set((window.toolbar?.visibleItems ?? []).compactMap {
                                     $0.view.map(ObjectIdentifier.init)
-                                }))
+                                }), window: window)
         return Array(Set(rules.flatMap { $0.evaluate(snapshot) })).sorted {
             ($0.rule, $0.view, $0.message) < ($1.rule, $1.view, $1.message)
         }
+    }
+
+    /// Pure report evaluation also supports hosts without a native window.
+    public static func barItemFindings(_ items: [LumenBarItemReport]) -> [Violation] {
+        var results: [Violation] = []
+        for item in items where item.mode == .full {
+            func fail(_ rule: String, _ message: String) {
+                results.append(.init(rule: rule, view: item.label, message: message))
+            }
+            if item.role == .freeText {
+                if item.truncation != .middle {
+                    fail("bar-free-text-mode", "Free text in \(item.bar) must truncate in the middle")
+                }
+            } else if item.frame.width < item.ideal.width - 0.5 {
+                fail("bar-label-squeezed", "width=\(item.frame.width) < ideal=\(item.ideal.width) - 0.5 in \(item.bar)")
+                if item.role == .label && items.contains(where: {
+                    $0.bar == item.bar && $0.role == .freeText && $0.mode == .full && $0.frame.width >= $0.ideal.width
+                }) {
+                    fail("bar-yield-order", "Label is squeezed while sibling free text remains at its ideal width in \(item.bar)")
+                }
+            }
+            if item.role == .pill, let pill = item.pillFrame {
+                let cap = NSFont.systemFont(ofSize: item.fontSize * item.textScale).capHeight
+                let padH = (pill.width - item.frame.width) / 2
+                let padV = (pill.height - item.frame.height) / 2
+                let minimum = max(pill.height, item.frame.width + 2 * cap)
+                if padH < cap || padH < padV || pill.width < minimum {
+                    fail("bar-pill-proportions", "padH=\(padH), capHeight=\(cap), padV=\(padV), pillWidth=\(pill.width), minimumWidth=\(minimum), pillHeight=\(pill.height)")
+                }
+            }
+        }
+        return results
+    }
+
+    private static func barLabels(_ s: Snapshot) -> [Violation] {
+        var results = barItemFindings(s.reports.barItems)
+        for item in s.reports.barItems where item.mode == .full {
+            // Match the semantic leaf before using its inherited native clipping boundary.
+            if s.elements.contains(where: {
+                $0.name == item.label && $0.frame.intersects(item.frame) &&
+                ($0.clip.map { !$0.insetBy(dx: -0.5, dy: -0.5).contains(item.frame) } ?? false)
+            }) {
+                results.append(.init(rule: "bar-label-clipped", view: item.label,
+                                     message: "Bar item is cut by an ancestor clip in \(item.bar)"))
+            }
+        }
+        for item in s.window.toolbar?.visibleItems ?? [] {
+            guard let view = item.view, !view.isHiddenOrHasHiddenAncestor,
+                  view.frame.width < view.fittingSize.width - 0.5 else { continue }
+            results.append(.init(rule: "bar-label-squeezed", view: item.label,
+                                 message: "Native toolbar width=\(view.frame.width) < fittingWidth=\(view.fittingSize.width) - 0.5"))
+        }
+        return results
     }
 
     #if DEBUG
@@ -287,11 +342,11 @@ public enum LumenLayoutAudit {
             var findings: [Violation] = []
             if !contains(snapshot.geometry.contentBounds, frame) {
                 findings.append(Violation(rule: "content-bounds", view: element.name,
-                                          message: "extends beyond the window content bounds"))
+                                          message: "extends beyond the window content bounds (\(element.kind) \(frame), bounds \(snapshot.geometry.contentBounds))"))
             }
             if let clip = element.clip, !contains(clip, frame) {
                 findings.append(Violation(rule: "ancestor-clip", view: element.name,
-                                          message: "is clipped by an ancestor"))
+                                          message: "is clipped by an ancestor (\(element.kind) \(frame), clip \(clip))"))
             }
             return findings
         }

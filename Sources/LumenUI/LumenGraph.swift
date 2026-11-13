@@ -66,7 +66,7 @@ public struct LumenGraphNode: View {
                 Text(detail)
                     .font((codeFont ?? .standard).font(sizeDelta: -1.5))
                     .foregroundStyle(palette[.fgSecondary])
-                    .lineLimit(1).minimumScaleFactor(0.75).truncationMode(.middle).help(detail)
+                    .lineLimit(1).truncationMode(.middle).help(detail)
             }
         }
         .padding(8)

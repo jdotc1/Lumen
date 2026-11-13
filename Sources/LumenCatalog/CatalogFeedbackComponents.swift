@@ -23,7 +23,8 @@ struct CatalogToastSection: View {
     @Environment(\.lumenMetrics) private var metrics
 
     var body: some View {
-        VStack(alignment: .leading, spacing: metrics.spacing.s3) {
+        // The page's section gap (20 = s7), so Toasts, Banner and Rows read alike (design review 2026-11 #18).
+        VStack(alignment: .leading, spacing: metrics.spacing.s7) {
             LumenSectionHeader("Toasts")
             Text("Window notices stack at the bottom trailing edge. Hover pauses dismissal; warnings and errors stay until dismissed.")
                 .lumenWrapsWithoutTruncating()

@@ -39,7 +39,7 @@ final class LumenSettingsChromeMatrixTests: XCTestCase {
             },
             Kind(name: "catalog", size: .init(width: 1280, height: 800), sidebar: true) { AnyView(CatalogView()) },
             Kind(name: "splitWorkspace", size: .init(width: 1440, height: 900)) { AnyView(SplitWorkspaceDemo()) },
-            Kind(name: "sampleWorkspace", size: SampleWorkspace.defaultSize, sidebar: true) { AnyView(SampleWorkspace()) },
+            Kind(name: "rehearsal", size: SampleWorkspace.defaultSize, sidebar: true) { AnyView(SampleWorkspace()) },
             Kind(name: "documentWelcome", size: .init(width: 760, height: 540)) { AnyView(CatalogDocumentWelcome()) },
             Kind(name: "welcome", size: .init(width: 760, height: 540)) { AnyView(CatalogWelcome()) },
         ]

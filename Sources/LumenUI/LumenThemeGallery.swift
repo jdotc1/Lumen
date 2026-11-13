@@ -105,8 +105,9 @@ public struct LumenThemeGallery: View {
             ForEach(store.registry.surfaces.filter { $0 != .window }, id: \.self) { surface in
                 surfacePicker(surface)
             }
-            // Actions flow onto new rows; a label wider than the whole row wraps within it.
-            LumenFlowLayout(spacing: metrics.spacing.s6, lineSpacing: metrics.spacing.s3) {
+            // Actions flow onto new rows in shared columns (so two rows read as one grid); a label wider
+            // than the whole row wraps within it.
+            LumenFlowLayout(spacing: metrics.spacing.s6, lineSpacing: metrics.spacing.s3, alignsColumns: true) {
                 Button {
                     editingBase = window
                 } label: {

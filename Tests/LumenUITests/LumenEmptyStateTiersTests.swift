@@ -3,7 +3,7 @@ import XCTest
 import LumenTokens
 @testable import LumenUI
 
-/// One empty-state design in tiers (`.inline`, `.pane`, hero), with
+/// the design review’s review decision 1: one empty-state design in tiers (`.inline`, `.pane`, hero), with
 /// loading and error on the pane layout, so the three swap in place without a jump.
 @MainActor
 final class LumenEmptyStateTiersTests: XCTestCase {

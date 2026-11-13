@@ -2,12 +2,13 @@ import AppKit
 import SwiftUI
 import LumenTokens
 
-// Lumen 0.33: the All Sidebars grid, a shortcut recorder, a completion list and a
+// Lumen 0.33, for workspace apps: the All Sidebars grid, a shortcut recorder, a completion list and a
 // collection that switches between a zoomable grid and a sortable list.
 
 // MARK: Sidebar pane grid
 
-/// Every sidebar pane as a grid of tiles, the docked ones checked. Click a tile to dock or undock it; drag one onto the switcher to dock it there. The
+/// Every sidebar pane as a grid of tiles (the workspace's All Sidebars), the docked ones checked (the design review’s
+/// choice). Click a tile to dock or undock it; drag one onto the switcher to dock it there. The
 /// last docked pane stays. Shares `arrangement` with `LumenSidebarSwitcher`.
 public struct LumenSidebarPaneGrid: View {
     @Environment(\.layoutDirection) private var layoutDirection
@@ -84,7 +85,7 @@ public struct LumenSidebarPaneGrid: View {
 
 // MARK: Shortcut recorder
 
-/// Records a keyboard shortcut: the shortcut as keycaps in a field; click to
+/// Records a keyboard shortcut (the workspace's Key Bindings): the shortcut as keycaps in a field; click to
 /// record (an accent outline and "Type shortcut"), then press the keys. Escape cancels, Delete
 /// clears, ⊖ clears. Shortcuts need ⌘, ⌃ or ⌥, except function keys. `conflict` shows a warning.
 public struct LumenShortcutRecorder: View {
@@ -484,7 +485,7 @@ public enum LumenCollectionSort: String, CaseIterable, Sendable {
     case title, detail, date
 }
 
-/// A collection's toolbar: list and grid buttons with the grid's size slider
+/// A collection's toolbar (the workspace's Launcher): list and grid buttons with the grid's size slider
 /// between them; the slider dims in list mode.
 public struct LumenCollectionControls: View {
     @Binding private var mode: LumenCollectionMode
@@ -523,7 +524,8 @@ public struct LumenCollectionControls: View {
     }
 }
 
-/// Items as a grid of tiles that grow with `size`, or a list sortable by its column headers. Groups collapse under disclosure headers in both. Double-click opens.
+/// Items as a grid of tiles that grow with `size`, or a list sortable by its column headers (the workspace's
+/// Launcher). Groups collapse under disclosure headers in both. Double-click opens.
 public struct LumenCollection: View {
     @Environment(\.layoutDirection) private var layoutDirection
     private let items: [LumenCollectionItem]
@@ -618,7 +620,7 @@ public struct LumenCollection: View {
             if open { collapsed.insert(title) } else { collapsed.remove(title) }
         } label: {
             HStack(spacing: metrics.spacing.s2) {
-                LumenSymbol(layoutDirection == .rightToLeft ? "chevron.left" : "chevron.right").font(.system(size: metrics.layout.disclosureGlyph, weight: .bold)).foregroundStyle(palette[.fgTertiary]).rotationEffect(.degrees(open ? (layoutDirection == .rightToLeft ? -90 : 90) : 0))
+                LumenDisclosureChevron(isExpanded: open, size: metrics.layout.disclosureGlyph).foregroundStyle(palette[.fgTertiary])
                 Text(title).font(metrics.typography.captionEmphasized).foregroundStyle(palette[.fgSecondary])
                 LumenCount(count)
                 Spacer(minLength: 0)

@@ -1,6 +1,6 @@
 import XCTest
 
-/// Jeff, 2026-11-12: the system's glass bubbles around toolbar items are out of every Lumen app.
+/// design review, 2026-11-12: the system's glass bubbles around toolbar items are out of every Lumen app.
 /// This source scan keeps them out: every `ToolbarItem` in Sources hides its platter, the platter
 /// rule never returns `.automatic`, and `glassEffect` appears only on the floating surfaces that
 /// are allowed to use it (command palette, toast stack).

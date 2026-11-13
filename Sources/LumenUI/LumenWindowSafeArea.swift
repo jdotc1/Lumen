@@ -252,6 +252,7 @@ struct LumenWindowSafeArea: ViewModifier {
     @State private var scaffoldMargins: [LumenScaffoldMargin] = []
     @State private var wizard: [LumenWizardLayoutEntry] = []
     @State private var menu: [LumenMenuBarPanelLayoutEntry] = []
+    @State private var barItems: [LumenBarItemReport] = []
     @State private var bottomBars: [CGRect] = []
     @State private var contentFrame = CGRect.zero
     @State private var minimum = CGSize.zero
@@ -305,7 +306,7 @@ struct LumenWindowSafeArea: ViewModifier {
                                           detectedSettings: { detectedSettings = $0 },
                                           detectedRootSplit: { nativeSplitOwnsTop = $0; hasNativeSidebar = $1 },
                                           margin: metrics.spacing.s6, scaffoldMargins: scaffoldMargins,
-                                          truncated: truncated, visibleTexts: visibleTexts,
+                                          truncated: truncated, visibleTexts: visibleTexts, barItems: barItems,
                                           bottomBars: bottomBars + wizard.filter { $0.region == .bottomBar }.map(\.frame)
                                               + menu.filter { $0.region == .footer }.map(\.frame)) { top, active, isNested, _ in
                     measuredTop = top
@@ -321,6 +322,7 @@ struct LumenWindowSafeArea: ViewModifier {
         .onPreferenceChange(LumenChromeOwnerKey.self) { owners = $0 }
         .onPreferenceChange(LumenWizardLayoutKey.self) { wizard = $0 }
         .onPreferenceChange(LumenMenuBarPanelLayoutKey.self) { menu = $0 }
+        .onPreferenceChange(LumenBarItemKey.self) { barItems = $0 }
         .onPreferenceChange(LumenBottomBarFrameKey.self) { bottomBars = $0 }
         .onPreferenceChange(LumenWindowMinimumKey.self) { minimum = $0 }
         .onPreferenceChange(LumenTruncationKey.self) { truncated = $0 }
@@ -351,6 +353,7 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
     let scaffoldMargins: [LumenScaffoldMargin]
     let truncated: Set<String>
     let visibleTexts: Set<LumenVisibleTextEntry>
+    let barItems: [LumenBarItemReport]
     let bottomBars: [CGRect]
     let measured: @MainActor (CGFloat, Bool, Bool, Bool) -> Void
 
@@ -514,6 +517,15 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             report.framedTileSymbols = input.framedTileSymbols
             report.truncated = input.truncated
             report.visibleTexts = input.visibleTexts
+            report.barItems = input.barItems.map {
+                var item = $0
+                item.frame = screen(item.frame)
+                item.pillFrame = item.pillFrame.map(screen)
+                return item
+            }
+            for item in report.barItems where item.role == .label && item.mode == .full {
+                report.visibleTexts.insert(.init(column: item.bar, text: item.label, visible: item.label))
+            }
             report.bottomBars = input.bottomBars.map(screen)
             report.pageMargin = input.margin
             report.scaffoldMargins = input.scaffoldMargins.map {

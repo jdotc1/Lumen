@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import LumenTokens
 
-// A code pane's status strip and gutter.
+// A code pane's status strip and gutter, for pseudocode (2026-10-12).
 
 // MARK: Status strip
 
@@ -52,8 +52,9 @@ public struct LumenStripChip: Identifiable, Hashable, Sendable {
 
 /// The strip over a code pane: a leading control (a
 /// `LumenModeSwitcher(style: .pill)` for the source), the status as a dot and a word, warning chips,
-/// and icon-only commands at the trailing edge. When narrow, the chips fold into one menu (a capsule
-/// with their count, each chip and its help inside), then the status word shortens last; nothing is
+/// and icon-only commands at the trailing edge. When narrow, the leading text shortens first, then the
+/// chips fold into one menu (a capsule with their count, each chip and its help inside), then the
+/// status word shortens last; nothing is
 /// hidden to fit (PRINCIPLES §6).
 public struct LumenStatusStrip<Leading: View>: View {
     private let status: LumenStripStatus?
@@ -74,15 +75,28 @@ public struct LumenStatusStrip<Leading: View>: View {
     }
 
     public var body: some View {
-        HStack(spacing: metrics.spacing.s3) {
-            leading.fixedSize()
-            ViewThatFits(in: .horizontal) {
-                middle(.chips, statusShortens: false)
-                middle(.menu, statusShortens: false)
-                middle(.compactMenu, statusShortens: false)
-                middle(.compactMenu, statusShortens: true)
+        ViewThatFits(in: .horizontal) {
+            // Everything at its natural width; the spacer pushes the chips to the commands.
+            HStack(spacing: metrics.spacing.s3) {
+                leading.lineLimit(1).fixedSize(horizontal: true, vertical: false)
+                middle(.chips, statusShortens: false, spacer: true)
+                actionButtons
             }
-            actionButtons
+            // Too narrow: the leading text yields first, taking only what the middle leaves, then the
+            // chips fold. The spacer ranks below the leading text, so it never takes that text's room.
+            HStack(spacing: metrics.spacing.s3) {
+                leading.lineLimit(1).truncationMode(.middle).layoutPriority(-1)
+                ViewThatFits(in: .horizontal) {
+                    middle(.chips, statusShortens: false)
+                    middle(.chips, statusShortens: true)
+                    middle(.menu, statusShortens: false)
+                    middle(.compactMenu, statusShortens: false)
+                    middle(.compactMenu, statusShortens: true)
+                    middle(.compactMenu, statusShortens: false, markOnly: true)
+                }
+                Spacer(minLength: 0).layoutPriority(-2)
+                actionButtons
+            }
         }
         // Symmetric insets: the switcher sits as far from the leading edge as the commands from the trailing one.
         .padding(.horizontal, metrics.spacing.s4)
@@ -95,18 +109,21 @@ public struct LumenStatusStrip<Leading: View>: View {
         .accessibilityValue(([status?.title] + chips.map(\.title)).compactMap(\.self).joined(separator: ", "))
     }
 
-    /// How the chips show: each as a capsule, folded into one menu, or that menu as a glyph and count.
+    /// How the chips show: each as a capsule, folded into one menu, or that menu as a glyph.
     private enum ChipFold { case chips, menu, compactMenu }
 
-    private func middle(_ fold: ChipFold, statusShortens: Bool) -> some View {
+    private func middle(_ fold: ChipFold, statusShortens: Bool, markOnly: Bool = false, spacer: Bool = false) -> some View {
         HStack(spacing: metrics.spacing.s2) {
             if let status {
                 HStack(spacing: metrics.spacing.s1) {
                     Circle().fill(palette[status.tone]).frame(width: metrics.layout.statusDot, height: metrics.layout.statusDot)
-                    Text(status.title).font(metrics.typography.caption.weight(.semibold))
-                        .foregroundStyle(palette[.fgSecondary]).lineLimit(1)
-                        .truncationMode(.tail).help(status.title)   // shortens only as the strip's last resort
-                        .fixedSize(horizontal: !statusShortens, vertical: false)
+                    if !markOnly {
+                        Text(status.title).font(metrics.typography.caption.weight(.semibold))
+                            .foregroundStyle(palette[.fgSecondary]).lineLimit(1)
+                            .truncationMode(.middle).help(status.title)   // free text yields before chip labels
+                            .fixedSize(horizontal: !statusShortens, vertical: false)
+                            .frame(minWidth: statusShortens ? 80 * metrics.floatingTextGrowth : nil)
+                    }
                 }
                 .layoutPriority(-1)
                 .help(status.title)
@@ -115,7 +132,7 @@ public struct LumenStatusStrip<Leading: View>: View {
                 .accessibilityValue(status.spokenValue ?? "")
                 .lumenAccessibilityIdentifier(status.accessibilityIdentifier)
             }
-            Spacer(minLength: metrics.spacing.s2)
+            if spacer { Spacer(minLength: metrics.spacing.s2) }
             if fold != .chips, !chips.isEmpty {
                 chipMenu(compact: fold == .compactMenu)
             } else {
@@ -134,7 +151,7 @@ public struct LumenStatusStrip<Leading: View>: View {
                     .accessibilityHidden(true)
             }
             if !title.isEmpty {
-                Text(title).font(metrics.typography.captionEmphasized)
+                Text(title).font(metrics.typography.captionEmphasized).lineLimit(1).fixedSize(horizontal: true, vertical: false)
                     .lumenNumericText(value: title)
             }
             if menu { LumenSymbol("chevron.down").font(.system(size: metrics.iconSize.micro, weight: .bold)).accessibilityHidden(true) }
@@ -145,11 +162,11 @@ public struct LumenStatusStrip<Leading: View>: View {
     }
 
     /// The chips as one menu: a capsule in the most urgent chip's tone, with the only chip's title or
-    /// their count (compact: the tone's glyph, and the count when there are several), listing each chip
+    /// their count (compact: only the tone's glyph), listing each chip
     /// and its help.
     private func chipMenu(compact: Bool) -> some View {
         let tone = Self.urgent(chips.map(\.tone))
-        let title = compact ? (chips.count > 1 ? "\(chips.count)" : "") : chips.count == 1 ? chips[0].title : lumenLocalized(String(localized: "%lld notes", defaultValue: "\(chips.count) notes", bundle: .module, comment: "CodePane text. Values identify the item or count described."))
+        let title = compact ? "" : chips.count == 1 ? chips[0].title : lumenLocalized(String(localized: "%lld notes", defaultValue: "\(chips.count) notes", bundle: .module, comment: "CodePane text. Values identify the item or count described."))
         return LumenMenuButton(help: chips.map { $0.help ?? $0.title }.joined(separator: " · ")) {
             ForEach(chips) { chip in
                 Button { } label: { Text(chip.help.map { "\(chip.title) — \($0)" } ?? chip.title) }
@@ -270,14 +287,14 @@ public struct LumenCodeListing: View {
 
 // MARK: AppKit gutter
 
-/// A line-number gutter for a code `NSTextView`: numbers in
+/// A line-number gutter for a code `NSTextView` (the inspector example's pseudocode view): numbers in
 /// `code.lineNumber`, the current line's number brighter on a `code.currentLine` band. Install with
 /// `LumenLineNumberRuler.install(on:palette:)`; set `palette` again when the theme changes. Pair it with
 /// `LumenLineNumberRuler.drawCurrentLine(in:color:)` in the text view's `drawBackground(in:)`.
 @MainActor
 public final class LumenLineNumberRuler: NSRulerView {
     public var palette: LumenResolvedPalette { didSet { needsDisplay = true } }
-    /// Lines (zero-based) with a breakpoint: a filled accent tag under the number.
+    /// Lines (zero-based) with a breakpoint: a filled accent tag under the number (the workspace's gutter).
     public var breakpoints: Set<Int> = [] { didSet { needsDisplay = true } }
     /// Lines whose breakpoint is off: an outlined tag.
     public var disabledBreakpoints: Set<Int> = [] { didSet { needsDisplay = true } }

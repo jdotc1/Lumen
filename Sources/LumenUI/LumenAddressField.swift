@@ -120,7 +120,7 @@ public struct LumenAddressField: View {
 
 // MARK: Empty hero
 
-/// What an empty workspace shows: the app's mark glowing over a quiet
+/// What an empty workspace shows (the inspector example's "No binary open"): the app's mark glowing over a quiet
 /// starfield, a title and one sentence, one accent primary action with quiet secondary ones, and a
 /// few recent items. Scrolls only when the pane is too short; the starfield stays still under Reduce
 /// Motion.

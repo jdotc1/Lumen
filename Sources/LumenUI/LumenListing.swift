@@ -347,7 +347,7 @@ public struct LumenStringLiteral: View {
     }
 }
 
-/// A string in a strings navigator: the literal on top in the row's text color
+/// A string in a strings navigator (chosen for Inspector): the literal on top in the row's text color
 /// (a column of `syntax.string` red reads as errors outside the editor), its escapes and format
 /// specifiers highlighted, wrapped or shortened at semantic boundaries when long, and its address, section and length
 /// below. Selection uses the sidebar's selected-row fill.

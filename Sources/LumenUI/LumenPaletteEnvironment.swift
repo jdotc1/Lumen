@@ -83,6 +83,8 @@ public struct LumenPaletteKey: Hashable, Sendable {
     public var drawnOn: LumenSurface?
     /// Built for content on a raised ground (`LumenResolvedPalette.raised()`).
     public var raised = false
+    /// The root tint the accent roles were derived from (`lumenRoot(tint:)`); `nil` for the theme's own accent.
+    public var tint: LumenColor? = nil
 }
 
 extension LumenThemeStore {
@@ -96,20 +98,28 @@ extension LumenThemeStore {
     public func resolvedPalette(on surface: LumenSurface) -> LumenResolvedPalette { resolvedPalette(drawnOn: surface) }
 
     private func resolvedPalette(drawnOn surface: LumenSurface?) -> LumenResolvedPalette {
+        resolvedPalette(drawnOn: surface, tint: nil)
+    }
+
+    /// The palette builder. With `tint`, accent-family roles derive from that color (the system
+    /// accent rules) and win over the system accent; the editor preview never tints.
+    func resolvedPalette(drawnOn surface: LumenSurface?, tint requested: LumenColor?) -> LumenResolvedPalette {
         access(keyPath: \.paletteKey)
         // One lock for the key and every color, so a selection changing on another thread can't
         // file one theme's colors under another's key.
         return state.withLock { state in
             var key = paletteKey(in: state)
             key.drawnOn = surface
+            let tint = state.editorPreview == nil ? requested : nil
+            key.tint = tint
             if let cached = state.palettes[key] { return cached }
             var colors: [LumenToken: Color] = [:]
             for token in registry.tokens where colors[token] == nil {
-                colors[token] = entry(token, in: &state, on: surface).color
+                colors[token] = tinted(token, tint, in: &state, on: surface, raised: false)
             }
             var raisedColors: [LumenToken: Color] = [:]
             for token in raisedTokens {
-                raisedColors[token] = entry(token, in: &state, on: surface, raised: true).color
+                raisedColors[token] = tinted(token, tint, in: &state, on: surface, raised: true)
             }
             let theme = state.theme(for: surface ?? .window, fallback: fallbackTheme)
             // Weak: the store caches this palette.
@@ -121,6 +131,24 @@ extension LumenThemeStore {
             state.palettes[key] = palette
             return palette
         }
+    }
+}
+
+extension LumenThemeStore {
+    /// The color for `token`: derived from `tint` for accent-family tokens when one is set (dynamic,
+    /// so Light, Dark and Increase Contrast resolve at draw time), otherwise the cached entry.
+    fileprivate func tinted(_ token: LumenToken, _ tint: LumenColor?, in state: inout State,
+                            on surface: LumenSurface?, raised: Bool) -> Color {
+        guard let tint, systemAccentTokens.contains(token) else {
+            return entry(token, in: &state, on: surface, raised: raised).color
+        }
+        let theme = state.theme(for: surface ?? registry.surface(of: token), fallback: fallbackTheme)
+        let registry = registry
+        let ns = NSColor(name: "lumen.tint.\(theme.id).\(token.rawValue).\(tint.hexString)") { appearance in
+            theme.color(token, for: LumenAppearance(appearance), in: registry, systemAccent: tint)
+                .nsColor(in: theme.colorSpace)
+        }
+        return Color(nsColor: ns)
     }
 }
 
@@ -206,10 +234,11 @@ private struct LumenPaletteRootModifier: ViewModifier {
     let windowChrome: Bool
     @Environment(\.colorScheme) private var inheritedColorScheme
     @Environment(\.lumenStore) private var inheritedStore
+    @Environment(\.lumenRootTint) private var tint
 
     func body(content: Content) -> some View {
         let store = explicitStore ?? inheritedStore
-        let palette = store.resolvedPalette()
+        let palette = store.resolvedPalette(tint: tint)
         // Native controls stay native but take the theme's accent: list selection, checkboxes,
         // segmented controls, buttons, progress.
         // The glow reads the palette injected below, so it sits inside the environment modifiers.
@@ -239,10 +268,11 @@ private struct LumenSurfaceModifier: ViewModifier {
 
     @Environment(\.lumenPalette) private var incoming
     @Environment(\.lumenStore) private var inheritedStore
+    @Environment(\.lumenRootTint) private var tint
 
     func body(content: Content) -> some View {
         let store = explicitStore ?? inheritedStore
-        let palette = ownsEveryColor ? store.resolvedPalette(on: surface) : store.resolvedPalette()
+        let palette = store.resolvedPalette(drawnOn: ownsEveryColor ? surface : nil, tint: tint)
         content
             .environment(\.colorScheme, store.forcedAppearance(for: surface) ?? inheritedColorScheme)
             // A code pane inside a sheet or card keeps the raised ground it sits on.

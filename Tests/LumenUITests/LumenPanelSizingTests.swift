@@ -33,8 +33,12 @@ final class LumenPanelSizingTests: XCTestCase {
         }
         let size = fitted(bar, width: 180)
         XCTAssertLessThanOrEqual(size.width, 180.5)
-        XCTAssertGreaterThanOrEqual(size.height, 60)
-        XCTAssertLessThan(size.height, 100, "Horizontal scrolling must not consume the offered vertical space")
+        // Labels keep their natural width: content wider than the bar moves to the overflow menu,
+        // a single control-height row, rather than squeezing or scrolling.
+        XCTAssertGreaterThanOrEqual(size.height, LumenMetrics.standard.layout.minimumHitTarget - 0.5)
+        XCTAssertLessThan(size.height, 60, "The overflow tier must not take the content's height")
+        let wide = fitted(bar, width: 700)
+        XCTAssertGreaterThanOrEqual(wide.height, 60, "With room, the content shows at its natural size")
     }
 
     func testSidebarHeaderWrapsAndMovesActionsBelowItsTitle() {
@@ -78,8 +82,10 @@ final class LumenPanelSizingTests: XCTestCase {
         }
         XCTAssertGreaterThan(trailingFrame.width, 0)
         XCTAssertEqual(barFrame.width, host.bounds.width, accuracy: 0.5)
-        XCTAssertEqual(leadingFrame.minX, barFrame.minX + metrics.spacing.s4, accuracy: 0.5)
-        XCTAssertEqual(trailingFrame.maxX, barFrame.maxX - metrics.spacing.s4, accuracy: 0.5)
+        // The capsule's ends reserve half its height (PRINCIPLES "Proportion").
+        let inset = max(metrics.spacing.s4, metrics.layout.minimumHitTarget / 2)
+        XCTAssertEqual(leadingFrame.minX, barFrame.minX + inset, accuracy: 0.5)
+        XCTAssertEqual(trailingFrame.maxX, barFrame.maxX - inset, accuracy: 0.5)
         XCTAssertGreaterThan(trailingFrame.minX - leadingFrame.maxX, 500)
     }
 }

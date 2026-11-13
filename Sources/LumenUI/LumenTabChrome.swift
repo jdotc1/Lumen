@@ -9,6 +9,11 @@ struct LumenTabChrome: View {
     var focused = true
     var accent: LumenToken? = nil
     var radius: CGFloat? = nil
+    /// The plate sits in a recessed track (a segmented control or pill switcher). `bg.elevated` on
+    /// `bg.inset` all but vanishes in dark (#23262F on #21242C in Standard), so the selected plate
+    /// takes a control edge and, in dark, a quiet accent tint that lifts it off the track (in light
+    /// the white plate already reads, and a tint would pull it toward the gray) (design review 2026-11 #6).
+    var onWell = false
 
     @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenMetrics) private var metrics
@@ -16,6 +21,7 @@ struct LumenTabChrome: View {
     @Environment(\.lumenPaneIsFocused) private var paneIsFocused
     @Environment(\.lumenTabIsActive) private var forcedActivity
     @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.colorScheme) private var colorScheme
 
     nonisolated static func shape(radius: CGFloat) -> LumenTabChromeShape {
         LumenTabChromeShape(cornerRadius: radius)
@@ -35,8 +41,8 @@ struct LumenTabChrome: View {
         let hoverFill = document ? palette[.bgInset] : palette.hoverFill(metrics)
         shape.fill(selected ? palette[.bgElevated] : hoverFill.opacity(hovered ? 1 : 0))
             .overlay {
-                if selected, let accent {
-                    shape.fill(palette[accent].opacity(metrics.layout.hoverOpacity / 4))
+                if selected, let tint = accent ?? (onWell && colorScheme == .dark ? .accent : nil) {
+                    shape.fill(palette[tint].opacity(metrics.layout.hoverOpacity / 4))
                 }
             }
             .overlay {
@@ -48,12 +54,26 @@ struct LumenTabChrome: View {
                         .fill(palette[.borderDefault].opacity(selected || hovered ? 1 : 0),
                               style: FillStyle(eoFill: true))
                 } else {
-                    shape.strokeBorder(palette[.borderSubtle].opacity(selected ? 1 : 0),
-                                       lineWidth: metrics.stroke.hairline)
+                    shape.strokeBorder(palette[onWell ? .borderDefault : .borderSubtle].opacity(selected ? 1 : 0),
+                                       lineWidth: onWell && contrast == .increased ? metrics.stroke.regular : metrics.stroke.hairline)
                 }
             }
             .opacity(active ? 1 : metrics.layout.hoverOpacity)
             .lumenTabChromeReport(strip: strip, selectedRadius: radius, hoverRadius: radius)
+            .allowsHitTesting(false)
+    }
+}
+
+/// The recessed track a segmented control or pill switcher draws its plates in: a field's well
+/// with a control's edge, so it reads in light themes too.
+struct LumenTabWell: View {
+    @Environment(\.lumenPalette) private var palette
+    @Environment(\.lumenMetrics) private var metrics
+
+    var body: some View {
+        let shape = LumenTabChrome.shape(radius: LumenTabChrome.radius(metrics: metrics))
+        shape.fill(palette[.bgInset])
+            .overlay { shape.strokeBorder(palette[.borderDefault], lineWidth: metrics.stroke.hairline) }
             .allowsHitTesting(false)
     }
 }

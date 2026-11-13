@@ -96,11 +96,11 @@ extension View {
     }
 }
 
-/// The header of a panel or deck: its tile and title, its state, then quiet
+/// The header of a panel or deck (the inspector example's debugger): its tile and title, its state, then quiet
 /// secondary actions, an optional accessory (transport controls, a scope pop-up) and at most one
 /// primary action at the trailing edge. A state with a tone shows its mark (a dot; a cross for an
 /// error, a triangle for a warning). When the bar is narrow the secondary actions drop to glyphs
-/// first; only then do the state's words truncate (its mark stays); nothing is clipped.
+/// first; the compact bar preserves the state's mark and full help text.
 public struct LumenPanelBar: View {
     private let title: String
     private let systemImage: String
@@ -148,12 +148,11 @@ public struct LumenPanelBar: View {
     }
 
     public var body: some View {
-        // The state is a value people read: the secondary actions drop to glyphs before its words
-        // shorten, and they shorten only when even the glyphs leave no room.
+        // Free-text titles yield first; actions collapse to glyphs and the state keeps its words
+        // until the compact bar shows only its mark.
         ViewThatFits(in: .horizontal) {
-            bar(labels: true, statusTruncates: false)
-            bar(labels: false, statusTruncates: false)
-            bar(labels: false, statusTruncates: true)
+            bar(labels: true)
+            bar(labels: false)
             compactBar
         }
         .padding(.horizontal, metrics.spacing.s4)
@@ -168,9 +167,15 @@ public struct LumenPanelBar: View {
                 LumenIconTile(systemImage, hue: hue, size: metrics.layout.tileHeader)
                 VStack(alignment: .leading, spacing: metrics.spacing.s1) {
                     Text(title).font(metrics.typography.headline).foregroundStyle(palette[.fgPrimary])
-                        .lineLimit(2).help(title)
+                        .lineLimit(1).truncationMode(.middle).help(title)
                     if let status {
-                        LumenStatusLabel(status, truncates: true).font(metrics.typography.callout.weight(.medium))
+                        ViewThatFits(in: .horizontal) {
+                            LumenStatusLabel(status).font(metrics.typography.callout.weight(.medium))
+                            LumenSymbol(status.tone == .statusDanger ? "xmark.octagon.fill" : status.tone == .statusWarning ? "exclamationmark.triangle.fill" : "circle.fill")
+                                .foregroundStyle(palette[status.tone]).fixedSize()
+                                .help(status.title).accessibilityLabel(status.spokenLabel ?? status.title)
+                                .accessibilityValue(status.spokenValue ?? "")
+                        }
                     }
                 }
             }
@@ -180,14 +185,18 @@ public struct LumenPanelBar: View {
         .padding(.vertical, metrics.spacing.s2)
     }
 
-    private func bar(labels: Bool, statusTruncates: Bool) -> some View {
+    private func bar(labels: Bool) -> some View {
         HStack(spacing: metrics.spacing.s3) {
             LumenIconTile(systemImage, hue: hue, size: metrics.layout.tileHeader)
-            Text(title).font(metrics.typography.headline).foregroundStyle(palette[.fgPrimary]).fixedSize()
+            Text(title).font(metrics.typography.headline)
+                .lumenBarItem(title, bar: "panel-bar", role: .freeText)
+                .foregroundStyle(palette[.fgPrimary])
+                .lineLimit(1).truncationMode(.middle).help(title).layoutPriority(-1)
             if let status {
-                LumenStatusLabel(status, truncates: statusTruncates)
+                LumenStatusLabel(status)
+                    .lumenBarItem(status.title, bar: "panel-bar", role: .label, fontSize: 12)
                     .font(metrics.typography.callout.weight(.medium))
-                    .layoutPriority(-1)
+                    .fixedSize().layoutPriority(1)
             }
             Spacer(minLength: metrics.spacing.s3)
             actions(labels: labels)
@@ -229,7 +238,8 @@ public struct LumenPanelBar: View {
 
 // MARK: Sidebar header and stats
 
-/// The identity at the top of a sidebar: a tile, a title and a subtitle.
+/// The identity at the top of a sidebar: a tile, a title and a subtitle (the inspector example's Project /
+/// Sample Workspace).
 public struct LumenSidebarHeader: View {
     private let title: String
     private let subtitle: String?
@@ -251,7 +261,7 @@ public struct LumenSidebarHeader: View {
             LumenIconTile(systemImage, hue: hue, size: metrics.layout.tileHeader)
             VStack(alignment: .leading, spacing: metrics.spacing.s1 / 2) {
                 Text(title).font(metrics.typography.headline).foregroundStyle(palette[.sidebarForeground]).lineLimit(1)
-                    .lumenNeverTruncates(title)
+                    .truncationMode(.middle).help(title)
                 if let subtitle {
                     Text(subtitle).font(metrics.typography.caption).foregroundStyle(palette[.sidebarSecondaryForeground])
                         .lineLimit(1).truncationMode(.middle)
@@ -291,8 +301,8 @@ public struct LumenStat: Identifiable, Hashable, Sendable {
     public static let compactThreshold = 1_000_000
 }
 
-/// A few counts side by side in a card: each value
-/// large, its label small beneath, in equal columns. Values shrink rather than clip in a narrow sidebar.
+/// A few counts side by side in a card (the inspector example's targets, functions, cross-references): each value
+/// large, its label small beneath, in equal columns. The card stacks when the columns do not fit.
 public struct LumenStatsCard: View {
     private let stats: [LumenStat]
 
@@ -305,20 +315,28 @@ public struct LumenStatsCard: View {
 
 
     public var body: some View {
-        HStack(spacing: metrics.spacing.s2) {
-            ForEach(stats) { stat in
-                LumenStatCell(stat).frame(maxWidth: .infinity)
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: metrics.spacing.s2) {
+                ForEach(stats) { stat in LumenStatCell(stat).fixedSize().frame(maxWidth: .infinity) }
             }
+            VStack(spacing: metrics.spacing.s2) {
+                ForEach(stats) { stat in LumenStatCell(stat) }
+            }
+            ScrollView(.horizontal) {
+                VStack(spacing: metrics.spacing.s2) {
+                    ForEach(stats) { stat in LumenStatCell(stat).fixedSize() }
+                }
+            }.fixedSize(horizontal: false, vertical: true)
         }
         .lumenCard(padding: metrics.spacing.s3)
-        // Values shrink for width only: a short container doesn't scale them down.
+        // Keep each row's natural height even inside a short container.
         .fixedSize(horizontal: false, vertical: true)
     }
 }
 
 /// One count: its value large (`typography.stat`), its label small beneath. The cell of
 /// `LumenStatsCard`, and of any summary that shows counts (the inspector summary), so they agree.
-/// Values shrink rather than clip in a narrow column; an abbreviated value shows in full as help.
+/// Values retain their natural size; labels may drop to help in a narrow column.
 public struct LumenStatCell: View {
     private let stat: LumenStat
     /// The value's font; `nil` uses `typography.stat`. A denser summary passes a smaller role.
@@ -332,10 +350,6 @@ public struct LumenStatCell: View {
         self.valueFont = valueFont
     }
 
-    /// How far values and labels may shrink to fit a narrow sidebar (the truncation checks allow it).
-    static let valueScale: CGFloat = 0.6
-    static let labelScale: CGFloat = 0.8
-
     public var body: some View {
         VStack(spacing: metrics.spacing.s1 / 2) {
             Text(stat.value)
@@ -343,16 +357,15 @@ public struct LumenStatCell: View {
                 .font(valueFont ?? metrics.typography.stat)
                 .foregroundStyle(palette[.fgPrimary])
                 .lineLimit(1)
-                .minimumScaleFactor(Self.valueScale)
-                .lumenNeverTruncates(stat.value, minimumScale: Self.valueScale)
-            Text(stat.label)
-                .font(metrics.typography.caption)
-                .foregroundStyle(palette[.fgTertiary])
-                .lineLimit(1)
-                .minimumScaleFactor(Self.labelScale)
-                .lumenNeverTruncates(stat.label, minimumScale: Self.labelScale)
+                .fixedSize(horizontal: true, vertical: false)
+                .lumenNeverTruncates(stat.value)
+            ViewThatFits(in: .horizontal) {
+                Text(stat.label).font(metrics.typography.caption).foregroundStyle(palette[.fgTertiary])
+                    .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+                Color.clear.frame(width: 0, height: 0)
+            }
         }
-        .modifier(LumenOptionalHelp(stat.fullValue.map { "\($0) \(stat.label)" }))
+        .help([stat.fullValue ?? stat.value, stat.label].joined(separator: " "))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(lumenLocalized(String(localized: "%@ %@", defaultValue: "\(stat.fullValue ?? stat.value) \(stat.label)", bundle: .module, comment: "PanelBar control text.")))
     }
@@ -360,12 +373,12 @@ public struct LumenStatCell: View {
 
 // MARK: Toolbar groups
 
-/// Toolbar buttons that belong together (back and forward; Open, Ask, Go to, Browsers) in one quiet
-/// capsule, so a bar of icons reads as a few clear groups. Put
+/// Toolbar buttons that belong together (back and forward; Open, Ask, Go to, Browsers), set close
+/// together so a bar of icons reads as a few clear groups. Each button is its own toolbar icon and
+/// nothing is drawn behind the group (design review 2026-11, note 24: no capsule). Put
 /// `LumenToolbarIconButtonStyle` buttons inside; give each a help tag naming it.
 public struct LumenToolbarGroup<Content: View>: View {
     private let content: Content
-    @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenMetrics) private var metrics
 
     public init(@ViewBuilder content: () -> Content) {
@@ -374,8 +387,6 @@ public struct LumenToolbarGroup<Content: View>: View {
 
     public var body: some View {
         HStack(spacing: metrics.spacing.s1) { content }
-            .padding(2)
-            .background(palette[.bgHover].opacity(metrics.layout.hoverOpacity), in: .rect(cornerRadius: metrics.radius.md, style: .continuous))
             .modifier(LumenToolbarDimming())
             .accessibilityElement(children: .contain)
     }
@@ -411,7 +422,8 @@ public struct LumenNavigationButtons: View {
 // MARK: Empty inspector
 
 public extension View {
-    /// While `isEmpty`, an inspector shows one centered message in place of its sections. The sections return with a selection.
+    /// While `isEmpty`, an inspector shows one centered message in place of its sections (design review:
+    /// no paragraph repeated in every section). The sections return with a selection.
     func lumenInspectorEmptyState(_ isEmpty: Bool, title: String = LumenOtherDefaultStrings.nothingSelected, message: String,
                                   systemImage: String = "cursorarrow.rays") -> some View {
         modifier(LumenInspectorEmptyModifier(isEmpty: isEmpty, title: title, message: message, systemImage: systemImage))

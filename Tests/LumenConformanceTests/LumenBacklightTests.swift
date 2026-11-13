@@ -4,8 +4,9 @@ import LumenTokens
 import LumenUI
 import LumenConformance
 
-/// A tile's backlight stays inside its strip and never crosses its hairline or edge.
-/// Toolbar tiles remain unlit because their glow would clip into a hard-edged disc.
+/// the design review’s decision 5: a tile's backlight stays inside its strip and never crosses the
+/// strip's hairline or edge (the inspector example's sidebar switcher bled through its divider, audit M07); in
+/// the toolbar it's off, since there it can only be clipped into a hard-edged disc (audit L6).
 @MainActor
 final class LumenBacklightTests: XCTestCase {
     let sizes = [CGSize(width: 320, height: 160)]

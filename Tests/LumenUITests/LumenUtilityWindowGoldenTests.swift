@@ -131,10 +131,10 @@ private struct UtilityDemoFile: Identifiable {
     let state: String
 
     static let samples = [
-        UtilityDemoFile(id: "sample-01", name: "Sample 01.dcm", kind: "Image", size: "512 KB", state: "Ready"),
-        UtilityDemoFile(id: "sample-02", name: "Sample 02.dcm", kind: "Image", size: "512 KB", state: "Ready"),
-        UtilityDemoFile(id: "sample-03", name: "Sample 03.dcm", kind: "Image", size: "256 KB", state: "Review"),
-        UtilityDemoFile(id: "sample-04", name: "Sample 04.dcm", kind: "Image", size: "256 KB", state: "Queued"),
+        UtilityDemoFile(id: "sample-01", name: "Sample 01.png", kind: "Image", size: "512 KB", state: "Ready"),
+        UtilityDemoFile(id: "sample-02", name: "Sample 02.png", kind: "Image", size: "512 KB", state: "Ready"),
+        UtilityDemoFile(id: "sample-03", name: "Sample 03.png", kind: "Image", size: "256 KB", state: "Review"),
+        UtilityDemoFile(id: "sample-04", name: "Sample 04.png", kind: "Image", size: "256 KB", state: "Queued"),
     ]
 }
 

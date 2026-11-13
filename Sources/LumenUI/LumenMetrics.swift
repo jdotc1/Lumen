@@ -11,7 +11,7 @@ import LumenTokens
 /// ContentView().lumenMetrics(.myApp)
 /// ```
 ///
-/// `standard` reproduces Standard values. `Lumen.Space`, `Lumen.Radius` and the other
+/// `standard` reproduces the inspector example's shipped values. `Lumen.Space`, `Lumen.Radius` and the other
 /// static scales equal `standard`, for app code that doesn't customize; components never use them.
 public struct LumenMetrics: Sendable, Equatable {
     /// Spacing ladder. Names are steps, not sizes, so the scale can be retuned in one place.
@@ -97,7 +97,7 @@ public struct LumenMetrics: Sendable, Equatable {
         }
 
         public static let standard = Typography(
-            // Calm weights: semibold headlines, medium emphasis; bold only for
+            // Calm weights (design review, 2026-10-13): semibold headlines, medium emphasis; bold only for
             // titles and display, so a dense pane doesn't shout.
             title2: .title2.weight(.semibold), title3: .title3.weight(.semibold), headline: .body.weight(.semibold), body: .body,
             bodyEmphasized: .body.weight(.medium), callout: .callout, subheadline: .subheadline, footnote: .footnote,
@@ -210,7 +210,7 @@ public struct LumenMetrics: Sendable, Equatable {
         /// The label column of `LumenPropertyRow` in inspectors.
         public var propertyLabelWidth: CGFloat = 82
         /// Height of every one-line control: text, search, combo and number fields, pop-up and
-        /// pull-down buttons, push buttons, and the pill switcher overall.
+        /// pull-down buttons, push buttons, and the pill switcher overall (design review, 2026-10-13: 24 pt).
         public var controlHeight: CGFloat = 24
         /// The rim of the pill switcher around its segments; segments are `controlHeight` less
         /// twice this, so the pill is `controlHeight` overall.
@@ -355,7 +355,7 @@ public struct LumenMetrics: Sendable, Equatable {
         return result
     }
 
-    /// Standard values: system fonts, a 4 pt spacing grid, 4/6/8/10/14 corners.
+    /// the inspector example's shipped values: system fonts, a 4 pt spacing grid, 4/6/8/10/14 corners.
     public static let standard = LumenMetrics()
 }
 

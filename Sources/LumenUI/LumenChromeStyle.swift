@@ -67,7 +67,7 @@ public extension View {
 }
 
 public extension ToolbarContent {
-    /// The system platter rule for native toolbar items: always hidden (Jeff, 2026-11-12: the
+    /// The system platter rule for native toolbar items: always hidden (design review, 2026-11-12: the
     /// system's glass bubbles around toolbar items are out of every Lumen app, in either chrome
     /// style). Items sit bare on the title bar's band. The `style` parameter is kept so existing
     /// call sites compile; it no longer changes the result.

@@ -1,6 +1,6 @@
 import SwiftUI
 
-// A tile's backlight stays inside its strip and never crosses a
+// the design review’s decision 5: a tile's backlight stays inside its strip and never crosses a
 // hairline or the container's edge; where it can only be clipped (the toolbar) it's off. A strip
 // that backlights its tiles marks itself `.lumenBacklightContainer(_:)`; the backlight view reports
 // its visible extent with `.lumenBacklightExtent(blur:)`. `LumenConformance.backlight` turns a glow

@@ -4,7 +4,7 @@ import LumenTokens
 import XCTest
 @testable import LumenUI
 
-/// A sample pack with an editor surface and a second themed
+/// An app pack with an editor surface, standing in for Inspector or any app with a second themed
 /// surface. `syntax.keyword` is drawn by the editor, so it resolves through the editor's theme.
 enum TestPack {
     static let editor = LumenSurface("editor")

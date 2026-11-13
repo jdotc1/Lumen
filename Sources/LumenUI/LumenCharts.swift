@@ -81,8 +81,9 @@ private struct LumenChartStyleModifier: ViewModifier {
             }
             .chartYAxis {
                 AxisMarks { _ in
+                    // No tick: a short horizontal dash flush with a value read as a minus sign
+                    // ("-20" for 20); the grid line already marks the value (design review 2026-11 #9).
                     AxisGridLine(stroke: style.gridStroke).foregroundStyle(style.grid)
-                    AxisTick(stroke: style.axisStroke).foregroundStyle(style.axis)
                     AxisValueLabel().font(style.axisLabelFont).foregroundStyle(style.label)
                 }
             }

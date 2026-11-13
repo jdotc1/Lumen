@@ -2,8 +2,8 @@ import SwiftUI
 import LumenUI
 import LumenTokens
 
-/// A sample workspace composed from the public Lumen API with synthetic data.
-/// The demo performs no persistence or backend operations.
+/// A binary-inspection workspace composition using public Lumen API and synthetic data.
+/// The example has no persistence or backend operations.
 public struct SampleWorkspace: View {
     public static let minimumSize = CGSize(width: 1080, height: 680)
     public static let defaultSize = CGSize(width: 1440, height: 900)
@@ -136,7 +136,7 @@ private struct SampleWorkspaceSidebar: View {
                             }
                         }
                     } else if tool == "strings" {
-                        LumenStringRow("Hello, Lumen!", address: 0x100004000, section: "__cstring", length: 16)
+                        LumenStringRow("Hello, world!", address: 0x100004000, section: "__cstring", length: 13)
                     } else {
                         LumenSidebarCountSection("main", systemImage: "lumen.crossReference", hue: .hueTeal,
                                                  count: 2, emptyMessage: "No references") {
@@ -179,7 +179,7 @@ private struct SampleWorkspaceEditor: View {
                             LumenCodeListing([[LumenCodeRun("int ", LumenToken.Code.keyword), LumenCodeRun("main() {")],
                                               [LumenCodeRun("    return 0;", LumenToken.Code.keyword)], [LumenCodeRun("}")]], currentLine: 1)
                         case .hex:
-                            LumenHexDump(Array("Hello, Lumen!".utf8), baseAddress: 0x100004000, selection: .constant(nil))
+                            LumenHexDump(Array("Hello, world!".utf8), baseAddress: 0x100004000, selection: .constant(nil))
                         case .welcome: EmptyView()
                         }
                     }

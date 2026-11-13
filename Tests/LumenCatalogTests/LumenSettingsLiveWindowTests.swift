@@ -97,11 +97,11 @@ final class LumenSettingsLiveWindowTests: XCTestCase {
         try assertStock(categoryCount: 2, chrome: .glass)
     }
 
-    /// A deliberately bare host exposes a flat system-grey list,
+    /// A deliberately bare host reproduces the failure modes from batch utility: flat system-grey list,
     /// automatic sidebar toggle, automatic toolbar style and a category title without history.
     /// Every invariant must reject it. Keeping this fixture prevents a permissive probe (or a
     /// missing toolbar/table silently interpreted as success) from blessing the old composition.
-    func testBareSettingsHostFailsEveryWindowInvariant() throws {
+    func testBareUtilityHostFailsEveryWindowInvariant() throws {
         let result = try observe(BareSettingsHost(categories: categories(2)), compact: false)
         XCTAssertTrue(result.violations.isSuperset(of: [.sourceList, .historyGroup, .controlHeights, .navigationTitle]), result.description)
         print("BARE_HOST: \(result.description)")
@@ -495,7 +495,7 @@ private struct BoundSettingsHost: View {
 }
 
 /// This fixture intentionally omits the stock scaffold. Explicit plain/system-grey styling makes
-/// the unthemed list appearance deterministic across macOS's changing automatic List defaults.
+/// the observed batch utility failure deterministic across macOS's changing automatic List defaults.
 private struct BareSettingsHost: View {
     let categories: [LumenSettingsCategory]
     @State private var selection: String? = "engine"

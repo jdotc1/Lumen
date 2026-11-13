@@ -2,11 +2,12 @@ import AppKit
 import SwiftUI
 import LumenTokens
 
-// The top bar: one compact row. The window buttons and every item share
+// the workspace's top bar (0.44, the design review’s layout "A"): one compact row. The window buttons and every item share
 // one center line, and there's no band above or below it. Editor modes move out of the bar into the
 // content pane's own tab bar (`LumenContentTabBar`).
 //
-// The bar is hosted natively. Its leading content and status become `.navigation` toolbar items and its trailing
+// How (the second take, after the live check): the bar is hosted natively, as workspace (an NSToolbar app)
+// hosts its own. Its leading content and status become `.navigation` toolbar items and its trailing
 // content a `.primaryAction` item of the window's real toolbar; the scene uses
 // `.windowToolbarStyle(.unifiedCompact(showsTitle: false))`, so AppKit sizes the band (38–40 pt),
 // centers the window buttons and the items on one line, and handles clicks, dragging and
@@ -14,11 +15,11 @@ import LumenTokens
 
 /// Where a workspace window's top bar sits.
 public enum LumenTopBarPlacement: String, CaseIterable, Sendable {
-    /// the bar's content as the window's own toolbar items, one compact row with the window
+    /// the workspace's: the bar's content as the window's own toolbar items, one compact row with the window
     /// buttons on the same center line. Lumen's default from 0.44. The scene needs
     /// `.windowToolbarStyle(.unifiedCompact(showsTitle: false))`.
     case unified
-    /// A SwiftUI bar under the window buttons' own band, its glow reaching up
+    /// the inspector example's before 0.44: a SwiftUI bar under the window buttons' own band, its glow reaching up
     /// behind them.
     case underTitleBar
 }
@@ -47,7 +48,8 @@ public struct LumenTopBarContentFrameKey: PreferenceKey {
 
 public extension View {
     /// Where `.lumenTopBar` (and a `LumenWorkspaceWindow` inside this view) puts its bar:
-    /// `.unified` or `.underTitleBar`.
+    /// `.unified` (the workspace's toolbar-hosted row, the default) or `.underTitleBar` (the inspector example's look before
+    /// 0.44).
     func lumenTopBarPlacement(_ placement: LumenTopBarPlacement) -> some View {
         environment(\.lumenTopBarPlacement, placement)
     }
@@ -57,9 +59,11 @@ extension EnvironmentValues {
     @Entry var lumenTopBarPlacement: LumenTopBarPlacement = .unified
     /// Set by the unified placement: `LumenTopBar` hands its content to the window's toolbar.
     @Entry var lumenTopBarHostsInToolbar = false
-    /// Inside a toolbar-hosted bar: pieces take compact sizes (a 20 pt tile, a 13 pt name over
+    /// Inside a toolbar-hosted bar: pieces take the workspace's compact sizes (a 20 pt tile, a 13 pt name over
     /// an 11 pt subtitle) so they fit the compact band.
     @Entry var lumenToolbarCompact = false
+    /// A fitting tier requests icon-only labels, preserving each control's full help and name.
+    @Entry var lumenBarIconsOnly: Bool = false
     /// The window's width, from the unified placement's own layout, for the bar's toolbar budget.
     @Entry var lumenTopBarWidth: CGFloat? = nil
     /// The width the unified bar's toolbar leaves for the status: the window less the window buttons,
@@ -189,10 +193,10 @@ struct LumenToolbarPriorities: NSViewRepresentable {
             guard let toolbar = window?.toolbar else { return }
             let hosted = toolbar.items.filter { $0.view != nil }
             let status = hasCenter && hosted.count >= 3 ? hosted[1] : nil
-            // Only the temporary status yields. Preserve the spacer as well as the panels so
-            // the trailing group stays at the edge while native overflow removes the status.
+            // The status yields first, then the identity, while icon controls and the flexible
+            // spacer retain the highest priority.
             for item in toolbar.items {
-                let priority: NSToolbarItem.VisibilityPriority = item === status ? .low : .high
+                let priority: NSToolbarItem.VisibilityPriority = item === status ? .low : (item === hosted.first ? .standard : .high)
                 if item.visibilityPriority != priority { item.visibilityPriority = priority }
             }
         }
@@ -206,9 +210,9 @@ struct LumenToolbarTitleRemoval: ViewModifier {
     }
 }
 
-// MARK: Toolbar arrangement
+// MARK: the workspace's arrangement
 
-/// The slanted hairline between a toolbar's groups, drawn between the project, the tasks
+/// The slanted hairline between a toolbar's groups, as workspace draws it between the project, the tasks
 /// and the status.
 public struct LumenToolbarDivider: View {
     @Environment(\.lumenPalette) private var palette
@@ -227,7 +231,7 @@ public struct LumenToolbarDivider: View {
     }
 }
 
-/// The toolbar's leading part: the app mark (opens the launcher), a slash, the project (its tile,
+/// the workspace's toolbar, leading part: the app mark (opens the launcher), a slash, the project (its tile,
 /// name and branch or location; `LumenToolbarIdentity`), a slash, then the task controls
 /// (`LumenTaskCluster`) with the task configuration pop-up after them. Put it in a
 /// `LumenWorkspaceWindow`'s `topLeading` (or a `LumenTopBar`'s `leading`), with
@@ -289,7 +293,7 @@ public struct LumenWorkspaceToolbar<AppMark: View, Project: View, Tasks: View, C
     }
 }
 
-/// Temporary status indicators, for the top bar's center slot: a slash and the activity
+/// the workspace's temporary status indicators, for the top bar's center slot: a slash and the activity
 /// capsule, left-aligned right after the leading groups (not centered), shown only while there's
 /// something to say: work running, or its result. Idle, it's empty and the bar shows nothing there.
 /// In the window toolbar it gives way first: it takes its preferred width (growing up to the room the
@@ -306,7 +310,7 @@ public struct LumenToolbarStatus: View {
     @State private var needed: CGFloat = 0
     @State private var nativeRoom: CGFloat?
 
-    /// The narrowest the capsule gets before it hides (it's temporary; the panels matter more).
+    /// The narrowest labelled capsule before it falls back to its mark.
     static var minimumWidth: CGFloat { LumenActivityStatus.minimumWidth }
 
     /// - Parameter activity: what's happening; `nil` or `.idle` shows nothing.
@@ -337,7 +341,7 @@ public struct LumenToolbarStatus: View {
                 let available = (room ?? nativeRoom).map { max(0, $0 - decoration) }
                 // Each rendered text run can round outward independently at a pixel boundary.
                 let preferred = max(flexibleMinimum, needed.rounded(.up) + 1)
-                let fitted = max(flexibleMinimum, min(preferred, available ?? preferred))
+                let fitted = min(preferred, available ?? preferred)
                 HStack(spacing: metrics.spacing.s4) {
                     LumenToolbarDivider()
                     LumenActivityStatus(shown, idealWidth: fitted, minWidth: flexibleMinimum)
@@ -351,21 +355,21 @@ public struct LumenToolbarStatus: View {
             }
         } else if compact {
             // In the window toolbar: its preferred `width`, growing past it up to the room the other
-            // items leave (less the slash) when the label is longer, and hidden when the label
-            // wouldn't fit whole (PRINCIPLES §6: never truncated) or before the room is known.
+            // items leave (less the slash) when the label is longer. Preserve its mark when the
+            // full label does not fit or the room is not yet known.
             let available = room.map { $0 - metrics.spacing.s4 - 8 } ?? 0
             Group {
                 if let shown, needed > 0, available >= max(Self.minimumWidth * metrics.floatingTextGrowth, needed) {
                     capsule(shown, width: min(available, max(width, needed)))
                 } else {
-                    Color.clear.frame(width: 0, height: 0)
+                    if let shown { LumenActivityStatus(shown).markOnly }
                 }
             }
             .background {
                 if let shown { naturalWidth(of: shown) }
             }
         } else {
-            // Fills the center slot so its content starts at the slot's leading edge.
+            // Fills the center slot so its content starts at the slot's leading edge, as the workspace's does.
             HStack(spacing: metrics.spacing.s4) {
                 if let shown { capsule(shown, width: width) }
                 Spacer(minLength: 0)
@@ -409,8 +413,8 @@ private struct LumenStatusWidthKey: PreferenceKey {
 }
 
 /// The content pane's tab bar, at the top of the pane on the pane's own surface (PRINCIPLES §8: no
-/// band of its own, a hairline under it): where editor tabs and workspace editor
-/// modes go in the workspace layout, out of the top bar. Put a rounded `LumenModeSwitcher` or a
+/// band of its own, a hairline under it): where workspace keeps editor tabs and where a workspace's editor
+/// modes go in the workspace's layout, out of the top bar. Put a rounded `LumenModeSwitcher` or a
 /// `LumenDocumentTabBar` in it, and trailing actions after it.
 ///
 /// ```swift
@@ -433,21 +437,26 @@ public struct LumenContentTabBar<Tabs: View, Trailing: View>: View {
         self.trailing = trailing()
     }
 
+    private var tabRow: some View {
+        HStack(spacing: metrics.spacing.s5) {
+            tabs.fixedSize(horizontal: true, vertical: false)
+            Spacer(minLength: metrics.spacing.s4)
+            trailing.fixedSize()
+        }
+    }
+
     /// The bar's height: Lumen's one tab-bar height (`layout.tabHeight`, 32 pt), shared with the
     /// document tab bar and the split panes' tab strips.
     public static var height: CGFloat { LumenMetrics.standard.layout.tabHeight }
 
     public var body: some View {
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: metrics.spacing.s5) {
-                tabs
-                Spacer(minLength: metrics.spacing.s4)
-                trailing.fixedSize()
+            tabRow
+            tabRow.environment(\.lumenBarIconsOnly, true).labelStyle(.iconOnly)
+            ScrollView(.horizontal) {
+                tabRow.fixedSize(horizontal: true, vertical: false)
             }
-            VStack(alignment: .leading, spacing: metrics.spacing.s2) {
-                tabs
-                trailing.fixedSize(horizontal: false, vertical: true)
-            }
+            .fixedSize(horizontal: false, vertical: true)
         }
         .environment(\.lumenTabStripName, "content")
         .padding(.horizontal, metrics.spacing.s6)

@@ -1,8 +1,8 @@
 import SwiftUI
 
 // A column whose content is wider than the column is cut off on both edges: SwiftUI centers the
-// overflow (PRINCIPLES §6). A truncation check alone cannot detect content that shifts without
-// shortening text. Every Lumen column
+// overflow (PRINCIPLES §6). the inspector example's Types inspector did this with a table wider than its column,
+// and the truncation check missed it, since no text was shortened, only shifted. Every Lumen column
 // container (the inspector, the workspace window's sidebar, content, inspector and bottom regions,
 // split-view columns, a sheet's content) therefore watches its content: when the width the content
 // takes is more than the width the column offered, it reports itself. `LumenConformance.overflow`,

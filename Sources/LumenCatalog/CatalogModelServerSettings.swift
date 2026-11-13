@@ -31,7 +31,7 @@ struct CatalogModelServerSettings: View {
                     Button("Refresh") { refreshed = true }
                 }
             } header: {
-                LumenSettingsHeader("Model server", systemImage: "cpu", hue: .hueViolet,
+                LumenSettingsHeader("Model server", systemImage: "point.3.connected.trianglepath.dotted", hue: .hueIndigo,
                                     summary: "Configure a local model service and inspect its availability.")
             }
             Section("Service status") {

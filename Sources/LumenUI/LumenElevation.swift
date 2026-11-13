@@ -2,7 +2,7 @@ import SwiftUI
 
 /// The one shadow Lumen draws: a floating surface (a menu, a popover, a palette, a toast) over the
 /// window. Everything else gets its depth from material, a gentle gradient and a hairline, never a
-/// drop shadow or glow.
+/// drop shadow or glow (PRINCIPLES §7, the design review’s 2026-10-12 review).
 public enum LumenElevation: Sendable {
     /// Menus, completion lists, small popups.
     case menu
@@ -70,7 +70,7 @@ private struct LumenGlowShadow: ViewModifier {
 }
 
 extension EnvironmentValues {
-    /// Whether icon tiles inside are backlit.
+    /// Whether icon tiles inside are backlit (design review, very subtle).
     @Entry var lumenTileBacklight = false
     /// Tiles draw on their hue in dark mode too: on a selected row, where a slate tile would read
     /// as a hole in the selection.

@@ -5,7 +5,8 @@ import Foundation
 public enum LumenExport {
     public static let fileNames = (themes: "builtin-themes.json", schema: "theme.schema.json", reference: "token-reference.md")
 
-    /// How an app names its exported files and titles them. `.lumen` is Lumen's own.
+    /// How an app names its exported files and titles them (Inspector writes `sample-theme.schema.json`
+    /// titled "Sample theme"). `.lumen` is Lumen's own.
     public struct Brand: Sendable {
         public var themesFile: String
         public var schemaFile: String

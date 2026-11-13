@@ -2,16 +2,30 @@ import AppKit
 import SwiftUI
 import XCTest
 import LumenUI
-import LumenCatalog
+@testable import LumenCatalog
 
-// The sample workspace uses the real-window minimum/toolbar host and public API.
-extension LumenLiveWindowTests {
+// Reuse the real-window minimum/toolbar host. The rehearsal itself imports public API only.
+@MainActor
+final class SampleWorkspaceTests: XCTestCase {
+    override class func setUp() {
+        super.setUp()
+        MainActor.assumeIsolated { LumenGlyph.register([.catalogPage]) }
+    }
+
+    private func layOut<V: View>(_ view: V, size: CGSize, compact: Bool,
+                                sizing: NSHostingSizingOptions = []) -> LumenLiveWindowTests.Layout {
+        LumenLiveWindowTests().layOut(view, size: size, compact: compact, sizing: sizing)
+    }
+
     func testSampleWorkspaceFitsMinimumAndDefaultSizes() throws {
         let minimum = layOut(SampleWorkspace(), size: SampleWorkspace.defaultSize,
                              compact: true, sizing: [.minSize]).contentMinSize
         XCTAssertEqual(minimum.width, SampleWorkspace.minimumSize.width, accuracy: 0.5)
-        XCTAssertEqual(minimum.height, SampleWorkspace.minimumSize.height, accuracy: 1)
-        // Check the supported workspace modes at their minimum and default sizes.
+        // The content floor is 600 pt plus the window's native top band: 80 pt on the macOS 27 builds
+        // the size was designed on, 40 pt on 27.3 and later. Either way the content floor holds.
+        XCTAssertGreaterThanOrEqual(minimum.height, SampleWorkspace.minimumSize.height - 2 * LumenLayout.unifiedTopBarHeight + LumenLayout.unifiedTopBarHeight - 1)
+        XCTAssertLessThanOrEqual(minimum.height, SampleWorkspace.minimumSize.height + 1)
+        // Bounded acceptance of this new composition, not a theme/panel/corpus sweep.
         for mode in [SampleWorkspaceMode.disassembly, .graph, .welcome] {
             for size in [minimum, SampleWorkspace.defaultSize] {
                 let reports = SampleWorkspaceLayoutReports()

@@ -27,7 +27,7 @@ public struct LumenToken: RawRepresentable, Hashable, Comparable, Sendable, Coda
 }
 
 /// A part of an app that can use its own theme. Every app has the window; an app can add more,
-/// such as a code editor or document canvas, and the user can pick a different theme
+/// such as the inspector example's code editor or a document canvas, and the user can pick a different theme
 /// for each. Tokens drawn on a surface resolve through that surface's theme.
 public struct LumenSurface: RawRepresentable, Hashable, Sendable, Codable, CustomStringConvertible {
     public let rawValue: String

@@ -162,3 +162,13 @@ struct ExampleMinimalContent: View {
     }
 }
 // END MINIMAL PALETTE
+
+// BEGIN MINIMAL TINT
+struct ExampleMinimalTintRoot: View {
+    var body: some View {
+        ExampleMinimalContent()
+            .lumenMetrics(.standard)
+            .lumenRoot(tint: "#2F6FEB", appearance: .dark)
+    }
+}
+// END MINIMAL TINT

@@ -3,7 +3,8 @@ import SwiftUI
 import LumenTokens
 import os
 
-/// An icon tile with a symbol on a rounded square:
+/// A System Settings-style icon tile: a symbol on a rounded square, drawn the way macOS 26–27 draws
+/// its own (design review after the 2026-10-12 icon research, Docs/research/icon-research-2026-10-12.md):
 ///
 /// - Light icons: a solid hue tile and white symbol.
 /// - Dark icons: a near-black tile with a vivid symbol, as System Settings does in dark mode.
@@ -35,7 +36,8 @@ public struct LumenIconTile: View {
 
     /// The symbol's box as a share of the tile.
     static let symbolShare: CGFloat = 0.64
-    /// The backlight's subtle strength in dark mode; light mode uses about half.
+    /// The backlight's strength in dark mode (light mode uses about half): very subtle, design review,
+    /// softened in review.
     static let backlightStrength = 0.18
     /// How far past the tile's edge the backlight reaches, as a share of the tile (0.1 = 2.8 pt on a
     /// 28 pt tile): inside the 3–4 pt a tile strip leaves around its tiles.

@@ -107,7 +107,7 @@ enum LumenScaleTiming {
     }
 
     private static func symbol(_ i: Int) -> String {
-        let modules = ["Swift", "Foundation", "SampleCore", "AnalysisCore", "DebuggerCore"]
+        let modules = ["Swift", "Foundation", "InspectorCore", "AnalysisCore", "DebuggerCore"]
         return "\(modules[i % 5]).Dictionary<Swift.String, \(modules[(i + 1) % 5]).Array<Swift.Int>>.Index.Storage.symbolicatedValue\(i)"
     }
 
@@ -135,7 +135,7 @@ enum LumenScaleTiming {
             let entries = (0..<count).map { i in
                 LumenLogEntry(date: base.addingTimeInterval(Double(i) * 0.01), source: "source\(i % 12)",
                               level: i % 31 == 0 ? .error : (i % 7 == 0 ? .warning : .log),
-                              message: "Processed file \(i) of batch: /Volumes/Data/Files/Group\(i % 200)/Series\(i % 9)/File\(i).bin")
+                              message: "Processed image \(i) of batch: /Volumes/Data/ImageBatch/Batch\(i % 200)/Group\(i % 9)/Image\(i).png")
             }
             return AnyView(LumenLogConsole(entries, onClear: {}))
         case .collection:

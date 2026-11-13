@@ -169,7 +169,7 @@ public struct LumenRegister: Identifiable, Hashable, Sendable {
 
 /// Registers as small cards: the name and role over the value, in as
 /// many columns as fit. A register that changed since the last stop has an accent name, outline and
-/// dot. Clicking a card hands it to `onSelect`. Give a group a
+/// dot. Clicking a card hands it to `onSelect` (Inspector seeds its write field). Give a group a
 /// `LumenSectionHeader` above it, and switch formats with `LumenModeSwitcher(style: .pill)`.
 public struct LumenRegisterGrid: View {
     private let registers: [LumenRegister]
@@ -211,7 +211,7 @@ public struct LumenRegisterGrid: View {
                 Text(register.value)
                     .font((codeFont ?? .standard).font(weight: .regular))
                     .foregroundStyle(palette[.fgPrimary])
-                    .lineLimit(1).truncationMode(.middle).minimumScaleFactor(0.85)
+                    .lineLimit(1).truncationMode(.middle).help(register.value)
                     .textSelection(.enabled)
             }
             .padding(.horizontal, metrics.spacing.s3)
@@ -468,7 +468,7 @@ struct LumenBreakpointShape: Shape {
 
 /// A saved breakpoint as a row: its marker to turn it on or off, where it
 /// is and its scope, then its state in a tinted capsule over its hit count. Clicking the row shows
-/// `details` beneath; Edit and Delete are in the context menu.
+/// `details` beneath (the inspector example's runtime locations); Edit and Delete are in the context menu.
 public struct LumenBreakpointRow<Details: View>: View {
     @Binding private var isEnabled: Bool
     private let locator: String
@@ -523,6 +523,7 @@ public struct LumenBreakpointRow<Details: View>: View {
                         Spacer(minLength: metrics.spacing.s2)
                         VStack(alignment: .trailing, spacing: metrics.spacing.s1) {
                             Text(status)
+                                .lineLimit(1).fixedSize(horizontal: true, vertical: false)
                                 .font(metrics.typography.captionEmphasized)
                                 .foregroundStyle(palette[tone])
                                 .lumenChip(palette.toneBackground(tone))   // the one chip spec
@@ -566,7 +567,7 @@ public extension LumenBreakpointRow where Details == EmptyView {
 /// The colors of a hex view in the quiet style: offsets tertiary, zero
 /// bytes faded, other bytes primary, the ASCII column split off by a hairline, the selection a solid
 /// accent block mirrored in both columns, and the selected row faintly tinted. `LumenHexDump` draws with
-/// it; an app with its own hex text view applies it as text attributes.
+/// it; an app with its own hex text view (the inspector example's editor) applies it as text attributes.
 public struct LumenHexStyle {
     public let offset: Color
     public let byte: Color
@@ -736,8 +737,10 @@ public struct LumenHexDump: View {
         return Text(text)
             .foregroundStyle(selected ? style.selectionForeground : ink)
             .frame(width: width, height: height)
-            // Adjacent selected bytes form one contiguous text-range highlight, as in NSTextView.
-            .background(selected ? style.selectionBackground : .clear)
+            // Adjacent selected bytes form one contiguous text-range highlight, as in NSTextView. The
+            // explicit square shape keeps each cell's fill from taking an inherited container shape,
+            // which would round every byte into its own capsule.
+            .background(selected ? style.selectionBackground : .clear, in: Rectangle())
     }
 
     /// The byte under `x` in a row's coordinates (hex or ASCII cell), or `nil` between cells.
@@ -810,7 +813,8 @@ public struct LumenCommandPart {
     }
 }
 
-/// A debugger action as one inline command: an accent verb (`expr`, `reg`, `mem`), its inputs split by hairlines, and an accent
+/// A debugger action as one inline command (design review
+/// Write memory): an accent verb (`expr`, `reg`, `mem`), its inputs split by hairlines, and an accent
 /// button inside the capsule. Return in any input runs it. Inputs shrink before anything clips.
 public struct LumenCommandField: View {
     private let verb: String
@@ -1238,7 +1242,6 @@ public struct LumenVariableRow: View {
     private let onToggle: () -> Void
     private let typeLayout: TypeLayout
 
-    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenDensity) private var density
     @Environment(\.lumenMetrics) private var metrics
@@ -1310,7 +1313,7 @@ public struct LumenVariableRow: View {
                 .foregroundStyle(palette[.fgPrimary])
                 
                 // Short names (most locals) never shorten: "c…he" reads worse than a shortened value.
-                .fixedSize(horizontal: variable.name.count <= 10, vertical: false)
+                .fixedSize(horizontal: (variable.name as NSString).size(withAttributes: [.font: (codeFont ?? .standard).nsFont()]).width <= metrics.layout.variableNameMinWidth, vertical: false)
                 .frame(minWidth: metrics.layout.variableNameMinWidth, alignment: .leading)
                 .padding(.leading, metrics.spacing.s2)
         }
@@ -1346,12 +1349,16 @@ public struct LumenVariableRow: View {
                 LumenProgressRing(progress: nil).frame(width: Self.disclosureWidth - 4, height: Self.disclosureWidth - 4)
             case .collapsed, .expanded, .failed:
                 Button(action: onToggle) {
-                    LumenSymbol(variable.disclosure == .failed ? "arrow.clockwise"
-                                : variable.disclosure == .expanded ? "chevron.down" : (layoutDirection == .rightToLeft ? "chevron.left" : "chevron.right"))
-                        .font(.system(size: metrics.layout.disclosureGlyph, weight: .bold))
-                        .foregroundStyle(palette[variable.disclosure == .failed ? .statusDanger : .fgSecondary])
-                        .frame(width: metrics.layout.minimumHitTarget, height: metrics.layout.minimumHitTarget)
-                        .contentShape(.rect)
+                    Group {
+                        if variable.disclosure == .failed {
+                            LumenSymbol("arrow.clockwise").font(.system(size: metrics.layout.disclosureGlyph, weight: .bold))
+                        } else {
+                            LumenDisclosureChevron(isExpanded: variable.disclosure == .expanded, size: metrics.layout.disclosureGlyph)
+                        }
+                    }
+                    .foregroundStyle(palette[variable.disclosure == .failed ? .statusDanger : .fgSecondary])
+                    .frame(width: metrics.layout.minimumHitTarget, height: metrics.layout.minimumHitTarget)
+                    .contentShape(.rect)
                 }
                 .buttonStyle(.lumenBare)
                 .lumenIconOnlyControl(toggleHelp)

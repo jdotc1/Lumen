@@ -1,7 +1,8 @@
 # Window corners on macOS 27
 
-Lumen requires macOS 27. `LumenRadius.window` is approximately **16 pt**, a reference for
-explicit container shapes rather than a replacement for the system's live corner geometry.
+Lumen requires macOS 27. `LumenRadius.window` is approximately **16 pt**, measured on
+a macOS 27.2 development machine. It is a measured reference for explicit container shapes, not a
+replacement for the system's live corner geometry.
 
 ## Approximation
 

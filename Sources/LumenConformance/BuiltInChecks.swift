@@ -210,7 +210,7 @@ struct WindowStructureCheck: LumenCheck {
                     findings.append(LumenConformance.Finding(.layout, subject, "the \(kind.identifier) top bar must share the window buttons' line; use .unified placement"))
                 }
                 if recorder.placement == .unified {
-                    // the bar is the title bar band, so it starts at the window's top edge.
+                    // the workspace's: the bar is the title bar band, so it starts at the window's top edge.
                     if abs(bar.minY) > 0.5 {
                         let moved = Int(bar.minY.rounded())
                         findings.append(LumenConformance.Finding(.layout, subject, moved > 0 ? "top bar starts \(moved) pt below the window's top" : "top bar moved \(-moved) pt up, off the top"))
@@ -223,7 +223,7 @@ struct WindowStructureCheck: LumenCheck {
                         if abs(buttons.midY - bar.midY) > 1.5 {
                             findings.append(LumenConformance.Finding(.layout, subject, "window buttons are \(Int(abs(buttons.midY - bar.midY).rounded())) pt off the top bar's center"))
                         }
-                        // every item sits on the window buttons' center line.
+                        // the workspace's rule: every item sits on the window buttons' center line.
                         for (index, item) in recorder.toolbarItems.enumerated() where abs(item.midY - buttons.midY) > 1 {
                             findings.append(LumenConformance.Finding(.layout, subject, "toolbar item \(index + 1) is \(Int(abs(item.midY - buttons.midY).rounded())) pt off the window buttons' center line"))
                         }

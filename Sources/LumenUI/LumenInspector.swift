@@ -111,7 +111,6 @@ public struct LumenInspectorSection<Content: View>: View {
 
     @State private var localExpanded = true
     @State private var isHovered = false
-    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenMetrics) private var metrics
     @Environment(\.lumenScaffoldContentMargin) private var windowMargin
@@ -139,10 +138,8 @@ public struct LumenInspectorSection<Content: View>: View {
                     if let systemImage { LumenIconTile(systemImage, hue: hue, size: metrics.layout.tileSection).lumenIconRole(.section) }
                     Text(title).font(metrics.typography.headline).foregroundStyle(palette[.fgPrimary])
                     Spacer(minLength: 0)
-                    LumenSymbol(layoutDirection == .rightToLeft ? "chevron.left" : "chevron.right")
-                        .font(.system(size: metrics.layout.disclosureGlyph, weight: .bold))
+                    LumenDisclosureChevron(isExpanded: isExpanded.wrappedValue, size: metrics.layout.disclosureGlyph)
                         .foregroundStyle(palette[isHovered ? .fgSecondary : .fgTertiary])
-                        .rotationEffect(.degrees(isExpanded.wrappedValue ? (layoutDirection == .rightToLeft ? -90 : 90) : 0))
                 }
                 .padding(.horizontal, metrics.spacing.s5)
                 // One rhythm per section: `s5` from the hairline above to the tile, `s3`
@@ -197,7 +194,10 @@ public struct LumenInspectorRow<Control: View>: View {
         // for the value (two badges need about 130 pt; the inspector's minimum leaves 94).
         ViewThatFits(in: .horizontal) {
             HStack(alignment: .center, spacing: metrics.spacing.s4) {
-                LumenPropertyLabel(width: labelWidth) { labelText }
+                ZStack(alignment: .leading) {
+                    LumenPropertyLabel(width: labelWidth) { Color.clear.frame(height: 0) }
+                    labelText.lineLimit(1).fixedSize()
+                }
                 value
             }
             VStack(alignment: .leading, spacing: metrics.spacing.s1) {
@@ -493,6 +493,7 @@ public struct LumenInspectorSummary: View {
                 // The hue's ink deepened (light) or lifted (dark) until it reads at 4.5:1 on its own
                 // wash, as `LumenRefPill` does: plain hue on a 16% wash measured 1.6–3.2:1.
                 Text(kind).font(metrics.typography.captionEmphasized).foregroundStyle(kindInk)
+                    .lineLimit(1).fixedSize(horizontal: true, vertical: false)
                     .lumenChip(palette[hue].opacity(Self.kindFillAlpha))   // the one chip spec
                 Spacer(minLength: 0)
                 Button {

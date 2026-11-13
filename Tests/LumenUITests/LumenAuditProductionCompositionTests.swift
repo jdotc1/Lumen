@@ -209,7 +209,7 @@ import LumenConformance
         print("SPLIT-ROWS statistics=\(statistics) detectorRows=\(result.detectorRegions.map { $0.rows.count }) findings=\(result.findings)")
     }
 
-    func testWorkspaceProcessActionBesideDividerAndClippedText() throws {
+    func testProductionAttachBesideDividerAndActuallyClippedText() throws {
         let window = host(AnyView(SampleWorkspace()), size: SampleWorkspace.defaultSize)
         defer { window.close() }
         let result = try LumenRenderedAudit.analyze(LumenRenderedAudit.capture(in: window))

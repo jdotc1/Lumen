@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import LumenTokens
 
-// Split editor panes and stacked sidebar panes (Lumen 0.29): the focused pane carries the
+// Split editor panes and stacked sidebar panes, after workspace (Lumen 0.29): the focused pane carries the
 // accent and the others dim; sidebar panes stack under tiled headers with counts.
 
 // MARK: Layout model
@@ -163,7 +163,7 @@ public struct LumenEditorLayout: Hashable {
 
 // MARK: Split editor
 
-/// Editor panes side by side: each with its own tab bar, close and maximize at the
+/// Editor panes side by side (the workspace's splits): each with its own tab bar, close and maximize at the
 /// leading edge and New Split at the trailing edge. The focused pane's active tab carries the accent;
 /// the other panes' tabs go quiet and their content dims. Dividers drag; panes never
 /// narrow past `minimumPaneWidth`. Tabs have the full menu (pin, close others, duplicate in a split)
@@ -180,6 +180,7 @@ public struct LumenSplitEditor<Content: View>: View {
     @State private var weights: [String: CGFloat] = [:]
     @State private var dragStart: [String: CGFloat]?
     @State private var maximizedPaneID: String?
+    @State private var barWidths: [String: CGFloat] = [:]
 
     /// - Parameters:
     ///   - onCloseTab: asked before a tab closes (an unsaved document, say); return `false` to keep it.
@@ -244,14 +245,24 @@ public struct LumenSplitEditor<Content: View>: View {
     private func paneView(_ pane: LumenEditorPane) -> some View {
         let focused = isFocused(pane)
         let several = layout.panes.count > 1
+        // A narrow pane folds its split buttons into one menu before its tabs drop below their
+        // readable minimum: controls overflow, labels are not squeezed (design review 2026-11 #4).
+        let compact = several && (barWidths[pane.id] ?? .infinity) < compactBarThreshold
+        let closeTitle = lumenLocalized(String(localized: "Close Split", bundle: .module, comment: "WorkspaceLayout control text."))
+        let magnifyTitle = maximizedPaneID == pane.id ? lumenLocalized(String(localized: "Restore Splits", bundle: .module, comment: "WorkspaceLayout display text.")) : lumenLocalized(String(localized: "Magnify Split", bundle: .module, comment: "WorkspaceLayout display text."))
+        let magnifySymbol = maximizedPaneID == pane.id ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right"
+        let newSplitTitle = lumenLocalized(String(localized: "New Split", bundle: .module, comment: "WorkspaceLayout control text."))
+        let close = { layout.closePane(pane.id, shouldClose: mayClose(inPane: pane.id)) }
+        let magnify = { maximizedPaneID = maximizedPaneID == pane.id ? nil : pane.id }
+        let newSplit = {
+            maximizedPaneID = nil
+            if let tab = pane.selection { layout.split(tab, fromPane: pane.id, edge: .trailing) }
+        }
         return VStack(spacing: 0) {
             HStack(spacing: 0) {
-                if several {
-                    paneButton(lumenLocalized(String(localized: "Close Split", bundle: .module, comment: "WorkspaceLayout control text.")), symbol: "xmark") { layout.closePane(pane.id, shouldClose: mayClose(inPane: pane.id)) }
-                    paneButton(maximizedPaneID == pane.id ? lumenLocalized(String(localized: "Restore Splits", bundle: .module, comment: "WorkspaceLayout display text.")) : lumenLocalized(String(localized: "Magnify Split", bundle: .module, comment: "WorkspaceLayout display text.")),
-                               symbol: maximizedPaneID == pane.id ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right") {
-                        maximizedPaneID = maximizedPaneID == pane.id ? nil : pane.id
-                    }
+                if several && !compact {
+                    paneButton(closeTitle, symbol: "xmark", action: close)
+                    paneButton(magnifyTitle, symbol: magnifySymbol, action: magnify)
                 }
                 LumenDocumentTabBar(pane.orderedTabs,
                                     selection: Binding(get: { pane.selection }, set: { layout.select($0, inPane: pane.id) }),
@@ -259,12 +270,27 @@ public struct LumenSplitEditor<Content: View>: View {
                                         if mayClose(inPane: pane.id)(tab) { layout.close(tab.id, inPane: pane.id) }
                                     },
                                     actions: tabActions(for: pane))
-                paneButton(lumenLocalized(String(localized: "New Split", bundle: .module, comment: "WorkspaceLayout control text.")), symbol: "rectangle.split.2x1") {
-                    maximizedPaneID = nil
-                    if let tab = pane.selection { layout.split(tab, fromPane: pane.id, edge: .trailing) }
+                if compact {
+                    let title = lumenLocalized(String(localized: "Split Options", bundle: .module, comment: "WorkspaceLayout control text."))
+                    LumenMenuButton(help: title) {
+                        Button(newSplitTitle, systemImage: "rectangle.split.2x1", action: newSplit).disabled(pane.selection == nil)
+                        Button(magnifyTitle, systemImage: magnifySymbol, action: magnify)
+                        Divider()
+                        Button(closeTitle, systemImage: "xmark", action: close)
+                    } label: {
+                        Image(systemName: "rectangle.split.2x1")
+                            .font(.system(size: metrics.iconSize.xsmall, weight: .semibold))
+                            .frame(width: metrics.layout.minimumHitTarget, height: metrics.layout.controlHeight)
+                            .contentShape(.rect)
+                    }
+                    .lumenIconOnlyControl(title)
+                    .padding(.horizontal, 2)
+                } else {
+                    paneButton(newSplitTitle, symbol: "rectangle.split.2x1", action: newSplit)
+                        .disabled(pane.selection == nil)
                 }
-                .disabled(pane.selection == nil)
             }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { barWidths[pane.id] = $0 }
             .frame(height: metrics.layout.tabHeight)
             .background(palette[.bgWindow])
             .overlay(alignment: .bottom) { Rectangle().fill(palette[.borderSubtle]).frame(height: metrics.stroke.hairline) }
@@ -302,6 +328,14 @@ public struct LumenSplitEditor<Content: View>: View {
             dropTab: { id, position in layout.move(id, toPane: pane.id, at: position) })
         actions.moveTab = { id, source, position in layout.move(id, fromPane: source, toPane: pane.id, at: position) }
         return actions
+    }
+
+    /// Below this bar width the three split buttons fold into one menu: two buttons' width plus the
+    /// tab strip's padding, its menu and one readable tab must fit (`LumenDocumentTabBar`'s minimum).
+    private var compactBarThreshold: CGFloat {
+        let button = metrics.layout.minimumHitTarget + 4
+        return 3 * button + metrics.layout.minimumHitTarget + 2 * metrics.spacing.s4
+            + LumenDocumentTabBar.minimumTabWidth(metrics)
     }
 
     private func paneButton(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
@@ -368,7 +402,7 @@ public struct LumenStackedPane: Identifiable {
     }
 }
 
-/// Several panes in one sidebar, each under a tiled header
+/// Several panes in one sidebar (the workspace's Git over GitHub pull requests), each under a tiled header
 /// with its count: click a header to collapse its pane; drag the grip between open
 /// panes to share the height. Content scrolls only when its pane is too short.
 public struct LumenStackedSidebar: View {
@@ -442,10 +476,8 @@ public struct LumenStackedSidebar: View {
             // The collapse state as a shape, not only to VoiceOver: it turns down while open.
             // In a fixed trailing slot after any actions, so every pane's chevron sits in one column.
             Button(action: toggle) {
-                LumenSymbol(layoutDirection == .rightToLeft ? "chevron.left" : "chevron.right")
-                    .font(.system(size: metrics.iconSize.xsmall, weight: .semibold))
+                LumenDisclosureChevron(isExpanded: isOpen, size: metrics.iconSize.xsmall, weight: .semibold)
                     .foregroundStyle(palette[.sidebarSecondaryForeground])
-                    .rotationEffect(.degrees(isOpen ? (layoutDirection == .rightToLeft ? -90 : 90) : 0))
                     .frame(width: metrics.layout.minimumHitTarget, height: metrics.layout.paneHeaderHeight)
                     .contentShape(.rect)
             }
@@ -474,8 +506,8 @@ public struct LumenStackedSidebar: View {
             HStack(spacing: metrics.spacing.s2) {
                 LumenIconTile(pane.systemImage, hue: pane.hue, size: metrics.layout.tileSection)
                     .lumenIconRole(.section)
-                Text(pane.title).font(metrics.typography.headline).foregroundStyle(palette[.sidebarForeground]).fixedSize(horizontal: false, vertical: true)
-                    .lumenNeverTruncates(pane.title)
+                Text(pane.title).font(metrics.typography.headline).foregroundStyle(palette[.sidebarForeground])
+                    .lineLimit(1).truncationMode(.middle).help(pane.title).layoutPriority(-1)
                 if let count = pane.count { LumenCount(count) }
                 Spacer(minLength: 0)
             }

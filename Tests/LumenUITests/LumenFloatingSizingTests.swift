@@ -123,7 +123,10 @@ final class LumenFloatingSizingTests: XCTestCase {
         XCTAssertGreaterThan(measure(identity.lumenMetrics(large)).height, measure(identity).height)
         let activity = LumenActivityStatus(.working("Indexing configuration", progress: 0.5))
         XCTAssertGreaterThanOrEqual(measure(activity.lumenMetrics(large)).height, 31.2)
-        XCTAssertGreaterThanOrEqual(measure(activity.lumenMetrics(large), width: 0).width, 182)
+        // The labelled capsule keeps its readable floor (140 pt at 1.3x); below it, only the mark shows.
+        XCTAssertGreaterThanOrEqual(measure(activity.lumenMetrics(large), width: 182).width, 182)
+        XCTAssertLessThan(measure(activity.lumenMetrics(large), width: 0).width, 182 / 2,
+                          "Below the readable floor the status shows its mark, not a squeezed label")
     }
 
     func testPopoverAutomaticWidthScalesAndExplicitWidthIsPreserved() {

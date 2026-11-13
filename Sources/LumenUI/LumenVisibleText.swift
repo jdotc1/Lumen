@@ -1,8 +1,9 @@
 import AppKit
 import SwiftUI
 
-// Two rows of one column that truncate to the same visible text read as one value. A minimum
-// character count alone cannot distinguish such values. Each one-line cell that may truncate reports
+// Two rows of one column that truncate to the same visible text read as one value: the inspector example's
+// members table showed "triggerAna…" twice for triggerAnalysisOnAppear and triggerAnalysisOnChange,
+// and the 8-character floor passed both (audit M14). Each one-line cell that may truncate reports
 // what it shows (its visible text at the width it got) with its column, and
 // `LumenConformance.truncation` and `.workspaceWindow` fail when two different values in one
 // column show the same thing. Components opt in with

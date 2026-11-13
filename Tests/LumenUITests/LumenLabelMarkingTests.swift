@@ -4,7 +4,9 @@ import XCTest
 /// PRINCIPLES §6, at the source: every one-line label in LumenUI says what happens when it doesn't
 /// fit. A primary label reports itself when cut short (`.lumenNeverTruncates`); secondary detail
 /// truncates in the middle (`.truncationMode(.middle)`), or at an explicit end with a help tag holding
-/// the whole text (`.truncationMode(.tail)` + `.help(text)`). A `.lineLimit(1)` with none of these
+/// the whole text (`.truncationMode(.tail)` + `.help(text)`). A label held at its natural width
+/// (`.fixedSize()` or `.fixedSize(horizontal: true, …)`) cannot truncate; the bar-label rules check
+/// that its bar makes room or falls back to icons or overflow. A `.lineLimit(1)` with none of these
 /// silently cuts words off at the end, where no check sees it.
 ///
 /// A heuristic scan: for each `.lineLimit(1)`, the modifier chain around it (two lines before, six
@@ -58,6 +60,8 @@ final class LumenLabelMarkingTests: XCTestCase {
             } ?? line
             let chain = (Array(lines[start..<index]) + [own] + (end > index ? Array(lines[(index + 1)...end]) : [])).joined(separator: "\n")
             if chain.contains(".truncationMode(.middle)") || chain.contains(".lumenNeverTruncates") { continue }
+            // Natural width: the label can't be cut short horizontally.
+            if chain.contains(".fixedSize()") || chain.contains(".fixedSize(horizontal: true") { continue }
             // Secondary detail may also truncate at an explicit end, as long as a help tag carries the whole text.
             if chain.contains(".help("), chain.contains(".truncationMode(.tail)") || chain.contains(".truncationMode(.head)") { continue }
             let snippet = textExpression(near: index, in: lines) ?? trimmed[index]
@@ -110,10 +114,13 @@ final class LumenLabelMarkingTests: XCTestCase {
             Text(path).lineLimit(1).truncationMode(.middle)
             Text(detail).lineLimit(1).truncationMode(.tail).help(detail)
             Text(source).lineLimit(1).truncationMode(.tail)
+            Text(count).lineLimit(1).fixedSize(horizontal: true, vertical: false)
+            Text(chip).lineLimit(1).fixedSize()
+            Text(row).lineLimit(1).fixedSize(horizontal: false, vertical: true)
             Text(name)
                 .lineLimit(1)
                 .lumenNeverTruncates(name)
             """
-        XCTAssertEqual(Self.unmarkedSites(in: source, file: "X.swift"), ["X.swift · Text(title)", "X.swift · Text(source)"])
+        XCTAssertEqual(Self.unmarkedSites(in: source, file: "X.swift"), ["X.swift · Text(title)", "X.swift · Text(source)", "X.swift · Text(row)"])
     }
 }

@@ -78,9 +78,9 @@ final class LumenComponentRegressionTests: XCTestCase {
     }
 }
 
-/// Workspace component behavior and shared style defaults.
+/// Gaps Inspector worked around, closed in Lumen (2026-10-11 survey).
 @MainActor
-final class LumenWorkspaceComponentTests: XCTestCase {
+final class LumenAdoptionGapTests: XCTestCase {
     func testWindowRolesCanBeReadThroughAnotherSurfacesTheme() throws {
         let store = TestPack.store(themes: LumenRegistry.core.builtInThemes)
         store.select(LumenThemes.standardID)

@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import LumenTokens
 
-// Lumen 0.34: a tab overview, a checklist tree and commit composer, a font picker, a
+// Lumen 0.34, for workspace apps: a tab overview, a checklist tree and commit composer, a font picker, a
 // code sample block and status row, card carousels and an item detail header.
 
 // MARK: Tab overview
@@ -28,7 +28,7 @@ public struct LumenOverviewTab: Identifiable {
     }
 }
 
-/// Every open tab as a thumbnail: a grid of previews with each title under its
+/// Every open tab as a thumbnail (the workspace's Show All Tabs): a grid of previews with each title under its
 /// card, shortened in the middle; the current tab on a rounded selected surface. Click one to switch.
 public struct LumenTabOverview: View {
     private let tabs: [LumenOverviewTab]
@@ -123,7 +123,7 @@ public struct LumenChecklistNode: Identifiable, Hashable, Sendable {
     }
 }
 
-/// A tree of checkboxes: each folder's box mixed when only some of its files are
+/// A tree of checkboxes (the workspace's Git changes): each folder's box mixed when only some of its files are
 /// checked; checking a folder checks everything under it. `checked` holds the leaves' ids.
 public struct LumenChecklistTree: View {
     private let nodes: [LumenChecklistNode]
@@ -204,7 +204,7 @@ public struct LumenChecklistTree: View {
 
 // MARK: Commit composer
 
-/// Writing a commit: the message with its hint, a character count against a
+/// Writing a commit (the workspace's Git changes): the message with its hint, a character count against a
 /// soft limit for the first line, Amend, the author's avatar and Commit. ⌘Return commits.
 public struct LumenCommitComposer: View {
     @Binding private var message: String
@@ -274,7 +274,7 @@ public struct LumenCommitComposer: View {
 
 // MARK: Font picker
 
-/// A font chosen as family, style and size: the chosen family shown in its own
+/// A font chosen as family, style and size (the workspace's editor font): the chosen family shown in its own
 /// face (menu items may draw in the system font), its styles, and the size with a stepper.
 /// `onOptions` adds an Options… button.
 public struct LumenFontPicker: View {
@@ -381,7 +381,7 @@ struct LumenFontPickerLabel: View {
 
 // MARK: Code sample and status row
 
-/// Commands as a terminal shows them, for help text and settings:
+/// Commands as a terminal shows them, for help text and settings (the workspace's command-line tool pane):
 /// each line after a prompt, in code type on an inset block. Text can be selected and copied.
 public struct LumenCodeSample: View {
     private let lines: [String]
@@ -414,7 +414,7 @@ public struct LumenCodeSample: View {
     }
 }
 
-/// A label and a value with an optional action,
+/// A label and a value with an optional action (the workspace's "Installed: /usr/local/bin/workspace v14.1 🔍"),
 /// the value in code type when it's a path.
 public struct LumenStatusRow: View {
     private let label: String
@@ -472,7 +472,7 @@ public enum LumenItemState: Sendable, Hashable {
 }
 
 /// An item in a store (an extension, a theme): its icon, name, author and a three-line description,
-/// with Install or "Installed" at the top trailing corner.
+/// with Install or "Installed" at the top trailing corner (the workspace's Extension Library).
 public struct LumenItemCard: View {
     private let title: String
     private let author: String?
@@ -570,7 +570,8 @@ public struct LumenItemCard: View {
 /// capture its metatype in the Sendable geometry closure (Swift 6).
 private let lumenCarouselSpace = "LumenCarousel"
 
-/// A titled row of cards that scrolls sideways, with round ← → buttons at its ends. Each arrow steps one card and hides at its end; the clipped edges
+/// A titled row of cards that scrolls sideways, with round ← → buttons at its ends (the workspace's
+/// "Most Popular: This Week"). Each arrow steps one card and hides at its end; the clipped edges
 /// fade out (a mask, so the fade is right on any ground).
 public struct LumenCarousel<ID: Hashable, Card: View>: View {
     private let title: String
@@ -690,7 +691,7 @@ public extension LumenCarousel where ID == Int {
 
 // MARK: Detail header
 
-/// The top of an item's page in a store: its icon and name, its categories,
+/// The top of an item's page in a store (the workspace's extension detail): its icon and name, its categories,
 /// meta on the trailing side ("Version 1.3.6 · 3 years ago"), the primary action and
 /// Share, a row of icon links, and what it's allowed to do.
 public struct LumenDetailHeader: View {
@@ -743,10 +744,16 @@ public struct LumenDetailHeader: View {
                 }
                 HStack(spacing: metrics.spacing.s3) {
                     // Categories are labels, not links: no underline.
-                    ForEach(categories, id: \.self) { Text($0).font(metrics.typography.callout).foregroundStyle(palette[.fgSecondary]) }
+                    ForEach(categories, id: \.self) { Text($0).font(metrics.typography.callout).foregroundStyle(palette[.fgSecondary]).lineLimit(1).fixedSize().layoutPriority(1) }
                     Spacer(minLength: metrics.spacing.s3)
-                    Text(meta.joined(separator: " · ")).font(metrics.typography.caption).foregroundStyle(palette[.fgTertiary]).lineLimit(1).truncationMode(.tail).help(meta.joined(separator: " · "))
+                    ViewThatFits(in: .horizontal) {
+                        Text(meta.joined(separator: " · ")).font(metrics.typography.caption).foregroundStyle(palette[.fgTertiary])
+                            .lineLimit(1).truncationMode(.middle).fixedSize(horizontal: true, vertical: false)
+                        Color.clear.frame(width: 0, height: 0)
+                    }
+                    .layoutPriority(-1)
                 }
+                .help(meta.joined(separator: " · "))
                 if let summary {
                     Text(summary).font(metrics.typography.body).foregroundStyle(palette[.fgSecondary]).lumenWrapsWithoutTruncating()
                 }

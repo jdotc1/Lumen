@@ -167,7 +167,8 @@ public struct LumenFilterField: View {
     }
 }
 
-/// A row of filter chips, one selected: the selection fills with `chip.selectedBackground`.
+/// A row of filter chips, one selected: the selection fills with `chip.selectedBackground`, as
+/// the workspace's console level filter does.
 public struct LumenFilterChips<Value: Hashable>: View {
     @Binding private var selection: Value
     private let options: [Value]
@@ -184,7 +185,8 @@ public struct LumenFilterChips<Value: Hashable>: View {
         self.init(selection: selection, groups: [options], title: title, count: nil)
     }
 
-    /// Chips in groups split by hairlines, each with an optional count.
+    /// Chips in groups split by hairlines, each with an optional count (the workspace's key bindings scope bar:
+    /// All | Menu, Extensions | Customized, Conflicts (2)).
     public init(selection: Binding<Value>, groups: [[Value]], title: @escaping (Value) -> String, count: ((Value) -> Int?)? = nil) {
         _selection = selection
         self.groups = groups
@@ -199,6 +201,7 @@ public struct LumenFilterChips<Value: Hashable>: View {
     public var body: some View {
         ViewThatFits(in: .horizontal) {
             strip.fixedSize(horizontal: true, vertical: false)
+            LumenPopUp(selection: $selection, options: options, title: { Self.label(title($0), count: count?($0)) }).fixedSize()
             ScrollView(.horizontal) { strip }
                 .fixedSize(horizontal: false, vertical: true)
                 .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
@@ -225,6 +228,7 @@ public struct LumenFilterChips<Value: Hashable>: View {
                 Button { selection = option } label: {
                     Text(Self.label(title(option), count: count?(option)))
                         .font(metrics.typography.body.weight(selected ? .semibold : .medium))   // 13 pt in a 24 pt control; only the selection is strong
+                        .lumenBarItem(Self.label(title(option), count: count?(option)), bar: "filter-chips", role: .label)
                         .lineLimit(1)
                         .lumenNeverTruncates(Self.label(title(option), count: count?(option)))
                         .fixedSize()
@@ -311,7 +315,7 @@ public enum LumenLogFilter: String, CaseIterable, Hashable, Sendable {
     }
 }
 
-/// A log console: a source menu, a filter field, level chips and
+/// A log console, as in the workspace's Extension Console: a source menu, a filter field, level chips and
 /// Clear above a native table (column resizing, selection, copy) of time, source and message in
 /// monospace. Errors and warnings carry their status color.
 public struct LumenLogConsole: View {
@@ -515,7 +519,7 @@ public struct LumenLogFilterBar: View {
             LumenPopUp(selection: $source, options: [nil] + sources.map { Optional($0) }, title: { $0 ?? lumenLocalized(String(localized: "All Sources", bundle: .module, comment: "Panels display text.")) })
                 .accessibilityLabel(lumenLocalized(String(localized: "Source", bundle: .module, comment: "Panels control text.")))
             Spacer(minLength: chips ? metrics.spacing.s4 : 0)
-            LumenFilterField(text: $query).frame(minWidth: chips ? 120 : 60, maxWidth: 260)
+            LumenFilterField(text: $query).frame(minWidth: max(chips ? 120 : 100, 5 * metrics.layout.controlHeight), maxWidth: 260)
             if chips {
                 LumenFilterChips(selection: $filter, options: LumenLogFilter.allCases, title: \.title)
             } else {
@@ -565,7 +569,8 @@ private struct LumenLogSourceMenu: View {
             Text(selection ?? lumenLocalized(String(localized: "All Sources", bundle: .module, comment: "Panels display text.")))
                 .font(metrics.typography.body)
                 .foregroundStyle(palette[.fgPrimary])
-                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(1).truncationMode(.middle)
+                .help(selection ?? lumenLocalized(String(localized: "All Sources", bundle: .module, comment: "Panels display text.")))
                 .frame(maxWidth: .infinity, alignment: .leading)
             LumenSymbol("chevron.up.chevron.down")
                 .font(.system(size: metrics.layout.disclosureGlyph, weight: .bold))
@@ -847,8 +852,9 @@ public struct LumenToolLayout: Hashable, Sendable {
     }
 }
 
-/// A sidebar section with a count: its glyph in a tile, its title and
-/// count, then its rows, or, while the count is zero, one quiet line saying what will appear there.
+/// A sidebar section with a count (the inspector example's Binaries, Functions): its glyph in a tile, its title and
+/// count, then its rows, or, while the count is zero, one quiet line saying what will appear there
+/// (design review: no "No items" placeholder rows).
 public struct LumenSidebarCountSection<Content: View>: View {
     private let title: String
     private let systemImage: String
@@ -1337,7 +1343,12 @@ struct LumenTabWindowLayout: Layout {
 }
 
 extension LumenDocumentTabBar {
-    private var minimumTabWidth: CGFloat { metrics.layout.controlHeight * 6 + 2 * metrics.stroke.hairline }
+    private var minimumTabWidth: CGFloat { Self.minimumTabWidth(metrics) }
+
+    /// The scaled width below which a tab's title would truncate in the equal-width strip.
+    static func minimumTabWidth(_ metrics: LumenMetrics) -> CGFloat {
+        metrics.layout.controlHeight * 6 + 2 * metrics.stroke.hairline
+    }
 
     private var tabViews: some View {
         ForEach(tabs) { tab in
@@ -1567,6 +1578,8 @@ extension View {
 }
 
 /// The editor's status bar: compact items grouped in a hairline capsule.
+/// Labels retain their natural width, then use icons or the overflow menu. Text defaults to
+/// one line with middle truncation; callers supply help for free-text titles and paths.
 public struct LumenStatusBar<Content: View>: View {
     private let content: Content
     @Environment(\.lumenPalette) private var palette
@@ -1576,18 +1589,31 @@ public struct LumenStatusBar<Content: View>: View {
     public init(@ViewBuilder content: () -> Content) { self.content = content() }
 
     public var body: some View {
+        // ViewThatFits picks the first tier whose ideal width fits, so a chosen tier never squeezes
+        // its labels; it is laid out at the full width, letting a Spacer push trailing items out.
         ViewThatFits(in: .horizontal) {
             HStack(spacing: metrics.spacing.s4) { content }
                 .frame(maxWidth: .infinity)
+            HStack(spacing: metrics.spacing.s4) { content }
+                .labelStyle(.iconOnly).environment(\.lumenBarIconsOnly, true)
+                .frame(maxWidth: .infinity)
+            LumenMenuButton(help: lumenLocalized(String(localized: "Status details", bundle: .module, comment: "Panels control text."))) {
+                content
+            } label: {
+                LumenSymbol("ellipsis").frame(minWidth: metrics.layout.minimumHitTarget, minHeight: metrics.layout.minimumHitTarget)
+            }
+            .accessibilityLabel(lumenLocalized(String(localized: "Status details", bundle: .module, comment: "Panels control text.")))
+            .fixedSize()
             ScrollView(.horizontal) {
-                HStack(spacing: metrics.spacing.s4) { content }
+                HStack(spacing: metrics.spacing.s4) { content }.fixedSize(horizontal: true, vertical: false)
             }
             .fixedSize(horizontal: false, vertical: true)
             .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
         }
+        .lineLimit(1).truncationMode(.middle)
         .font(metrics.typography.caption)
         .foregroundStyle(palette[.fgSecondary])
-        .padding(.horizontal, metrics.spacing.s4)
+        .padding(.horizontal, max(metrics.spacing.s4, metrics.layout.minimumHitTarget / 2))
         .frame(minHeight: metrics.layout.minimumHitTarget)
         .overlay { Capsule(style: .circular).strokeBorder(palette[.borderSubtle], lineWidth: metrics.stroke.hairline) }
         .lumenReportsBottomBar()

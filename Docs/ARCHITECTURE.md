@@ -1,7 +1,9 @@
 # Lumen architecture
 
-Lumen is a design system for macOS. Every color has a role, themes are data, and a validator
-checks text and control contrast. Themes and metrics customize the shared visual language.
+Lumen is an independent macOS design system. Colors have semantic roles, themes are data,
+and a validator checks readability. Shared components serve workspace, document, library,
+batch-processing and menu-bar apps. Each app keeps its domain pack and chooses its branding
+through themes and metrics. Lumen owns its plans and releases independently of client pins.
 
 ## Design choices
 
@@ -17,7 +19,7 @@ checks text and control contrast. Themes and metrics customize the shared visual
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │ App packs (in each app's repository)                         │
-│   Domain roles, branded themes and metrics                 │
+│   InspectorPack: syntax, listing, kinds, graph, debugger…    │
 │   (each app: its own roles, branded themes, metrics)        │
 ├──────────────────────────────────────────────────────────────┤
 │ LumenUI  (SwiftUI + AppKit)                                  │
@@ -120,7 +122,7 @@ The canonical built-in JSON export includes metrics, and the schema and token re
 their bounds, inheritance, and pack locks. `lumen-theme validate` uses the same validator as the
 store, including metric errors. DTCG/CSS interchange and the editor use the same model.
 
-**Surface.** Every app has `.window`. An app can add surfaces, such as a code editor or
+**Surface.** Every app has `.window`. An app can add surfaces, such as the inspector example's code editor or
 a document canvas, and let the user pick a different theme for each. A token resolves through
 its surface's theme. That keeps text and the fill under it from the same theme, so the validator's
 same-theme checks stay true when the themes differ.
@@ -179,8 +181,8 @@ those, never a global. So stores are scoped per window:
 | Expressive components: icon tiles and the `hue.*` family, native menu labels, keycaps, the command menu with submenus, settings panes, tabs and sidebar; the welcome window and starfield; toolbar identity, activity status and task cluster; inspector header, sections, rows and toggle; hue swatches and picker; popover content, info button; glyphs, custom SF Symbols (or SF Symbol equivalents) that resolve from `lumen.` names anywhere a `systemImage` goes (with the `menu.*`, `panel.*`, `welcome.*`, `inspector.background` roles) | ✓ (`LumenUI`) | its own hues, if it needs categories beyond the ten |
 | Lumen Catalog app (`swift run LumenCatalog`) | ✓ | |
 | Theme gallery, editor, library (import, export, trash, live reload) | ✓ (`LumenUI`) | |
-| Domain roles: listing rows, object kinds, graph edges, debugger, evidence, terminal | | Application packs |
-| Domain components: evidence badge, kind badge glyph map | | Application code |
+| Domain roles: listing rows, object kinds, graph edges, debugger, evidence, terminal (Inspector keeps its own syntax roles until it adopts `LumenPack.code`) | | Inspector |
+| Domain components: evidence badge, kind badge glyph map | | Inspector (its own task cluster and starfield until it adopts Lumen's) |
 | Domain glyphs beyond Lumen's families | | registered by each app (`LumenGlyph.register`) |
 | Command palette (`LumenCommandPalette`): matching, ranking, recents, scopes picked by pill or typed prefix (`LumenPaletteScope`, an Open Quickly), presentation, View menu item | ✓ (`LumenUI`) | the commands and their scopes |
 | Workspace pieces: title bar glow, breadcrumb, panel toggles, bottom panel, panel tabs, filter field and chips, log console, sidebar switcher and sections, document tabs, status bar, new-item button and launch menu, dock zone (with the `titlebar.*`, `layoutToggle.on`, `chip.*`, `field.background` roles) and the Ultraviolet theme | ✓ (`LumenUI`, `LumenTokens`) | |
@@ -227,8 +229,15 @@ checked once. Unreadable files and empty patterns produce coverage findings.
 
 Minimum text size and semantic labels are not currently checked.
 
-The Catalog's Conformance page lists built-in check metadata without running checks or
-reading source files while browsing. Applications can keep custom checks in their test targets.
+`Examples/InspectorPack/InspectorStyleRatchet.swift` demonstrates an app-owned source check with an
+allowed occurrence budget. The caller supplies files and a budget; the example does not claim to
+measure any external app checkout. Its test exercises the accepted boundary and the
+failure above it through the public runner.
+
+The Catalog's Conformance page lists Lumen checks and groups app checks by their declared `owner`.
+It displays metadata only, never running checks or reading source files while browsing. The
+Catalog and staged Inspector example therefore link LumenConformance; consuming apps should still
+keep checks in their test targets.
 
 ## API naming
 
@@ -264,7 +273,7 @@ files stays quiet (document tabs, overview tabs, search files, checklist nodes).
 things outside the app default to `.hueBlue` (references, graph nodes, collection items, recent
 projects, processes, the info button). A component with its own identity names it: a managed
 tool's orange, a notice's graphite. The New button is one of the app's own controls: since 0.50 it
-draws the accent (pass `hue:` or `sparkHue:` for a pink accent). `LumenItemCard` and `LumenDetailHeader`
+draws the accent (pass `hue:` or `sparkHue:` for the workspace's pink). `LumenItemCard` and `LumenDetailHeader`
 stand for store extensions, outside the app, so since 1.0 they default to `.hueBlue` like
 `LumenCollectionItem`; pass `.accent` for the previous look.
 
@@ -279,8 +288,9 @@ stand for store extensions, outside the app, so since 1.0 they default to `.hueB
 - Releases are cut only with `Scripts/release.sh <version>`: it refuses to tag until the changelog has
   the entry, the API check against the previous release passes (on a break, the changelog's newest
   entry must have a **Breaking** section), the build has no warnings, and every test passes with
-  goldens. The workflow is manual and targets `macos-27`; the local release command
-  runs on a macOS 27 machine.
+  goldens. The private workflow remains manual only. Its former hosted `macos-26` runner no longer
+  matches the floor, and there is no hosted macOS 27 image yet. It targets `macos-27` for when
+  GitHub ships that image; the gate is `Scripts/release.sh` on a macOS 27.2 development machine.
 - Releases are annotated tags (`v0.2.0`) on the commits apps pin, and CHANGELOG.md lists each one's
   breaking, visual and validator changes, so moving a pin starts from the changelog rather than the
   commit log. Before 1.0, a minor version may still carry source changes; they're listed under
@@ -290,8 +300,8 @@ stand for store extensions, outside the app, so since 1.0 they default to `.hueB
 
 - Every built-in theme defines every semantic role and passes the validator with zero issues.
 - Foregrounds (any token with contrast requirements, components included) are opaque: the
-  validator rejects translucent values in built-in and imported themes, and the theme editor
-  offers no opacity for them.
+  validator rejects translucent values in built-in and imported themes (the rejection is tested
+  through the example domain pack), and the theme editor offers no opacity for them.
   A translucent color in a pack's pair rule is measured composited.
 - Lumen's shortcuts are distinct and clear of macOS's own; glyph marks keep 3:1 over their tint
   layer in every tile and text color; selection groups stop at their ends (see KEYBOARD.md).

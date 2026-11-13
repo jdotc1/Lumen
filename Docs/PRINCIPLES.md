@@ -1,7 +1,8 @@
 # Lumen principles
 
-Lumen makes Mac apps that behave exactly like Mac apps and still have character. Its design
-principles draw on Simon Lou's thesis on opinionated, expressive, Mac-assed design.
+Lumen makes Mac apps that behave exactly like Mac apps and still have character. The ideas come
+from Panic's workspace (as reviewed by MacStories and noted by Daring Fireball) and from Simon Lou's
+thesis on opinionated, expressive, Mac-assed design.
 
 ## 1. Compatible with macOS, drawn by Lumen
 
@@ -36,7 +37,8 @@ from the native *look* outside those standard elements is fine when it's better.
 ## 3. Personality at the edges, density at the center
 
 Working surfaces stay dense and quiet: the listing, the table, the editor. Personality belongs at
-the edges: the welcome window, empty states, icon tiles, Settings. Editors stay plain; welcome surfaces can use an animated starfield.
+the edges: the welcome window, empty states, icon tiles, Settings. the workspace's editor is plain; its
+launcher has an animated starfield.
 
 ## 4. Play is useful
 
@@ -164,7 +166,7 @@ their ground.
 
 ## 9. One top bar row, on the window buttons' line
 
-A workspace window's top bar is one compact row. **Every item sits on the window
+A workspace window's top bar is one compact row, as the workspace's is. **Every item sits on the window
 buttons' center line**, with no empty title strip above and no band below. The bar is native:
 `LumenWorkspaceWindow` and `.lumenTopBar` (`LumenTopBarPlacement.unified`, the default) hand their
 content to the window's toolbar, and `.windowToolbarStyle(.unifiedCompact(showsTitle: false))` on
@@ -173,7 +175,7 @@ dragging and double-click. Lumen hides the toolbar's background and draws its gl
 wrap toolbar items in stacks or padding that shift them off the line. `.underTitleBar` keeps the
 older 44 pt SwiftUI bar under the buttons for an app that isn't ready to move.
 
-The toolbar's leading-to-trailing order is:
+Left to right, as the workspace's help describes its toolbar:
 
 1. **App mark** (20 pt tile; opens the launcher), a slash (`LumenToolbarDivider`).
 2. **Project**: a 20 pt tile and a 13 pt semibold name in the compact toolbar; the branch or
@@ -210,7 +212,7 @@ Equal-priority regions retain inspector-first order. Later archetypes reuse this
 |---|---|
 | Navigation lists and tables (source lists, sidebars, `LumenTable`) | Quiet: `bg.selected` (inactive: `bg.selectedInactive`); in a sidebar, `sidebar.rowSelected` (inactive: `sidebar.rowSelectedInactive`), which fall back to them. Outside Settings, selected sidebar titles are semi-bold in active and inactive windows; reserve their semi-bold width so selection never shifts text. Subtitles and count badges keep their normal weight |
 | Menus, pickers, command results, completion, master-detail lists, history rows, collections and filter chips | Filled: `accent.filled` under `accent.filledForeground` (white); rows inset with `radius.sm` |
-| Tabs and segmented pickers (document and panel tabs, mode switchers, tabbed boxes, palette scopes) | Shared continuous rounded chrome: `tab.activeFill` for document tabs, `bg.elevated` for panel and segmented selections, `border.subtle` hairline, and `bg.hover` for hover; optional document accent stays a subtle pill tint. `radius.md` scales with control height; inactive windows dim the chrome |
+| Tabs and segmented pickers (document and panel tabs, mode switchers, tabbed boxes, palette scopes) | Shared continuous rounded chrome: `tab.activeFill` for document tabs, `bg.elevated` for panel and segmented selections, `border.subtle` hairline, and `bg.hover` for hover. Segmented controls and pill mode switchers sit in a `bg.inset` well with a `border.default` hairline (`LumenTabWell`), and their selected plate takes a `border.default` hairline (plus a faint accent tint in dark), so the selection reads against the track in every theme; optional document accent stays a subtle pill tint. `radius.md` scales with control height; inactive windows dim the chrome |
 | Tool tiles | A plate behind the selected item |
 | Code rows (listings, hex) | A full-width band with an accent bar |
 
@@ -236,7 +238,7 @@ Tile sections keep Title Case titles. Tags and badges are sentence case.
 `status.danger`: error states, console and debugger markers, status chips, banners), warning a
 triangle (`exclamationmark.triangle.fill`, in `status.warning`).
 
-**Boolean switches use `LumenSwitch`.** The system switch (`Toggle` with the default style) measures 1.28:1 in dark and 1.24:1 in light against its surround, below the 3:1 non-text contrast bar; `LumenSwitch` measures 3.51:1. Use `LumenSwitch` for every boolean in a Lumen window. A native switch is acceptable only where the system owns the control (a system sheet or panel Lumen does not draw). Decision: Jeff, 2026-11-12.
+**Boolean switches use `LumenSwitch`.** The system switch (`Toggle` with the default style) measures 1.28:1 in dark and 1.24:1 in light against its surround, below the 3:1 non-text contrast bar; `LumenSwitch` measures 3.51:1. Use `LumenSwitch` for every boolean in a Lumen window. A native switch is acceptable only where the system owns the control (a system sheet or panel Lumen does not draw). Decision: design review, 2026-11-12.
 
 ## 11. Glass
 
@@ -262,6 +264,15 @@ policy is [GLASS.md](GLASS.md); this is its summary.
   to in offscreen renders. An app opts out per store (`LumenStoreConfiguration.chromeStyle`) or per
   subtree (`.lumenChromeStyle(.drawn)`); `.glass` draws as `.drawn` under Reduce Transparency and
   in offscreen renders, and changes no token, metric, keyboard behavior, focus or selection.
+- **One style in an app, no switch.** An app picks its chrome style in code; no window offers a
+  person a Drawn/Glass switch (design review 2026-11, note 24).
+- **Every toolbar button is an app icon.** Each top-bar button is drawn as one app-icon unit
+  (`LumenToolbarIcon`): the glyph centered on its own continuous-corner rounded square in app-icon
+  proportions, with face, light, rim, shadow and glyph in a single vector drawing that scales
+  cleanly, lifted off the bar by a subtle elevation so it reads as a physical clickable button.
+  Hover raises it and press settles it. The rounded square belongs to the icon; it is never a
+  plate layered behind a glyph, glass or the system toolbar platter. See
+  [GLASS.md](GLASS.md#toolbar-icons).
 
 ## 12. A window component ships as a whole window
 

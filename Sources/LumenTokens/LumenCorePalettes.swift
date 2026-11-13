@@ -1,4 +1,5 @@
-// Built-in palettes for the shared color roles.
+// Shared built-in palettes. Each role has a stable semantic meaning across apps,
+// and each theme supplies values for the supported appearances.
 
 extension LumenThemes {
     /// The hue family per built-in look. Tiles stay the same in light and dark (as in System

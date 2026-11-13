@@ -33,10 +33,8 @@ struct CatalogMenuBarPanel: View {
 private struct CatalogAgentStatus: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label {
-                Text("All files up to date").lumenNeverTruncates("All files up to date")
-            } icon: { Image(systemName: "checkmark.circle") }
-            .catalogFirstContent("detail-first-status")
+            CatalogAgentLabel("All files up to date", systemImage: "checkmark.circle")
+                .catalogFirstContent("detail-first-status")
             Text("3 folders watched").lumenNeverTruncates("3 folders watched")
                 .foregroundStyle(.lumen(.fgSecondary))
         }
@@ -47,15 +45,40 @@ private struct CatalogAgentRecentItems: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Recent activity").bold().lumenNeverTruncates("Recent activity")
-            Label {
-                Text("Notes.md synced").lumenNeverTruncates("Notes.md synced")
-            } icon: { Image(systemName: "doc.text") }
-            Label {
-                Text("Sketch.png added").lumenNeverTruncates("Sketch.png added")
-            } icon: { Image(systemName: "photo") }
-            Label {
-                Text("Report.pdf synced").lumenNeverTruncates("Report.pdf synced")
-            } icon: { Image(systemName: "doc") }
+            CatalogAgentLabel("Notes.md synced", systemImage: "doc.text")
+            CatalogAgentLabel("Sketch.png added", systemImage: "photo")
+            CatalogAgentLabel("Report.pdf synced", systemImage: "doc")
+        }
+    }
+}
+
+/// A row label whose icon sits in a fixed 20 pt column, so every title starts at the same x
+/// whatever the symbol's own width ("photo" is wider than "doc"; design review 2026-11 #16).
+private struct CatalogAgentLabel: View {
+    let title: String
+    let systemImage: String
+
+    init(_ title: String, systemImage: String) {
+        self.title = title
+        self.systemImage = systemImage
+    }
+
+    var body: some View {
+        Label {
+            Text(title).lumenNeverTruncates(title)
+        } icon: {
+            LumenSymbol(systemImage).frame(width: 20)
+        }
+    }
+}
+
+/// The Catalog page: the standard page header over the panel as it appears in the menu bar. The
+/// panel itself stays header-free because the MenuBarExtra shows it too.
+struct CatalogMenuBarPanelPage: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            PageHeader(title: "Menu Bar Panel", summary: "The agent panel a menu bar extra shows: a title and status, grouped content and a footer with Settings and Quit.")
+            CatalogMenuBarPanel()
         }
     }
 }

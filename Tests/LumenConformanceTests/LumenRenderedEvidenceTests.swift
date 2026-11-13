@@ -9,6 +9,112 @@ import XCTest
 /// Counterexamples in which incomplete ownership or line matching would invent a defect.
 @MainActor
 final class LumenRenderedEvidenceTests: XCTestCase {
+    func testBarPureRenderedTolerance() throws {
+        let text = "Export results"
+        let baseWidth = (text as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 13)]).width
+        let size = 13 * 100 / baseWidth
+        let expected = (text as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: size)]).width
+        let bounds = CGRect(x: 0, y: 0, width: 240, height: 180)
+        for (width, fails) in [(76.0, true), (97.0, false), (100.0, false)] {
+            let frame = CGRect(x: 40, y: 60, width: 100, height: 24)
+            let item = LumenBarItemReport(bar: "status", label: text, role: .label,
+                ideal: CGSize(width: 100, height: 24), frame: frame, fontSize: size)
+            let capture = LumenRenderedAudit.Capture(image: try solidImage(.white), frame: bounds,
+                usable: bounds, chrome: .zero, exclusions: [], elements: [], clips: [],
+                drawingBounds: [], margin: nil, scaffoldMargins: [], reports: [], barItems: [item])
+            let line = LumenRenderedAudit.Line(text: text,
+                frame: CGRect(x: 40, y: 60, width: width * expected / 100, height: 12), confidence: 1, inkPixels: 40)
+            let result = try LumenRenderedAudit.analyze(capture, recognizedLines: [line])
+            XCTAssertEqual(result.findings.map(\.rule), fails ? ["rendered-bar-squeeze"] : [])
+            if fails { XCTAssertEqual(result.findingRects, [line.frame]) }
+        }
+    }
+
+    func testBarPureRenderedNegativeControls() throws {
+        let frame = CGRect(x: 0, y: 0, width: 240, height: 180)
+        for (role, mode) in [(LumenBarItemReport.Role.label, LumenBarItemReport.Mode.iconOnly),
+                             (.label, .overflow), (.freeText, .full)] {
+            let ink = CGRect(x: 40, y: 60, width: 30, height: 12)
+            let item = LumenBarItemReport(bar: "status", label: "A long folder path", role: role, mode: mode,
+                ideal: CGSize(width: 100, height: 16), frame: ink, truncation: .middle)
+            let capture = LumenRenderedAudit.Capture(image: try solidImage(.white), frame: frame,
+                usable: frame, chrome: .zero, exclusions: [], elements: [], clips: [],
+                drawingBounds: [], margin: nil, scaffoldMargins: [], reports: [], barItems: [item])
+            let line = LumenRenderedAudit.Line(text: "A…path", frame: ink, confidence: 1, inkPixels: 40)
+            XCTAssertTrue(try LumenRenderedAudit.analyze(capture, recognizedLines: [line]).findings.isEmpty)
+        }
+    }
+
+    @MainActor private final class BarToolbarDelegate: NSObject, NSToolbarDelegate {
+        let identifiers = (0..<8).map { NSToolbarItem.Identifier("bar-control-\($0)") }
+        func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] { identifiers }
+        func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] { identifiers }
+        func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier identifier: NSToolbarItem.Identifier,
+                     willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
+            let item = NSToolbarItem(itemIdentifier: identifier)
+            item.label = "Action"
+            let button = NSButton(title: "Toolbar action", target: nil, action: nil)
+            button.sizeToFit()
+            item.view = button
+            return item
+        }
+    }
+
+    func testBarPureNativeToolbarOverflow() {
+        _ = NSApplication.shared
+        let window = LumenHeadlessHost.window(contentRect: CGRect(x: 0, y: 0, width: 320, height: 200),
+            styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let delegate = BarToolbarDelegate()
+        let toolbar = NSToolbar(identifier: "bar-overflow-control")
+        toolbar.delegate = delegate
+        toolbar.displayMode = .iconOnly
+        window.toolbar = toolbar
+        LumenHeadlessHost.order(window)
+        settle(window)
+        XCTAssertLessThan(toolbar.visibleItems?.count ?? toolbar.items.count, toolbar.items.count)
+        XCTAssertFalse(LumenLayoutAudit.findings(in: window).contains { $0.rule.hasPrefix("bar-") })
+        withExtendedLifetime(delegate) {}
+    }
+
+    func testBarPureSemanticModesAndYield() {
+        var item = LumenBarItemReport(bar: "status", label: "Ready", role: .label,
+            ideal: CGSize(width: 100, height: 16), frame: CGRect(x: 0, y: 0, width: 76, height: 16))
+        XCTAssertEqual(LumenLayoutAudit.barItemFindings([item]).map(\.rule), ["bar-label-squeezed"])
+        for mode in [LumenBarItemReport.Mode.iconOnly, .overflow] {
+            item.mode = mode
+            XCTAssertTrue(LumenLayoutAudit.barItemFindings([item]).isEmpty)
+        }
+        item.mode = .full
+        var path = LumenBarItemReport(bar: "status", label: "/Folder/File", role: .freeText,
+            ideal: CGSize(width: 100, height: 16), frame: CGRect(x: 80, y: 0, width: 100, height: 16), truncation: .middle)
+        XCTAssertEqual(Set(LumenLayoutAudit.barItemFindings([item, path]).map(\.rule)),
+                       ["bar-label-squeezed", "bar-yield-order"])
+        path.frame.size.width = 20
+        XCTAssertTrue(LumenLayoutAudit.barItemFindings([path]).isEmpty)
+        path.truncation = .tail
+        XCTAssertEqual(LumenLayoutAudit.barItemFindings([path]).map(\.rule), ["bar-free-text-mode"])
+        item.frame.size.width = 99.5
+        XCTAssertTrue(LumenLayoutAudit.barItemFindings([item]).isEmpty)
+    }
+
+    func testBarPurePillProportions() {
+        let cap = NSFont.systemFont(ofSize: 13).capHeight
+        // The width >= label + 2 caps condition is algebraically equivalent to padH >= cap.
+        // Exercise each predicate, including the independent width >= height condition.
+        for (horizontal, vertical, fails) in [(cap - 1, 2.0, true), (cap, cap + 1, true),
+                                            (cap, cap, true), (cap + 2, 2.0, false)] {
+            let frame = CGRect(x: 50, y: 50, width: 4, height: 16)
+            let item = LumenBarItemReport(bar: "status", label: "1", role: .pill,
+                ideal: frame.size, frame: frame,
+                pillFrame: frame.insetBy(dx: -horizontal, dy: -vertical))
+            let findings = LumenLayoutAudit.barItemFindings([item])
+            XCTAssertEqual(findings.map(\.rule), fails ? ["bar-pill-proportions"] : [])
+            if fails { XCTAssertTrue(findings[0].message.contains("padH=")) }
+        }
+    }
+
     func testOwnedSeparatorCannotHideInsideNativeExclusions() throws {
         let frame = CGRect(x: 0, y: 0, width: 240, height: 180)
         let button = CGRect(x: 12, y: 155, width: 12, height: 12)

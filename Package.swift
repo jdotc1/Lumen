@@ -27,14 +27,19 @@ let package = Package(
         // Opt-in command adapter; LumenUI does not depend on App Intents.
         .target(name: "LumenIntents", dependencies: ["LumenUI"]),
         .testTarget(name: "LumenIntentsTests", dependencies: ["LumenTestSupport", "LumenHeadlessGuard", "LumenIntents", "LumenUI"]),
-        // Theme, layout, shortcut and coverage checks for application test targets.
+        // Checks an app runs in its own tests at each pin bump: themes, layout, shortcuts, coverage.
         // For app test targets; the Catalog also links check metadata for its conformance page.
         .target(name: "LumenConformance", dependencies: ["LumenTokens", "LumenUI", "LumenTestSupport"]),
         // Validates theme files and exports the reference artifacts from the command line.
         .executableTarget(name: "lumen-theme", dependencies: ["LumenTokens"]),
         // Every component in a real Mac app, including native menus and the Settings window.
-        .executableTarget(name: "LumenCatalog", dependencies: ["LumenTokens", "LumenUI", "LumenIntents", "LumenConformance"]),
+        .executableTarget(name: "LumenCatalog", dependencies: ["LumenTokens", "LumenUI", "LumenIntents", "LumenConformance", "InspectorPack"]),
         .testTarget(name: "LumenTokensTests", dependencies: ["LumenTestSupport", "LumenHeadlessGuard", "LumenTokens"]),
+        // An example app pack shows a domain pack with its own roles, themes and checks.
+        // Not a product: consuming apps define their own domain packs.
+        .target(name: "InspectorPack", dependencies: ["LumenTokens", "LumenConformance"], path: "Examples/InspectorPack"),
+        .testTarget(name: "InspectorPackTests", dependencies: ["LumenTestSupport", "LumenHeadlessGuard", "InspectorPack", "LumenConformance"], path: "Examples/InspectorPackTests",
+                    resources: [.copy("inspector-expected.json")]),
         // LumenConformance: the golden views also pass the design-rule checks.
         .testTarget(name: "LumenUITests", dependencies: ["LumenTestSupport", "LumenHeadlessGuard", "LumenUI", "LumenConformance", "LumenCatalog"], exclude: ["Goldens", "Fixtures"]),
         // The Catalog's windows never cut their content off: each page fits its column's minimum.

@@ -131,7 +131,6 @@ struct CatalogDocumentWindow: View {
             Spacer(minLength: 8)
             Text("Plain Text")
         } topTrailing: {
-            CatalogChromeToggle()
         }
         .contentMinimumWidth(640)
         .inspectorWidth((240, 280, 360))

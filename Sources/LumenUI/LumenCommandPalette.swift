@@ -52,7 +52,7 @@ public struct LumenCommand: Identifiable {
 }
 
 /// A part of the palette (Files, Symbols, Commands), chosen from its pill or by typing its prefix
-/// first ("#comp" searches Symbols for "comp").
+/// first ("#comp" searches Symbols for "comp"), as in the workspace's Open Quickly.
 public struct LumenPaletteScope: Identifiable, Hashable, Sendable {
     public let id: String
     public let title: String
@@ -327,9 +327,25 @@ public struct LumenCommandPalette: View {
 
     private var scopeBar: some View {
         ViewThatFits(in: .horizontal) {
-            scopeRow
-            ScrollView(.horizontal) { scopeRow }
-                .fixedSize(horizontal: false, vertical: true)
+            scopeRow(showsPrefixes: true)
+            scopeRow(showsPrefixes: false)
+            LumenMenuButton(help: resolved.scope?.title) {
+                ForEach(scopes) { scope in Button(scope.title) { choose(scope) } }
+            } label: {
+                HStack(spacing: metrics.spacing.s2) {
+                    Text(resolved.scope?.title ?? scopes.first?.title ?? "")
+                        .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+                    LumenSymbol("chevron.down")
+                }
+                .padding(.horizontal, metrics.spacing.s3)
+                .frame(minHeight: metrics.layout.controlHeight)
+            }
+            LumenMenuButton(help: lumenLocalized(String(localized: "Scopes", bundle: .module, comment: "CommandPalette control text."))) {
+                ForEach(scopes) { scope in Button(scope.title) { choose(scope) } }
+            } label: {
+                LumenSymbol("line.3.horizontal.decrease").frame(minWidth: metrics.layout.minimumHitTarget, minHeight: metrics.layout.minimumHitTarget)
+            }
+            .accessibilityLabel(lumenLocalized(String(localized: "Scopes", bundle: .module, comment: "CommandPalette control text.")))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background { scopeTrack }
@@ -337,7 +353,7 @@ public struct LumenCommandPalette: View {
         .padding(.bottom, metrics.spacing.s3)
     }
 
-    private var scopeRow: some View {
+    private func scopeRow(showsPrefixes: Bool) -> some View {
         let current = resolved.scope?.id
         return HStack(spacing: metrics.spacing.s1) {
             ForEach(scopes) { scope in
@@ -346,11 +362,12 @@ public struct LumenCommandPalette: View {
                     HStack(spacing: metrics.spacing.s1) {
                         // A 24 pt one-line control: 13 pt text (§10).
                         Text(scope.title).font(metrics.typography.body)
-                        if let prefix = scope.prefix { LumenKeycap([String(prefix)]) }
+                            .lumenBarItem(scope.title, bar: "palette-scopes", role: .label).lineLimit(1).fixedSize(horizontal: true, vertical: false)
+                        if showsPrefixes, let prefix = scope.prefix { LumenKeycap([String(prefix)]) }
                     }
                     .foregroundStyle(palette[selected ? .menuForeground : .menuSecondaryForeground])
                     .modifier(LumenTabActivity())
-                    .padding(.horizontal, contentInset - containerInset - scopeRim)
+                    .padding(.horizontal, max(metrics.spacing.s3, contentInset - containerInset - scopeRim))
                     .frame(height: metrics.layout.controlHeight - scopeRim * 2)
                     .background {
                         LumenTabChrome(strip: "palette-scope", selected: selected,
@@ -437,9 +454,13 @@ public struct LumenCommandPalette: View {
             }
             Rectangle().fill(palette[.menuSeparator]).frame(height: metrics.stroke.hairline)
             ViewThatFits(in: .horizontal) {
-                footerHints
-                ScrollView(.horizontal) { footerHints }
-                    .fixedSize(horizontal: false, vertical: true)
+                footerHints(labels: true)
+                footerHints(labels: false)
+                VStack(alignment: .leading, spacing: metrics.spacing.s1) {
+                    hint(["↑", "↓"], lumenLocalized(String(localized: "move", bundle: .module, comment: "CommandPalette text.")), showsLabel: false)
+                    hint(["↩"], lumenLocalized(String(localized: "run", bundle: .module, comment: "CommandPalette text.")), showsLabel: false)
+                    hint(["esc"], lumenLocalized(String(localized: "close", bundle: .module, comment: "CommandPalette text.")), showsLabel: false)
+                }.fixedSize()
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, contentInset)
@@ -521,25 +542,29 @@ public struct LumenCommandPalette: View {
                 VStack(alignment: .leading, spacing: metrics.spacing.s1) {
                     Text(title(command.title, offsets: row.offsets, highlighted: isHighlighted))
                         .font(metrics.typography.body).foregroundStyle(foreground).lineLimit(1)
-                        .lumenNeverTruncates(command.title)
+                        .truncationMode(.middle).help(command.title)
                     if let subtitle = command.subtitle {
                         // Text on the highlight is full white: dimmed white fell under 4.5:1.
-                        Text(subtitle).font(metrics.typography.caption).lineLimit(1).truncationMode(.tail).help(subtitle)
+                        Text(subtitle).font(metrics.typography.caption).lineLimit(1).truncationMode(.middle).help(subtitle)
                             .foregroundStyle(isHighlighted ? foreground : palette[.menuSecondaryForeground])
                     }
                 }
+                .layoutPriority(1)
                 Spacer(minLength: metrics.spacing.s4)
                 // The category only where no section header above already names it (recents), or
                 // where it's what the query matched (no letters of the title are highlighted).
                 let showsCategory = row.isRecent || (!query.isEmpty && row.offsets.isEmpty)
                 if let trailing = command.detail ?? (showsCategory ? command.category : nil) {
-                    // Details often name paths/categories: preserve the distinguishing final component.
-                    // Subtitles read as prose and retain their beginning instead.
-                    Text(trailing).font(metrics.typography.caption)
-                        .lineLimit(1).truncationMode(.head).help(trailing)
-                        .foregroundStyle(isHighlighted ? foreground : palette[.menuSecondaryForeground])
+                    // Secondary detail drops before the title; full context remains in the row's help.
+                    ViewThatFits(in: .horizontal) {
+                        Text(trailing).font(metrics.typography.caption)
+                            .lineLimit(1).truncationMode(.middle).fixedSize(horizontal: true, vertical: false)
+                            .foregroundStyle(isHighlighted ? foreground : palette[.menuSecondaryForeground])
+                        Color.clear.frame(width: 0, height: 0)
+                    }
+                    .help(trailing).layoutPriority(-1)
                 }
-                if let shortcut = command.shortcut { LumenKeycap(shortcut, onHighlight: isHighlighted) }
+                if let shortcut = command.shortcut { LumenKeycap(shortcut, onHighlight: isHighlighted).fixedSize().layoutPriority(2) }
             }
             .padding(.horizontal, contentInset - containerInset)
             .frame(minHeight: command.subtitle == nil ? density.rowHeight(in: metrics.layout) : density.detailedRowHeight(in: metrics.layout))
@@ -551,12 +576,14 @@ public struct LumenCommandPalette: View {
         .focusable(false)
         .disabled(!command.isEnabled)
         .onHover { if $0 && command.isEnabled { highlighted = command.id } }
+        .help([command.title, command.subtitle, command.detail, command.category].compactMap(\.self).joined(separator: " — "))
         .accessibilityLabel(command.title)
         .accessibilityHint(command.subtitle ?? command.category)
     }
 
     /// The title with the matched characters emphasized. On the highlight every letter is full
-    /// white and matches stand out by weight alone.
+    /// white and matches stand out by weight alone, as a search interface marks them (dimming the rest fell
+    /// under 4.5:1, T-09 / A-19).
     private func title(_ text: String, offsets: [Int], highlighted: Bool) -> AttributedString {
         var result = AttributedString()
         for (offset, character) in text.enumerated() {
@@ -571,20 +598,24 @@ public struct LumenCommandPalette: View {
         return result
     }
 
-    private var footerHints: some View {
+    private func footerHints(labels: Bool) -> some View {
         HStack(spacing: metrics.spacing.s4) {
-            hint(["↑", "↓"], lumenLocalized(String(localized: "move", bundle: .module, comment: "CommandPalette text.")))
-            hint(["↩"], lumenLocalized(String(localized: "run", bundle: .module, comment: "CommandPalette text.")))
-            hint(["esc"], lumenLocalized(String(localized: "close", bundle: .module, comment: "CommandPalette text.")))
+            hint(["↑", "↓"], lumenLocalized(String(localized: "move", bundle: .module, comment: "CommandPalette text.")), showsLabel: labels)
+            hint(["↩"], lumenLocalized(String(localized: "run", bundle: .module, comment: "CommandPalette text.")), showsLabel: labels)
+            hint(["esc"], lumenLocalized(String(localized: "close", bundle: .module, comment: "CommandPalette text.")), showsLabel: labels)
         }
         .fixedSize()
     }
 
-    private func hint(_ keys: [String], _ label: String) -> some View {
+    private func hint(_ keys: [String], _ label: String, showsLabel: Bool = true) -> some View {
         HStack(spacing: metrics.spacing.s2) {
             LumenKeycap(keys)
-            Text(label).font(metrics.typography.caption).foregroundStyle(palette[.menuSecondaryForeground])
+            if showsLabel {
+                Text(label).font(metrics.typography.caption)
+                    .lumenBarItem(label, bar: "palette-footer", role: .label, fontSize: 10).foregroundStyle(palette[.menuSecondaryForeground]).lineLimit(1).fixedSize()
+            }
         }
+        .help(label).accessibilityElement(children: .ignore).accessibilityLabel(label)
     }
 
     /// Everything about the commands that decides which rows show and which can be highlighted:

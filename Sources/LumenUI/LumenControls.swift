@@ -1,21 +1,22 @@
 import SwiftUI
 import LumenTokens
 
-// Settings controls: the tab strip on
+// Settings controls from the workspace's second pass (2026-10-12), in the styles design review picked: the tab strip on
 // the box edge, round radios, and the card table with quiet headers.
 
 // MARK: Tabbed box
 
 /// Where a tabbed box's strip sits.
 public enum LumenTabbedBoxStyle: Sendable {
-    /// On the top edge of a bordered box, the content inside.
+    /// On the top edge of a bordered box, the content inside (the workspace's Editor and Terminal panes).
     case box
-    /// Centered over a hairline at the top of a sheet, the content below.
+    /// Centered over a hairline at the top of a sheet, the content below (the workspace's server details).
     case header
 }
 
-/// Tabs that switch a box's content: a segmented strip sitting on the box's top edge.
-/// The `.header` style puts the same strip at the top of a sheet.
+/// Tabs that switch a box's content: a segmented strip sitting on the box's top edge, as the workspace's
+/// Settings panes group Display / Editing / Indentation. The `.header` style puts the same strip at
+/// the top of a sheet.
 public struct LumenTabbedBox<Tab: Hashable, Content: View>: View {
     @Binding private var selection: Tab
     private let tabs: [Tab]
@@ -152,7 +153,8 @@ public struct LumenRadioButton: View {
 }
 
 /// A choice of one among a few, as round radios in a column. An option can own detail (a list, a
-/// field) indented under it, enabled only while that option is chosen.
+/// field) indented under it, enabled only while that option is chosen: the workspace's "Only if there are
+/// processes other than: [rlogin, ssh…]".
 public struct LumenRadioGroup<Value: Hashable, Detail: View>: View {
     @Binding private var selection: Value
     private let options: [Value]
@@ -359,7 +361,7 @@ public struct LumenTableText: View {
     @Environment(\.lumenReportsLayoutChecks) private var reportsChecks
 
     /// A cell may end in an ellipsis, but it always shows at least this many characters first: a
-    /// name cut to two letters tells the reader nothing.
+    /// name cut to two letters tells the reader nothing (the design review’s Inspector review, 2026-10-12).
     public static let minimumVisibleCharacters = 8
 
     public init(_ text: String, monospaced: Bool = false) {
@@ -476,7 +478,7 @@ public struct LumenTableFooter {
 public enum LumenTableHeight: Sendable, Equatable {
     /// At least this tall, so an empty table still reads as a table; rows past it scroll.
     case minimum(CGFloat)
-    /// Hugs its rows, up to `maxVisible` of them, then scrolls: no hand
+    /// Hugs its rows, up to `maxVisible` of them, then scrolls (the inspector example's member lists): no hand
     /// estimate of row heights, and no dead band under the last row.
     case fitRows(maxVisible: Int)
 }
@@ -758,7 +760,8 @@ public struct LumenTable<Row: Identifiable>: View {
                 measured.frame(width: width, alignment: column.alignment)
             } else {
                 // Before the table has measured itself: no minimums here, or they'd push the table past
-                // its container, and it would then measure that inflated width. The measured widths apply the minimums, and they
+                // its container, and it would then measure that inflated width (the inspector example's Types
+                // inspector clipped on both edges). The measured widths apply the minimums, and they
                 // yield when the table has no room.
                 measured.frame(maxWidth: .infinity, alignment: column.alignment)
             }
@@ -772,7 +775,7 @@ public struct LumenTable<Row: Identifiable>: View {
                 sized(interactiveHeader(column), column, width: widths?[index])
                     .overlay(alignment: .trailing) {
                         if userWidths != nil {
-                            resizeDivider(column, width: widths?[index] ?? 0)
+                            resizeDivider(column, width: widths?[index] ?? 0, isLast: index == columns.count - 1)
                         }
                     }
                     .accessibilityAddTraits(.isHeader)
@@ -801,8 +804,10 @@ public struct LumenTable<Row: Identifiable>: View {
         }
     }
 
-    private func resizeDivider(_ column: LumenTableColumn<Row>, width: CGFloat) -> some View {
-        Rectangle().fill(palette[.borderSubtle])
+    /// The last column keeps its drag handle but draws no line: with nothing after it, the line
+    /// read as the edge of an empty extra column (design review 2026-11 #8).
+    private func resizeDivider(_ column: LumenTableColumn<Row>, width: CGFloat, isLast: Bool) -> some View {
+        Rectangle().fill(palette[.borderSubtle].opacity(isLast ? 0 : 1))
             .frame(width: metrics.stroke.hairline)
             .padding(.vertical, metrics.spacing.s2)
             .frame(width: metrics.spacing.s5, height: density.rowHeight(in: metrics.layout))

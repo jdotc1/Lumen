@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import LumenTokens
 
-// The workspace window: a title bar that glows while the window is active, panel toggles
+// The workspace window, for workspace apps: a title bar that glows while the window is active, panel toggles
 // that show which regions are open and slide them in and out, a bottom panel, a "new" button with a
 // menu of large tiles, and a dock zone. Structure stays native (the toolbar, NavigationSplitView,
 // `.inspector`, menus, shortcuts); these pieces are the visual language.
@@ -106,7 +106,7 @@ extension View {
 // MARK: Breadcrumb
 
 /// The project's place at the leading edge of the toolbar: its tile, then each level after a
-/// slanted divider, as in a title bar.
+/// slanted divider, as in the workspace's title bar.
 public struct LumenToolbarBreadcrumb: View {
     private let segments: [String]
     private let systemImage: String
@@ -158,21 +158,18 @@ public struct LumenToolbarBreadcrumb: View {
                     .font(index == shown.count - 1 ? metrics.typography.headline : metrics.typography.body)
                     .foregroundStyle(palette[index == shown.count - 1 ? .toolbarForeground : .fgSecondary])
                     .lineLimit(1)
-                    .lumenNeverTruncates(segment)
-                    .truncationMode(.middle)
+                    .truncationMode(.middle).help(segment)
             }
             // Dividers go between levels only: one before the activity, none trailing the path.
             if case .working(let text, let progress) = activity {
                 SlantDivider().stroke(palette[.borderStrong], lineWidth: metrics.stroke.hairline).frame(width: 7, height: 20)
                 HStack(spacing: metrics.spacing.s2) {
-                    LumenProgressRing(progress: progress).frame(width: 14, height: 14)
-                    Text(text)
-                        .font(metrics.typography.callout)
-                        .foregroundStyle(palette[.fgSecondary])
-                        .lineLimit(compactActivity ? nil : 1)
-                        .fixedSize(horizontal: !compactActivity, vertical: compactActivity)
-                        .help(text)
-                        .lumenNeverTruncates(text)
+                    LumenProgressRing(progress: progress).frame(width: 14, height: 14).help(text).accessibilityLabel(text)
+                    if !compactActivity {
+                        Text(text).font(metrics.typography.callout).foregroundStyle(palette[.fgSecondary])
+                            .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+                            .help(text).lumenNeverTruncates(text)
+                    }
                     if let onCancel {
                         Button(lumenLocalized(String(localized: "Stop", bundle: .module, comment: "Workspace control text.")), systemImage: "xmark.circle.fill", action: onCancel)
                             .labelStyle(.iconOnly).buttonStyle(.plain).foregroundStyle(palette[.fgTertiary]).help(lumenLocalized(String(localized: "Stop", bundle: .module, comment: "Workspace tooltip.")))
@@ -212,14 +209,13 @@ public enum LumenPanelEdge: Sendable, CaseIterable {
 
 }
 
-/// A layout switcher: one toggle per region, each drawn as the window with that region filled
+/// the workspace's layout switcher: one toggle per region, each drawn as the window with that region filled
 /// in `layoutToggle.on` while it shows. Pass bindings only for the regions your window has.
 public struct LumenPanelToggles: View {
     private let toggles: [(LumenPanelEdge, Binding<Bool>)]
     private let shortcuts: LumenViewShortcuts
     private let registersShortcuts: Bool
 
-    @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenMetrics) private var metrics
 
     /// - Parameters:
@@ -235,13 +231,12 @@ public struct LumenPanelToggles: View {
     }
 
     public var body: some View {
-        HStack(spacing: 2) {
+        // Each toggle is its own toolbar icon; nothing is drawn behind the set (note 24: no capsule).
+        HStack(spacing: metrics.spacing.s1) {
             ForEach(toggles, id: \.0) { edge, isOn in
                 LumenPanelToggle(edge: edge, isOn: isOn, shortcut: shortcuts.shortcut(for: edge), registersShortcut: registersShortcuts)
             }
         }
-        .padding(2)
-        .background(palette[.bgHover].opacity(metrics.layout.hoverOpacity), in: .rect(cornerRadius: metrics.radius.md, style: .continuous))
         .modifier(LumenToolbarDimming())
     }
 }
@@ -286,14 +281,11 @@ public struct LumenPanelToggle: View {
         } label: {
             PanelGlyph(edge: edge, isOn: isOn, on: palette[.layoutToggleOn], off: palette[.toolbarForeground].opacity(0.75))
                 .frame(width: 20, height: 16)
-                // One size with every toolbar icon button (`toolbarButton`, 28 pt).
-                .frame(width: metrics.layout.toolbarButton, height: metrics.layout.toolbarButton)
-                // The filled glyph is the "on" state (shape, not only color); a plate shows only on
-                // hover, the same plate as every top-bar button.
-                .background { LumenToolbarHoverPlate(isHovered: isHovered) }
-                .contentShape(.rect)
+                // The filled glyph is the "on" state (shape, not only color). The toggle is drawn
+                // as a toolbar icon, one size with every toolbar icon button (note 24); a shown
+                // panel's icon takes a faint accent face too.
         }
-        .buttonStyle(.lumenPlain).lumenFocusRing()
+        .buttonStyle(LumenToolbarIconGlyphButtonStyle(isHovered: isHovered, isSelected: isOn)).lumenFocusRing()
         .lumenIconOnlyControl(edge.title)
         .onHover { isHovered = $0 }
         .keyboardShortcut(registersShortcut && !menuOwnsShortcuts ? shortcut : nil)
@@ -354,7 +346,7 @@ public extension View {
     /// the panel steps aside until there's room (`isPresented` stays as it is).
     ///
     /// - Parameters:
-    ///  - contentMinHeight: the least height the content above keeps.
+    ///   - contentMinHeight: the least height the content above keeps (the inspector example's editor keeps 360).
     ///   - maxFraction: caps the default/presented height as a fraction of the total height. Each
     ///     presentation clamps a larger stored height to this cap until the user drags. A drag may
     ///     grow the panel up to the total height minus `contentMinHeight`.
@@ -535,7 +527,7 @@ public struct LumenPanelDeckControls: View {
     @Environment(\.lumenMetrics) private var metrics
 
     /// - Parameter identifiers: accessibility identifiers for the deck menu and the toggle, for an
-    ///  app's UI tests.
+    ///   app's UI tests (Inspector keeps `workspace.bottomPanel.selector` and `.toggle`).
     public init(decks: [LumenPanelDeck], selection: Binding<String>, isPresented: Binding<Bool>,
                 identifiers: (selector: String, toggle: String) = ("lumen.panelDeck.selector", "lumen.panelDeck.toggle")) {
         self.decks = decks
@@ -577,7 +569,7 @@ public struct LumenPanelDeckControls: View {
 // MARK: New-item button and launch menu
 
 /// The New button: a plus in one color (the accent), drawn at the panel toggles' size and stroke,
-/// placed right beside them. The accent spark is optional: pass `sparkHue` for a
+/// placed right beside them (decision 2, review). the workspace's spark is optional: pass `sparkHue` for a
 /// small second plus at the same stroke.
 ///
 /// `title` (the help tag and spoken label) defaults to the generic "New"; name what the button
@@ -618,12 +610,9 @@ public struct LumenNewItemButton: View {
                 }
             }
             .frame(width: Self.glyphSize, height: Self.glyphSize)
-            // One size with every toolbar icon button (`toolbarButton`, 28 pt), as the toggles.
-            .frame(width: metrics.layout.toolbarButton, height: metrics.layout.toolbarButton)
-            .background { LumenToolbarHoverPlate(isHovered: isHovered) }
-            .contentShape(.rect)
+            // The plus is drawn as a toolbar icon, as the panel toggles are (note 24).
         }
-        .buttonStyle(.lumenPlain).lumenFocusRing()
+        .buttonStyle(LumenToolbarIconGlyphButtonStyle(isHovered: isHovered)).lumenFocusRing()
         .lumenIconOnlyControl(title)
         .onHover { isHovered = $0 }
         .help(title)
@@ -664,7 +653,7 @@ public struct LumenLaunchItem: Identifiable {
     }
 }
 
-/// A menu of new items: what you can create, each with a large tile, as in a launcher. Arrow keys move,
+/// the workspace's "new" menu: what you can create, each with a large tile, as in a launcher. Arrow keys move,
 /// Return chooses, Escape closes.
 public struct LumenLaunchMenu: View {
     private let items: [LumenLaunchItem]

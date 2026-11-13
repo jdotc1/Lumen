@@ -5,8 +5,8 @@ import LumenTokens
 import LumenUI
 import LumenConformance
 
-/// PRINCIPLES §6 for columns of values: two different values that truncate to the same
-/// visible text read as one. A members table can show "triggerAna…" for both
+/// PRINCIPLES §6 for columns of values (audit M14): two different values that truncate to the same
+/// visible text read as one. the inspector example's members table showed "triggerAna…" for both
 /// triggerAnalysisOnAppear and triggerAnalysisOnChange; the 8-character floor passed each.
 @MainActor
 final class LumenVisibleTextTests: XCTestCase {
@@ -30,7 +30,7 @@ final class LumenVisibleTextTests: XCTestCase {
         XCTAssertTrue(findings.first?.message.hasSuffix("for “triggerAnalysisOnAppear”, “triggerAnalysisOnChange”") ?? false, "\(findings)")
     }
 
-    /// `LumenTableText(truncationMode: .middle)` tells them apart.
+    /// The fix Inspector shipped (`LumenTableText(truncationMode: .middle)`) tells them apart.
     func testMiddleTruncationThatKeepsTheEndsPasses() {
         XCTAssertEqual(LumenConformance.truncation(sizes: [CGSize(width: 300, height: 120)]) { column(width: 110, truncation: .middle) }, [])
     }

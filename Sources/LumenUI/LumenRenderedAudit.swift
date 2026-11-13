@@ -27,6 +27,7 @@ public enum LumenRenderedAudit {
         let margin: CGFloat?
         let scaffoldMargins: [LumenScaffoldMargin]
         let reports: Set<String>
+        var barItems: [LumenBarItemReport] = []
         var ownedChromeInk: [CGRect] = []
         var protectedButtons: [CGRect] = []
         var fullBleedBackgrounds: [LumenFullBleedBackground] = []
@@ -58,6 +59,7 @@ public enum LumenRenderedAudit {
                 }
             }
             for finding in windowChromeFindings { hash.combine(finding) }
+            hash.combine(barItems)
             hash.combine(margin)
             for declaration in scaffoldMargins {
                 rect(declaration.frame); hash.combine(declaration.margin); hash.combine(declaration.depth)
@@ -218,7 +220,7 @@ public enum LumenRenderedAudit {
                        chrome: geometry.chromeBand, exclusions: exclusions,
                        elements: ownership.elements, clips: clips,
                        drawingBounds: drawing, margin: report.pageMargin, scaffoldMargins: report.scaffoldMargins,
-                       reports: Set(report.visibleTexts.map(\.text)), ownedChromeInk: ownedChromeInk,
+                       reports: Set(report.visibleTexts.map(\.text)), barItems: report.barItems, ownedChromeInk: ownedChromeInk,
                        protectedButtons: geometry.trafficLights.map {
                            $0.insetBy(dx: -2 / max(1, window.backingScaleFactor), dy: -2 / max(1, window.backingScaleFactor))
                        }, fullBleedBackgrounds: fullBleedBackgrounds, fullBleedWashes: fullBleedWashes, nativeControlChrome: LumenNativeControlChrome.frames(in: window), compositeOwners: ownership.containers, nativeMaskPreservingInk: nativeMaskPreservingInk, nativeMaskPreservingSources: nativeMaskPreservingSources, windowChromeFindings: windowChromeFindings(in: window))
@@ -378,7 +380,9 @@ public enum LumenRenderedAudit {
             // Vision can combine neighboring complete button labels after a resize.
             // Require an exact ordered reconstruction, including this observation;
             // an unrelated longer label or a genuinely growing suffix still fails.
-            let candidate = normalize(candidates[0].text)
+            // A capsule or divider edge between two merged labels can read as a lone bar glyph.
+            let candidate = normalize(candidates[0].text).split(separator: " ")
+                .filter { !["l", "i", "|", "1"].contains($0) }.joined(separator: " ")
             let surviving = Set(large.lines.map { normalize($0.text) })
             let neighbors = small.lines.filter {
                 $0.inkPixels > 3 && $0.confidence >= 0.5 &&
@@ -391,8 +395,10 @@ public enum LumenRenderedAudit {
                 var previous = first
                 for next in neighbors.dropFirst(index + 1) {
                     guard !surviving.contains(normalize(next.text)) else { break }
+                    // Recognition boxes of adjacent labels can overlap by a few points.
                     let gap = next.frame.minX - previous.frame.maxX
-                    guard gap >= -1, gap <= 2 * min(previous.frame.height, next.frame.height) else { break }
+                    let height = min(previous.frame.height, next.frame.height)
+                    guard gap >= -max(1, height * 0.25), gap <= 2 * height else { break }
                     text += " " + normalize(next.text)
                     includesLine = includesLine || next.frame == line.frame
                     if includesLine && text == candidate { return nil }
@@ -410,7 +416,11 @@ public enum LumenRenderedAudit {
         let subject: String
         let detail: String
     }
-    private struct Context {
+    private final class Context {
+        init(capture: Capture, pixels: Pixels, lines: [Line]) {
+            self.capture = capture; self.pixels = pixels; self.lines = lines
+        }
+        private var measuredInk: [CGRect: CGRect] = [:]
         let capture: Capture
         let pixels: Pixels
         let lines: [Line]
@@ -432,7 +442,10 @@ public enum LumenRenderedAudit {
             return pixels.unexcludedInk(in: rect, exclusions: regions) == 0
         }
         func inkFrame(_ line: Line) -> CGRect {
-            pixels.inkBounds(in: line.inkRegion) ?? line.inkRegion
+            if let cached = measuredInk[line.inkRegion] { return cached }
+            let ink = pixels.inkBounds(in: line.inkRegion) ?? line.inkRegion
+            measuredInk[line.inkRegion] = ink
+            return ink
         }
         func compositeOwning(_ component: CGRect, control: Element? = nil) -> Element? {
             capture.compositeOwners.filter { owner in
@@ -481,13 +494,24 @@ public enum LumenRenderedAudit {
                     return composite
                 }
             }
+            // One native control can expose several leaves: a segmented control's segments share
+            // the control's identity. Recognition may read adjacent segments as one run; that run
+            // belongs to the control, so its boundary is the union of those segments, not one of them.
+            if identities.count == 1, leaves.count > 1, let first = leaves.first,
+               !leaves.contains(where: { $0.frame.insetBy(dx: -1, dy: -1).contains(ink) }) {
+                let ordered = leaves.sorted { $0.frame.minX < $1.frame.minX }
+                return Element(identity: first.identity, ancestors: first.ancestors,
+                               frame: ordered.map(\.frame).reduce(CGRect.null) { $0.union($1) },
+                               source: ordered.map(\.source).joined(separator: " "),
+                               control: first.control, clip: first.clip)
+            }
             return capture.elements.filter {
                 $0.frame.insetBy(dx: -1, dy: -1).contains(CGPoint(x: ink.midX, y: ink.midY))
             }.min { $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height }
         }
     }
     // One registry for all pixel/text rules; both observer and conformance consume its output.
-    private static let rules: [@Sendable (Context) -> [Evidence]] = [windowChrome, chromeInk, boundaryInk, overlaps, escapes, textRules]
+    private static let rules: [@Sendable (Context) -> [Evidence]] = [windowChrome, chromeInk, boundaryInk, overlaps, escapes, textRules, barLabels]
 
     @MainActor static func windowChromeFindings(in window: NSWindow) -> [LumenLayoutAudit.Violation] {
         let report = LumenWindowAuditReports.record(for: window)
@@ -639,9 +663,13 @@ public enum LumenRenderedAudit {
             }
         }
         for control in elements where control.control {
+            // A segmented control's segments share one identity; its bezel is one connected
+            // component across them, owned by the control as a whole, not by any one segment.
+            let owned = elements.filter { $0.identity == control.identity }.map(\.frame)
+                .reduce(CGRect.null) { $0.union($1) }
             for component in c.pixels.components(in: control.frame.insetBy(dx: -12, dy: -12), excludingBackground: control.frame) {
                 guard component.intersects(control.frame.insetBy(dx: 2, dy: 2)),
-                      !control.frame.insetBy(dx: -4, dy: -4).contains(component),
+                      !owned.insetBy(dx: -4, dy: -4).contains(component),
                       !c.excluded(component),
                       !elements.contains(where: { $0.identity != control.identity && $0.frame.contains(component) }),
                       c.compositeOwning(component, control: control) == nil else { continue }
@@ -664,6 +692,25 @@ public enum LumenRenderedAudit {
             }
         }
         return results
+    }
+
+    private static func barLabels(_ c: Context) -> [Evidence] {
+        c.capture.barItems.compactMap { item in
+            guard item.mode == .full, item.role != .freeText else { return nil }
+            let lines = c.lines.filter { line in
+                line.inkPixels > 3 && !c.excluded(line.frame, includingNativeControlChrome: false) &&
+                item.frame.insetBy(dx: -1, dy: -1).contains(c.inkFrame(line))
+            }
+            guard !lines.isEmpty else { return nil }
+            let ink = lines.map { c.inkFrame($0) }.reduce(CGRect.null) { $0.union($1) }
+            let font = NSFont.systemFont(ofSize: item.fontSize * item.textScale)
+            // Glyph ink, not the advance: side bearings alone put a short label's ink under its advance.
+            let typeset = CTLineCreateWithAttributedString(NSAttributedString(string: item.label, attributes: [.font: font]))
+            let expected = CTLineGetImageBounds(typeset, nil).width
+            guard expected > 0, ink.width < 0.96 * expected else { return nil }
+            return .init(rule: "rendered-bar-squeeze", rect: ink, subject: item.label,
+                         detail: "inkWidth=\(ink.width) < 0.96 × naturalInkWidth=\(expected)")
+        }
     }
 
     private static func textRules(_ c: Context) -> [Evidence] {
@@ -697,7 +744,10 @@ public enum LumenRenderedAudit {
                         && !element.ancestors.contains(other.identity) && other.frame.intersects(line.frame)
                 }
             } ?? false
-            if let source, !source.isEmpty, !obstructed, ownedLines.first?.frame == line.frame {
+            let permittedFreeText = c.capture.barItems.contains {
+                $0.role == .freeText && $0.truncation == .middle && $0.frame.insetBy(dx: -1, dy: -1).contains(inkFrame)
+            }
+            if let source, !source.isEmpty, !obstructed, !permittedFreeText, ownedLines.first?.frame == line.frame {
                 let shorter = normalize(source).count > normalize(recognized).count
                 if (ellipsis && !source.contains("…") && !source.contains("...")) ||
                     (shorter && line.confidence >= 0.5 && normalize(source).contains(normalize(recognized))) {

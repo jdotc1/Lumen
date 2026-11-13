@@ -11,9 +11,12 @@ final class LumenRenderedMutationTests: XCTestCase {
     private enum Mutation: String, CaseIterable {
         case canvasChrome, shapeEdge, imageControl, nativeEscape, canvasClip, pageMargin
         case textHead, textMiddle, textTail, textClip, textOverlap
+        case barSqueeze, pillCramped
 
         var rule: String {
             switch self {
+            case .barSqueeze: "rendered-bar-squeeze"
+            case .pillCramped: "bar-pill-proportions"
             case .canvasChrome: "rendered-chrome"
             case .pageMargin: "rendered-margin"
             case .shapeEdge: "rendered-edge"
@@ -37,6 +40,9 @@ final class LumenRenderedMutationTests: XCTestCase {
         let defect: CGRect
         let expand: @MainActor () -> Void
     }
+
+    func testBarSqueeze() throws { try run([.barSqueeze]) }
+    func testPillCramped() throws { try run([.pillCramped]) }
 
     func testCanvasChrome() throws { try run([.canvasChrome]) }
     func testShapeEdge() throws { try run([.shapeEdge]) }
@@ -115,6 +121,10 @@ final class LumenRenderedMutationTests: XCTestCase {
                             timings.append(result.visionSeconds)
                             var findings = result.findings
                             var findingRects = result.findingRects
+                            if mutation == .pillCramped {
+                                findings = LumenLayoutAudit.findings(in: hosted.window)
+                                findingRects = findings.map { _ in hosted.defect }
+                            }
                             if mutation.differential {
                                 hosted.expand()
                                 settle(hosted.window)
@@ -166,7 +176,9 @@ final class LumenRenderedMutationTests: XCTestCase {
         try FileManager.default.createDirectory(at: repository.appending(path: ".build/test-artifacts"), withIntermediateDirectories: true)
         try report.joined(separator: "\n").appending("\n").write(to: repository.appending(path: ".build/test-artifacts/rendered-mutations-\(mutations.map(\.rawValue).joined(separator: "-")).txt"),
                                                                 atomically: true, encoding: .utf8)
-        let shots = repository.appending(path: ".build/test-artifacts/images")
+        let shots = mutations.allSatisfy { $0 == .barSqueeze || $0 == .pillCramped }
+            ? repository.appending(path: ".build/test-artifacts/bar-detection/shots")
+            : repository.deletingLastPathComponent().appending(path: "shots")
         let retained = try retain(observations, in: shots.appending(path: "rendered-mutation-cells"))
         try contactSheet(retained, to: shots.appending(path: "rendered-audit.png"))
     }
@@ -198,6 +210,29 @@ final class LumenRenderedMutationTests: XCTestCase {
             ceil((text as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 13 * scale)]).width) + 16
         }
         switch mutation {
+        case .barSqueeze, .pillCramped:
+            let text = mutation == .barSqueeze ? "Export results" : "12"
+            let natural = (text as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 13 * scale)]).width
+            let cap = NSFont.systemFont(ofSize: 13 * scale).capHeight
+            let inset = broken ? 2.0 : cap + 1
+            let label = Text(text).font(.system(size: 13 * scale)).foregroundStyle(foreground)
+                .lineLimit(1).minimumScaleFactor(0.7)
+            let content: AnyView
+            if mutation == .barSqueeze {
+                content = AnyView(label.lumenBarItem(text, bar: "status", role: .label)
+                    .frame(width: natural * (broken ? 0.78 : 1)))
+            } else {
+                content = AnyView(label.lumenBarItem(text, bar: "status", role: .pill,
+                    pillInsets: CGSize(width: inset, height: 2))
+                    .padding(.horizontal, inset).padding(.vertical, 2)
+                    .background(Capsule().fill(Color.gray.opacity(0.15))))
+            }
+            let host = attach(VStack {
+                Spacer()
+                LumenStatusBar { content; Spacer() }.padding(32)
+                Spacer()
+            }.lumenPaletteRoot().lumenTextScale(scale), frame: root.bounds)
+            defect = host.frame
         case .pageMargin:
             let view = Canvas { context, _ in
                 context.fill(Path(CGRect(x: broken ? 4 : 40, y: 70, width: 12, height: 16)), with: .color(.red))

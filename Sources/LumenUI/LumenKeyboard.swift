@@ -62,7 +62,7 @@ public enum LumenShortcuts {
 }
 
 /// The shortcuts Lumen's view commands and toolbar toggles use. Start from `.standard` and change
-/// what clashes with the app's own; `nil` leaves a
+/// what clashes with the app's own (Inspector, say, keeps ⇧⌘Y for Navigation History); `nil` leaves a
 /// command without a shortcut.
 public struct LumenViewShortcuts: Sendable {
     public var navigator: KeyboardShortcut?

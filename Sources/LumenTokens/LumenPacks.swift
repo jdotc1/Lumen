@@ -4,11 +4,12 @@ import Foundation
 // it needs (`LumenRegistry(packs: [.core, .code, .chart, .myApp])`) and supplies values for its own
 // themes; Lumen's built-in themes already have them, checked by the validator like every other role.
 //
-// The syntax keys match the names apps already use, so
+// The syntax keys match the names apps already use (the inspector example's pack has the same `syntax.*` keys), so
 // an app moving onto this pack drops its own copies and users' theme files keep working.
 
 public extension LumenToken {
-    /// The code pack's roles. Namespaced, so an app's own `LumenToken` extensions never collide with Lumen's names.
+    /// The code pack's roles. Namespaced, so an app's own `LumenToken` extensions (Inspector declares
+    /// `syntaxKeyword` for the same key) never collide with Lumen's names.
     enum Code {
         public static let keyword: LumenToken = "syntax.keyword"
         public static let type: LumenToken = "syntax.type"

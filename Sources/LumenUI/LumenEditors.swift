@@ -1,7 +1,7 @@
 import SwiftUI
 import LumenTokens
 
-// Editors: the key/value card with
+// Editors from the workspace's second pass (2026-10-12), in the styles design review picked: the key/value card with
 // type chips, predicate rows, the ticked slider, and quiet pull-down capsules.
 
 // MARK: Pop-up chrome
@@ -21,7 +21,7 @@ public struct LumenPopUpLabel: View {
 
     /// - Parameters:
     ///   - symbol: a glyph before the title, in the accent.
-    ///   - width: a fixed width; `nil` fits the title.
+    ///   - width: a minimum width; `nil` fits the title.
     public init(_ title: String, symbol: String? = nil, width: CGFloat? = nil) {
         self.title = title
         self.symbol = symbol
@@ -35,7 +35,7 @@ public struct LumenPopUpLabel: View {
         if wrapsTitle {
             Text(title).lumenWrapsWithoutTruncating()
         } else {
-            Text(title).lineLimit(1).lumenNeverTruncates(title)
+            Text(title).lineLimit(1).fixedSize(horizontal: true, vertical: false).lumenNeverTruncates(title)
         }
     }
 
@@ -49,10 +49,40 @@ public struct LumenPopUpLabel: View {
         }
         .font(metrics.typography.body)
         .padding(.horizontal, metrics.spacing.s4)
-        .frame(width: width, height: wrapsTitle ? nil : metrics.layout.controlHeight)
+        .frame(minWidth: width)
+        .frame(height: wrapsTitle ? nil : metrics.layout.controlHeight)
         .frame(minHeight: metrics.layout.controlHeight)
         .lumenChrome(.popUp)
     }
+}
+
+/// A bordered button in the same chrome as `LumenPopUpLabel` (`bg.elevated`, `border.default`
+/// hairline, `controlHeight`), for triggers that open a popover, panel or sheet. Every trigger
+/// beside a pop-up uses this or the pop-up itself, so a row of them shares one fill and height.
+public struct LumenBorderedButtonStyle: ButtonStyle {
+    public init() {}
+    public func makeBody(configuration: Configuration) -> some View { Chrome(configuration: configuration) }
+
+    private struct Chrome: View {
+        let configuration: Configuration
+        @Environment(\.lumenPalette) private var palette
+        @Environment(\.lumenMetrics) private var metrics
+        var body: some View {
+            configuration.label
+                .font(metrics.typography.body)
+                .foregroundStyle(palette[.fgPrimary])
+                .padding(.horizontal, metrics.spacing.s4)
+                .frame(height: metrics.layout.controlHeight)
+                .lumenChrome(.popUp)
+                .opacity(configuration.isPressed ? metrics.layout.pressedOpacity : 1)
+                .contentShape(.rect)
+        }
+    }
+}
+
+public extension ButtonStyle where Self == LumenBorderedButtonStyle {
+    /// `LumenBorderedButtonStyle`: a button in the pop-up chrome.
+    static var lumenBordered: LumenBorderedButtonStyle { LumenBorderedButtonStyle() }
 }
 
 // MARK: Field input
@@ -187,7 +217,8 @@ public struct LumenPopUp<Value: Hashable>: View {
 
 // MARK: Pull-down button
 
-/// A glyph and a small chevron in a quiet capsule that opens an action menu. For a section header inside the menu, use `Section("Title") { … }`.
+/// A glyph and a small chevron in a quiet capsule that opens an action menu (design review; the workspace's +⌄,
+/// ⋯⌄, gear⌄ and key⌄). For a section header inside the menu, use `Section("Title") { … }`.
 /// `showsTitle` adds the title after the glyph where a bare glyph wouldn't say enough.
 public struct LumenPullDownButton<MenuContent: View>: View {
     private let title: String
@@ -212,7 +243,7 @@ public struct LumenPullDownButton<MenuContent: View>: View {
         self.showsTitle = showsTitle
     }
 
-    private var label: some View {
+    private func menuLabel(showsTitle: Bool) -> some View {
         HStack(spacing: metrics.spacing.s2) {
             LumenSymbol(systemImage).font(.system(size: metrics.iconSize.small, weight: .semibold))
             if showsTitle {
@@ -227,15 +258,18 @@ public struct LumenPullDownButton<MenuContent: View>: View {
     }
 
     public var body: some View {
-        LumenMenuButton(help: title) { menu } label: { label }
-            .accessibilityLabel(title)
+        ViewThatFits(in: .horizontal) {
+            LumenMenuButton(help: title) { menu } label: { menuLabel(showsTitle: showsTitle) }
+            LumenMenuButton(help: title) { menu } label: { menuLabel(showsTitle: false) }
+        }
+        .help(title).accessibilityLabel(title)
     }
 }
 
 // MARK: Slider
 
 /// A slider in the theme, with optional ticks, end labels ("Off" … "120") and a linked value field
-/// with its unit. Drag or click the track; values snap to `step`.
+/// with its unit (design review; the workspace's Busy Retry). Drag or click the track; values snap to `step`.
 public struct LumenSlider: View {
     @Binding private var value: Double
     private let range: ClosedRange<Double>
@@ -467,7 +501,7 @@ public struct LumenTextField: View {
 
 // MARK: Combo field
 
-/// A field you can type in or fill from a list:
+/// A field you can type in or fill from a list (the workspace's "Declare terminal as: [xterm-256color ⌄]"):
 /// the chevron opens the suggestions; typing keeps any value.
 public struct LumenComboField: View {
     @Binding private var text: String
@@ -686,6 +720,7 @@ public struct LumenKeyValueEditor: View {
                 LumenSymbol(type.systemImage).font(.system(size: metrics.iconSize.xsmall - 1, weight: .bold))
                 Text(type.title).font(metrics.typography.captionEmphasized)
             }
+            .lineLimit(1).fixedSize(horizontal: true, vertical: false)
             .foregroundStyle(palette[.fgSecondary])
             .lumenChip(palette[.bgInset])   // the one chip spec
         }
@@ -738,7 +773,7 @@ public struct LumenRuleCondition: Identifiable, Hashable, Sendable {
     }
 }
 
-/// Conditions as predicate rows: "[Any] of the following are true"
+/// Conditions as predicate rows (design review; the workspace's file rules): "[Any] of the following are true"
 /// over rows of [field] [operator] [value] − +. + adds a condition after its row; − removes it (the
 /// last one stays).
 public struct LumenRuleEditor: View {

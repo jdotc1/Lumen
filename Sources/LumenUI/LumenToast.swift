@@ -179,6 +179,7 @@ struct LumenToastStack: View {
                     .foregroundStyle(palette[.fgSecondary])
                     .padding(.horizontal, metrics.spacing.s3).padding(.vertical, metrics.spacing.s1)
                     .background(palette[.bgElevated], in: .rect(cornerRadius: metrics.radius.sm))
+                    .overlay(RoundedRectangle(cornerRadius: metrics.radius.sm).strokeBorder(palette[.borderDefault], lineWidth: metrics.stroke.hairline))
                     .help(lumenLocalized(String(localized: "%lld earlier notices; dismiss a visible notice to reveal them", defaultValue: "\(center.collapsedCount) earlier notices; dismiss a visible notice to reveal them", bundle: .module, comment: "Toast tooltip.")))
             }
             ForEach(center.visibleToasts) { toast in

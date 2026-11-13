@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import LumenTokens
 
-// Settings and form controls (Lumen 0.31): a themed checkbox, number fields, controls
+// Settings and form controls, after workspace (Lumen 0.31): a themed checkbox, number fields, controls
 // inside sentences, checkbox grids, inherited values, cards of integration rows, editable lists and
 // master-detail panes.
 
@@ -380,14 +380,30 @@ public struct LumenNumberField: View {
 // MARK: Sentences
 
 /// Lays children out leading to trailing, wrapping to a new line when the next one doesn't fit, with
-/// baselines aligned on each line. For sentence controls and tag clouds.
+/// baselines aligned on each line. For sentence controls and tag clouds. With `alignsColumns`, every
+/// child takes a cell as wide as the widest, so wrapped lines share their columns (a set of actions
+/// reads as a table, not a ragged sentence).
 public struct LumenFlowLayout: Layout {
     public var spacing: CGFloat
     public var lineSpacing: CGFloat
+    public var alignsColumns: Bool
 
+    /// The 1.3 initializer, kept so existing callers stay source- and API-compatible.
     public init(spacing: CGFloat = 6, lineSpacing: CGFloat = 6) {
+        self.init(spacing: spacing, lineSpacing: lineSpacing, alignsColumns: false)
+    }
+
+    public init(spacing: CGFloat = 6, lineSpacing: CGFloat = 6, alignsColumns: Bool) {
         self.spacing = spacing
         self.lineSpacing = lineSpacing
+        self.alignsColumns = alignsColumns
+    }
+
+    /// The shared cell width when `alignsColumns`: the widest child, capped to the line.
+    private func cellWidth(_ subviews: Subviews, width: CGFloat) -> CGFloat? {
+        guard alignsColumns else { return nil }
+        let widest = subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? 0
+        return width.isFinite ? min(widest, width) : widest
     }
 
     public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
@@ -401,6 +417,7 @@ public struct LumenFlowLayout: Layout {
 
     public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         var y = bounds.minY
+        let cell = cellWidth(subviews, width: bounds.width)
         for line in arrange(subviews, width: bounds.width) {
             var x = bounds.minX
             for index in line.indices {
@@ -408,7 +425,7 @@ public struct LumenFlowLayout: Layout {
                 let size = subviews[index].sizeThatFits(fitted)
                 let baseline = subviews[index].dimensions(in: fitted)[VerticalAlignment.firstTextBaseline]
                 subviews[index].place(at: CGPoint(x: x, y: y + line.baseline - baseline), proposal: ProposedViewSize(size))
-                x += size.width + spacing
+                x += (cell ?? size.width) + spacing
             }
             y += line.height + lineSpacing
         }
@@ -427,17 +444,19 @@ public struct LumenFlowLayout: Layout {
         var lines: [Line] = []
         var line = Line()
         var descent: CGFloat = 0
+        let cell = cellWidth(subviews, width: width)
         for index in subviews.indices {
             let fitted = Self.proposal(for: subviews[index], width: width)
             let size = subviews[index].sizeThatFits(fitted)
             let baseline = subviews[index].dimensions(in: fitted)[VerticalAlignment.firstTextBaseline]
-            let added = line.indices.isEmpty ? size.width : line.width + spacing + size.width
+            let itemWidth = cell ?? size.width
+            let added = line.indices.isEmpty ? itemWidth : line.width + spacing + itemWidth
             if added > width, !line.indices.isEmpty {
                 lines.append(line)
                 line = Line()
                 descent = 0
             }
-            line.width = line.indices.isEmpty ? size.width : line.width + spacing + size.width
+            line.width = line.indices.isEmpty ? itemWidth : line.width + spacing + itemWidth
             line.indices.append(index)
             line.baseline = max(line.baseline, baseline)
             descent = max(descent, size.height - baseline)
@@ -448,7 +467,8 @@ public struct LumenFlowLayout: Layout {
     }
 }
 
-/// A setting phrased as a sentence with its controls inline. With `isOn`, a checkbox leads and the rest dims until it's on. Words
+/// A setting phrased as a sentence with its controls inline (the workspace's "☐ Limit uploads to [500] KB/s",
+/// "[Show] sidebar [Current]"). With `isOn`, a checkbox leads and the rest dims until it's on. Words
 /// and controls wrap as one sentence in a narrow pane.
 public struct LumenSentenceRow<Content: View>: View {
     private let isOn: Binding<Bool>?
@@ -495,7 +515,8 @@ public struct LumenSentenceText: View {
     public var body: some View { Text(text).foregroundStyle(palette[.fgPrimary]).fixedSize(horizontal: false, vertical: true) }
 }
 
-/// Settings that only apply when another is on, indented under it and dimmed while it's off.
+/// Settings that only apply when another is on, indented under it and dimmed while it's off (the workspace's
+/// "Hanging indent" under "Soft-wrap lines").
 public struct LumenDependentGroup<Content: View>: View {
     private let isEnabled: Bool
     private let content: Content
@@ -529,7 +550,7 @@ public struct LumenCheckboxItem: Identifiable {
     }
 }
 
-/// Checkboxes in columns under one label, filling down
+/// Checkboxes in columns under one label (the workspace's "Show: ☑ Line numbers ☑ Minimap …"), filling down
 /// each column first, as in a sentence read top to bottom.
 public struct LumenCheckboxGrid: View {
     private let items: [LumenCheckboxItem]
@@ -557,7 +578,8 @@ public struct LumenCheckboxGrid: View {
 
 // MARK: Inherited values
 
-/// A choice that can follow a default set elsewhere: `nil` follows the default, which the menu names; choosing a value overrides it.
+/// A choice that can follow a default set elsewhere (the workspace's "Global Default (HTML)", "Default
+/// (Hide)"): `nil` follows the default, which the menu names; choosing a value overrides it.
 public struct LumenInheritedPicker<Value: Hashable>: View {
     @Binding private var selection: Value?
     private let options: [Value]
@@ -609,7 +631,7 @@ public struct LumenInheritedPicker<Value: Hashable>: View {
 
 // MARK: Cards
 
-/// A rounded card of settings rows with hairlines between them.
+/// A rounded card of settings rows with hairlines between them (the workspace's language settings).
 public struct LumenSettingsCard<Content: View>: View {
     private let content: Content
     @Environment(\.lumenPalette) private var palette
@@ -696,7 +718,7 @@ public struct LumenIntegrationStatus: Hashable, Sendable {
     public static let running = LumenIntegrationStatus(lumenLocalized(String(localized: "Running", bundle: .module, comment: "Forms text.")), tone: .statusSuccess)
 }
 
-/// One integration in a settings card: a switch, its name and a line about
+/// One integration in a settings card (the workspace's language servers): a switch, its name and a line about
 /// it, then its status, a refresh button and an info button.
 public struct LumenIntegrationRow: View {
     @Binding private var isOn: Bool
@@ -947,7 +969,7 @@ public struct LumenListEditor: View {
 public struct LumenMasterItem: Identifiable, Hashable, Sendable {
     public let id: String
     public let title: String
-    /// Marked with a check: it has something set.
+    /// Marked with a check: it has something set (the workspace's configured behaviors).
     public let isConfigured: Bool
 
     public init(id: String, title: String, isConfigured: Bool = false) {
@@ -969,7 +991,7 @@ public struct LumenMasterSection: Identifiable, Hashable, Sendable {
     }
 }
 
-/// A list beside the selected item's settings: grouped items with a check on
+/// A list beside the selected item's settings (the workspace's Behaviors pane): grouped items with a check on
 /// the configured ones, and the detail filling the rest.
 public struct LumenMasterDetail<Detail: View>: View {
     private let sections: [LumenMasterSection]

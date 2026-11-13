@@ -60,7 +60,7 @@ final class LumenNarrowSizingTests: XCTestCase {
             ("LumenBanner", AnyView(LumenBanner("The binary changed on disk since it was analyzed.", title: "Out of date",
                                                 actionTitle: "Reanalyze", action: {}))),
             ("LumenNoticeCard", AnyView(LumenNoticeCard(notice) {})),
-            ("LumenCodeSample", AnyView(LumenCodeSample(["editor ~/Sample", "editor extras/index.html --line 740"]))),
+            ("LumenCodeSample", AnyView(LumenCodeSample(["workspace ~/MyProject", "workspace extras/index.html --line 740"]))),
             ("LumenItemCard", AnyView(LumenItemCard("Prettier", author: "Toni Förster", summary: "Formatting that’s fast, reliable and built on Prettier.",
                                                     systemImage: "text.alignleft", hue: .huePink, state: .available))),
             ("LumenDetailHeader", AnyView(LumenDetailHeader("Emmet", summary: "The essential toolkit for web developers.",

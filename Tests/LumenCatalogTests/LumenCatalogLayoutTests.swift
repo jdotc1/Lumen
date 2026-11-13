@@ -39,7 +39,7 @@ final class LumenCatalogLayoutTests: XCTestCase {
             .map(\.description), [])
         // The top bar spans the window, so it must fit the window's minimum too.
         let topBar = LumenConformance.Column("Top bar", minWidth: SplitLayout.windowMinWidth) {
-            // The unified layout with its status showing (the widest it gets), plus the window buttons'
+            // the workspace's layout with its status showing (the widest it gets), plus the window buttons'
             // inset the unified placement adds before it.
             SplitWorkspaceTopBar(showsNavigator: .constant(true), showsDebugger: .constant(true), showsInspector: .constant(true),
                                  activity: .constant(.working("Analyzing libsystem_kernel.dylib", progress: 0.42)))

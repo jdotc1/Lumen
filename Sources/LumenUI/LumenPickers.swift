@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import LumenTokens
 
-// Pickers: square color
+// The nice-to-haves from the workspace's second pass (2026-10-12), in the styles design review picked: square color
 // wells, a list wizard step, card field lists, plus swatch menus, an icon picker, a permissions grid
 // and a managed tool row.
 
@@ -94,7 +94,7 @@ public struct LumenColorGrid: View {
 
 // MARK: Swatch strips and icon picker
 
-/// A palette as a strip of color bars, for menu items and pickers.
+/// A palette as a strip of color bars, for menu items and pickers (the workspace's Rainbow, Six Colors…).
 public struct LumenSwatchStrip: View {
     private let colors: [Color]
     private let width: CGFloat
@@ -164,7 +164,8 @@ public struct LumenIconChoice: Identifiable, Hashable, Sendable {
     }
 }
 
-/// A large icon with a chevron that opens a grid of icons to pick from, with actions under it.
+/// A large icon with a chevron that opens a grid of icons to pick from, with actions under it
+/// (the workspace's server icon: Choose Image… / Use Default Image).
 public struct LumenIconPicker: View {
     @Binding private var selection: String
     private let choices: [LumenIconChoice]
@@ -253,7 +254,7 @@ public struct LumenWizardChoice: Identifiable, Hashable, Sendable {
     }
 }
 
-/// A step of a sheet wizard that picks one thing: a title,
+/// A step of a sheet wizard that picks one thing (design review; the workspace's Add A Service Account): a title,
 /// a list of large-icon rows, "Step 1 of 2", and Cancel / Back / Next. Double-click a row to go on.
 public struct LumenWizardStep: View {
     private let title: String
@@ -477,7 +478,7 @@ public struct LumenFieldList<Content: View>: View {
 // MARK: Permissions grid
 
 /// Unix permissions as Read / Write / Execute checkboxes for User, Group and World, with the octal
-/// value (editable) and its rw-r--r-- form.
+/// value (editable) and its rw-r--r-- form (the workspace's upload permissions).
 public struct LumenPermissionsGrid: View {
     @Binding private var mode: Int
 
@@ -603,7 +604,7 @@ public enum LumenToolInstallState: Sendable, Hashable {
     case installed
 }
 
-/// A tool the app can install and manage: its package icon, name and dim
+/// A tool the app can install and manage (the workspace's language servers): its package icon, name and dim
 /// version, an Install capsule like `LumenItemCard`'s (Installed when done), a ⋯ menu, and a description with a link.
 public struct LumenManagedToolRow<MenuContent: View>: View {
     private let name: String

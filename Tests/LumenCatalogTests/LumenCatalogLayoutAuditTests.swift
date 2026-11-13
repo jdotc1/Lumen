@@ -69,7 +69,7 @@ final class LumenCatalogLayoutAuditTests: XCTestCase {
             .init("Split workspace", source: "LumenCatalogApp.swift; LumenSplitLayout.swift", size: .init(width: 1440, height: 900)) {
                 AnyView(SplitWorkspaceDemo())
             },
-            .init("Sample workspace", source: "SampleWorkspace.swift; LumenWorkspaceWindow.swift", size: SampleWorkspace.defaultSize) {
+            .init("Sample Workspace", source: "SampleWorkspace.swift; LumenWorkspaceWindow.swift", size: SampleWorkspace.defaultSize) {
                 AnyView(SampleWorkspace())
             },
             .init("Welcome", source: "LumenCatalogApp.swift; LumenWelcome.swift", size: .init(width: 760, height: 540)) {

@@ -1,7 +1,7 @@
 # App icon kit
 
-Use `Design/LumenAppTemplate.icon` as a starting point for macOS 27 app artwork.
-The icon kit generates a new icon document and appearance previews.
+Use `Design/LumenAppTemplate.icon` as the client-app starting point. The kit targets macOS 27;
+its ImageBatch example is a proposal only. It does not modify or install a client app.
 
 ## Make and check an icon
 
@@ -27,8 +27,8 @@ paths from `Design/symbols/gen.py`. It does not regenerate the Swift resource ca
 ## Layers and appearances
 
 There are two visual levels: an opaque, full-canvas ground and one white vector glyph in a single
-foreground group. The template uses `lumen.patchedBytes.fill` with `hue.violet`
-(`#7B5CE6`). The foreground has Liquid Glass enabled,
+foreground group. The template uses `lumen.patchedBytes.fill`; the ImageBatch proposal uses
+`lumen.anonymize.fill`. Both use `hue.violet` (`#7B5CE6`). The foreground has Liquid Glass enabled,
 specular enabled, zero configured shadow opacity and no translucency. SVG artwork has no baked
 shadows, bevels, gradients, text, or masks. System lighting supplies the visible edge treatment.
 
@@ -63,7 +63,7 @@ measurements. The extent is measured from Apple's grid; it is not a universal Ap
 The generator preserves aspect ratio and fits the longer dimension to 512. Bounds use the existing
 Lumen cubic-curve sampling helper. The template remains centered at (512,512). The heavy-base
 `lumen.anonymize.fill` and outline variant receive a Lumen optical offset of (0,-16), centering
-their bounds at (512,496). The anonymize glyph therefore spans approximately x=273–751, y=240–752.
+their bounds at (512,496). The ImageBatch glyph therefore spans approximately x=273–751, y=240–752.
 That small upward adjustment balances its shoulders without changing its proportions.
 
 The square-canvas guidance is in Apple's

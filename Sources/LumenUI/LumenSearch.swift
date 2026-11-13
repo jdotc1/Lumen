@@ -2,15 +2,15 @@ import AppKit
 import SwiftUI
 import LumenTokens
 
-// Finding things (Lumen 0.30): text with its matches marked, search results grouped by
+// Finding things, after workspace (Lumen 0.30): text with its matches marked, search results grouped by
 // file, the find and replace panel, and an input palette for Go To Line.
 
 // MARK: Highlighted text
 
 /// How matched text stands out.
 public enum LumenMatchStyle: Sendable, Hashable {
-    /// A soft violet marker (`accent.subtle`) behind the match, underlined in the accent so it
-    /// shows on every ground,
+    /// A soft violet marker (`accent.subtle`) behind the match, as Xcode's and the workspace's find draw one
+    ///, underlined in the accent so it shows on every ground,
     /// including light sidebars where the tint is nearly white. Leaves the text's own colors alone,
     /// so it reads in code.
     case marker
@@ -116,11 +116,10 @@ public struct LumenSearchFile: Identifiable, Hashable, Sendable {
     }
 }
 
-/// Search results grouped by file: a summary ("58 results in 12 files") with
+/// Search results grouped by file (the workspace's Find sidebar): a summary ("58 results in 12 files") with
 /// expand and collapse all, then each file under a disclosure with its count, and its matching lines
 /// with the match marked. Click a line to open it there.
 public struct LumenSearchResults: View {
-    @Environment(\.layoutDirection) private var layoutDirection
     private let files: [LumenSearchFile]
     @Binding private var collapsed: Set<String>
     private let onOpen: (LumenSearchFile, LumenSearchMatch) -> Void
@@ -222,8 +221,7 @@ public struct LumenSearchResults: View {
             if open { collapsed.insert(file.id) } else { collapsed.remove(file.id) }
         } label: {
             HStack(spacing: metrics.spacing.s2) {
-                LumenSymbol(layoutDirection == .rightToLeft ? "chevron.left" : "chevron.right").font(.system(size: metrics.layout.disclosureGlyph, weight: .bold)).foregroundStyle(palette[.fgTertiary])
-                    .rotationEffect(.degrees(open ? (layoutDirection == .rightToLeft ? -90 : 90) : 0))
+                LumenDisclosureChevron(isExpanded: open, size: metrics.layout.disclosureGlyph).foregroundStyle(palette[.fgTertiary])
                 // A fixed icon column, so every file name starts at one edge whatever its glyph's width.
                 LumenSymbol(file.systemImage).foregroundStyle(palette[file.hue])
                     .frame(width: metrics.iconSize.large, alignment: .center)
@@ -313,7 +311,7 @@ public struct LumenFindQuery: Hashable, Sendable {
     }
 }
 
-/// Find and replace, for a sidebar: a scope menu, the pattern with its match mode and a
+/// Find and replace, for a sidebar (the workspace's Find): a scope menu, the pattern with its match mode and a
 /// case toggle, the replacement, and Replace All beside an accent Find. Return in the pattern finds.
 public struct LumenFindPanel<Scope: Hashable>: View {
     @Binding private var query: LumenFindQuery
@@ -441,7 +439,7 @@ public enum LumenGoToLine {
     }
 }
 
-/// The palette's shell asking for one value: a tile, the field in large type and
+/// The palette's shell asking for one value (the workspace's Go To Line): a tile, the field in large type and
 /// a line of help. Return submits when `isValid` passes; Escape closes.
 public struct LumenInputPalette: View {
     private let systemImage: String

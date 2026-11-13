@@ -24,7 +24,7 @@ public enum LumenActivity: Equatable, Sendable {
 }
 
 /// The project's identity at the leading edge of the toolbar: its tile, name and location. It
-/// answers "what am I working on?" at a glance, as a project title does.
+/// answers "what am I working on?" at a glance, as the workspace's project title does.
 public struct LumenToolbarIdentity: View {
     private let title: String
     private let subtitle: String?
@@ -34,6 +34,7 @@ public struct LumenToolbarIdentity: View {
     @Environment(\.lumenPalette) private var palette
     @Environment(\.lumenMetrics) private var metrics
     @Environment(\.lumenToolbarCompact) private var compact
+    @Environment(\.lumenBarIconsOnly) private var iconsOnly
 
     public init(_ title: String, subtitle: String? = nil, systemImage: String, hue: LumenToken = .accent) {
         self.title = title
@@ -43,23 +44,28 @@ public struct LumenToolbarIdentity: View {
     }
 
     public var body: some View {
-        // In the window toolbar: a 20 pt tile, a 13 pt semibold name over an
-        // 11 pt subtitle, as a project title is.
-        // No backlight in the toolbar: the item's bounds can only clip it.
+        // In the window toolbar (the workspace's compact band): a 20 pt tile, a 13 pt semibold name over an
+        // 11 pt subtitle, as the workspace's project title is.
+        // No backlight in the toolbar (PRINCIPLES §7, decision 5): the item's bounds can only clip it.
         HStack(spacing: metrics.spacing.s3) {
             LumenIconTile(systemImage, hue: hue, size: compact ? Self.compactTileSize * metrics.floatingTextGrowth : metrics.layout.tileMode)
                 .lumenTileBacklight(false)
-            VStack(alignment: .leading, spacing: compact ? -metrics.floatingTextGrowth : 0) {
-                Text(title).font(compact ? .system(size: Self.compactTitleSize * metrics.floatingTextGrowth, weight: .semibold) : metrics.typography.headline)
-                    .foregroundStyle(palette[.toolbarForeground]).lineLimit(1)
-                    .truncationMode(.middle)
-                if let subtitle {
-                    // Capped, so a long location (a DerivedData path) shortens in the middle instead
-                    // of widening the toolbar item and starving the status.
-                    LumenCappedWidth(maxWidth: Self.subtitleMaxWidth * metrics.floatingTextGrowth) {
-                        Text(subtitle).font(compact ? .system(size: Self.compactSubtitleSize * metrics.floatingTextGrowth) : metrics.typography.caption)
-                            .foregroundStyle(palette[.toolbarSecondaryForeground])
-                            .lineLimit(1).truncationMode(.middle)
+            if !iconsOnly {
+                VStack(alignment: .leading, spacing: compact ? -metrics.floatingTextGrowth : 0) {
+                    LumenCappedWidth(maxWidth: Self.titleMaxWidth * metrics.floatingTextGrowth) {
+                        Text(title).font(compact ? .system(size: Self.compactTitleSize * metrics.floatingTextGrowth, weight: .semibold) : metrics.typography.headline)
+                            .lumenBarItem(title, bar: "toolbar-identity", role: .freeText)
+                            .foregroundStyle(palette[.toolbarForeground]).lineLimit(1)
+                            .truncationMode(.middle).help(title)
+                    }
+                    if let subtitle {
+                        // Capped, so a long location (a DerivedData path) shortens in the middle instead
+                        // of widening the toolbar item and starving the status.
+                        LumenCappedWidth(maxWidth: Self.subtitleMaxWidth * metrics.floatingTextGrowth) {
+                            Text(subtitle).font(compact ? .system(size: Self.compactSubtitleSize * metrics.floatingTextGrowth) : metrics.typography.caption)
+                                .foregroundStyle(palette[.toolbarSecondaryForeground])
+                                .lineLimit(1).truncationMode(.middle)
+                        }
                     }
                 }
             }
@@ -68,11 +74,12 @@ public struct LumenToolbarIdentity: View {
         .padding(.trailing, compact ? 0 : metrics.spacing.s2)
         .fixedSize(horizontal: false, vertical: true)
         .modifier(LumenToolbarDimming())
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([title, subtitle].compactMap(\.self).joined(separator: " — "))
         .help([title, subtitle].compactMap(\.self).joined(separator: " — "))
     }
 
-    /// A compact project title in the unified band: a 20 pt tile, a 13 pt semibold name over an
+    /// the workspace's compact project title in the unified band: a 20 pt tile, a 13 pt semibold name over an
     /// 11 pt location. These baselines grow with the resolved control metrics.
     static let compactTileSize: CGFloat = 20
     static let compactTitleSize: CGFloat = 13
@@ -80,6 +87,7 @@ public struct LumenToolbarIdentity: View {
 
     /// The widest the location subtitle gets before it shortens in the middle.
     static let subtitleMaxWidth: CGFloat = 240
+    static let titleMaxWidth: CGFloat = 240
 }
 
 /// Lays its one child out at most `maxWidth` wide, even under `.fixedSize()` (a toolbar item), where
@@ -136,20 +144,49 @@ public struct LumenActivityStatus: View {
     }
 
     public var body: some View {
+        // Ideal width first; then the label truncating (free text yields first) down to the
+        // readable floor; only below the floor does the status fall back to its mark.
+        ViewThatFits(in: .horizontal) {
+            if width >= readableMinimum {
+                labelledStatus
+                labelledStatus.frame(minWidth: readableMinimum, idealWidth: readableMinimum, maxWidth: width)
+            }
+            markOnly
+        }
+        .help(activity.label)
+    }
+
+    private var readableMinimum: CGFloat {
+        max(Self.minimumWidth * metrics.floatingTextGrowth, flexibleMinimum ?? 0)
+    }
+
+    var markOnly: some View {
+        statusMark
+            .frame(minWidth: metrics.layout.minimumHitTarget, minHeight: metrics.layout.controlHeight)
+            .background(palette[.activityBackground], in: .capsule)
+            .fixedSize()
+            .help(activity.label)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(activity.label)
+            .accessibilityValue(progressDescription)
+    }
+
+    private var progressDescription: String {
+        if case .working(_, let progress?) = activity { return progress.formatted(.percent.precision(.fractionLength(0))) }
+        return ""
+    }
+
+    private var labelledStatus: some View {
         HStack(spacing: metrics.spacing.s3) {
             // A fixed leading slot, so the label starts at one x whichever mark leads it.
             ZStack { statusMark }.frame(width: metrics.iconSize.regular)
-            Group {
-                if flexibleMinimum != nil {
-                    Text(activity.label).lineLimit(1).truncationMode(.middle)
-                } else {
-                    Text(activity.label).lineLimit(1).lumenNeverTruncates(activity.label)
-                }
-            }
+            Text(activity.label).lumenBarItem(activity.label, bar: "activity-status", role: .freeText)
+                .lineLimit(1).truncationMode(.middle).help(activity.label)
             .font(metrics.typography.callout).foregroundStyle(palette[tone])
             Spacer(minLength: 0)
             if case .working(_, let progress?) = activity {
                 Text(progress, format: .percent.precision(.fractionLength(0)))
+                    .lineLimit(1).fixedSize(horizontal: true, vertical: false).layoutPriority(1)
                     .lumenNumericText(value: progress)
                     .font(metrics.typography.caption.monospacedDigit()).foregroundStyle(palette[.fgSecondary])
             }
@@ -158,7 +195,7 @@ public struct LumenActivityStatus: View {
         // While a progress line shows, the text sits 1 pt higher so its descenders clear the line.
         .padding(.bottom, hasProgressLine ? 2 : 0)
         // `width` when there's room; narrower (its label truncating) in a tight bar, never clipped.
-        .frame(minWidth: flexibleMinimum ?? min(width, Self.minimumWidth * metrics.floatingTextGrowth), idealWidth: width, maxWidth: width, minHeight: metrics.layout.controlHeight)
+        .frame(minWidth: readableMinimum, idealWidth: width, maxWidth: width, minHeight: metrics.layout.controlHeight)
         .background(palette[.activityBackground], in: .capsule)
         .overlay(alignment: .bottom) {
             if case .working(_, let progress?) = activity {
@@ -221,7 +258,7 @@ public struct LumenTaskAction: Identifiable {
     public let role: Role
     public let shortcut: KeyboardShortcut?
     public let perform: @MainActor () -> Void
-    /// The action's own color; `nil` uses its role's (start green,
+    /// The action's own color, as the workspace's build hammer has one; `nil` uses its role's (start green,
     /// stop red, others the toolbar's foreground).
     public private(set) var hue: LumenToken?
 
@@ -235,7 +272,7 @@ public struct LumenTaskAction: Identifiable {
         self.perform = perform
     }
 
-    /// An action in its own color.
+    /// An action in its own color (the workspace's build hammer: `hue: .hueOrange`, say).
     public init(_ title: String, systemImage: String, role: Role = .normal, hue: LumenToken, shortcut: KeyboardShortcut? = nil,
                 perform: @escaping @MainActor () -> Void) {
         self.init(title, systemImage: systemImage, role: role, shortcut: shortcut, perform: perform)
@@ -243,11 +280,11 @@ public struct LumenTaskAction: Identifiable {
     }
 }
 
-/// The actions that start and stop work sit together with the live state, so
+/// the workspace's Tasks idea: the actions that start and stop work sit together with the live state, so
 /// what is running and how to stop it are always one glance away. The set stays constant; actions
-/// that don't apply are disabled, not hidden. In full color like build in its own hue, run
+/// that don't apply are disabled, not hidden. In full color like the workspace's: build in its own hue, run
 /// green, stop red. A disabled build or run keeps its color, dimmed (`disabledOpacity`); stop turns
-/// gray while nothing runs.
+/// gray while nothing runs, as the workspace's does.
 public struct LumenTaskCluster: View {
     private let actions: [LumenTaskAction]
     private let activity: LumenActivity
@@ -267,8 +304,11 @@ public struct LumenTaskCluster: View {
                 // The color goes on the label: the button style's own foreground yields to it.
                 Button(action: action.perform) {
                     Label { Text(action.title) } icon: {
+                        // The icon fits every glyph to half its face; the optical scale rides on top
+                        // as a render effect, so it survives the fit.
                         LumenSymbol(action.systemImage)
-                            .font(.system(size: metrics.layout.toolbarGlyphSize * Self.opticalScale(action.systemImage), weight: .regular))
+                            .font(.system(size: metrics.layout.toolbarGlyphSize, weight: .regular))
+                            .scaleEffect(Self.opticalScale(action.systemImage))
                     }
                         .labelStyle(.iconOnly)
                         .foregroundStyle(color(for: action, enabled: enabled))
@@ -286,21 +326,23 @@ public struct LumenTaskCluster: View {
         .accessibilityLabel(lumenLocalized(String(localized: "Tasks", bundle: .module, comment: "Toolbar control text.")))
     }
 
-    /// A build (hammer) action's hue when it has none of its own.
+    /// A build (hammer) action's hue when it has none of its own, as the workspace's build hammer.
     static let buildHue: LumenToken = .hueOrange
 
-    /// Per-glyph scale so build, run and stop read at one visual size: the hammer's diagonal fills a
-    /// much larger box than the play triangle or the stop square at the same point size.
+    /// Per-glyph scale so build, run and stop read at one visual size. The toolbar icon fits each
+    /// glyph's longer side to half its face, so solid shapes that fill their box (the stop square,
+    /// the play triangle) carry more ink than the thin diagonal hammer; they draw smaller, as the
+    /// square and triangle keylines sit inside the circle on an app-icon grid.
     static func opticalScale(_ systemImage: String) -> CGFloat {
         switch systemImage {
-        case "hammer", "hammer.fill": 0.85
-        case "play", "play.fill": 1.08
+        case "stop", "stop.fill": 0.78
+        case "play", "play.fill": 0.9
         default: 1
         }
     }
 
     private func color(for action: LumenTaskAction, enabled: Bool) -> Color {
-        // Disabled buttons keep their color, except stop, which is gray while nothing
+        // Disabled buttons keep their color, as the workspace's do, except stop, which is gray while nothing
         // runs; the button style dims them once (not twice).
         if !enabled && action.role == .stop { return palette[.toolbarForeground] }
         if let hue = action.hue { return palette[hue] }
@@ -313,27 +355,7 @@ public struct LumenTaskCluster: View {
     }
 }
 
-// MARK: Hover plates and the panel icon button
-
-/// The hover (and press) plate every top-bar button shares: the toolbar's own foreground at a low
-/// alpha, so it reads the same on any title bar glow, lighter or darker, and at one strength
-/// for the panel toggles, New Tab and the toolbar icon buttons.
-struct LumenToolbarHoverPlate: View {
-    let isHovered: Bool
-    var isPressed = false
-
-    @Environment(\.lumenPalette) private var palette
-    @Environment(\.lumenMetrics) private var metrics
-
-    /// The plate's strength on hover and while pressed.
-    static let hoverOpacity = 0.10
-    static let pressedOpacity = 0.16
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: metrics.radius.sm, style: .continuous)
-            .fill(palette[.toolbarForeground].opacity(isPressed ? Self.pressedOpacity : isHovered ? Self.hoverOpacity : 0))
-    }
-}
+// MARK: The panel icon button
 
 /// An icon button inside a pane, not the toolbar: pane headers, tab strips, status strips, cards,
 /// settings rows. Its ink is the content's (`fg.secondary`, `fg.primary` on hover; `.accent` while

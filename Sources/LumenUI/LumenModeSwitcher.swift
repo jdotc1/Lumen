@@ -5,7 +5,7 @@ import LumenTokens
 /// How a mode switcher draws.
 public enum LumenModeSwitcherStyle: Sendable, CaseIterable {
     /// Each mode with its glyph in a colored tile; the current one raised on a card. Lumen's
-    /// default's editor modes.
+    /// default, for editor modes.
     case tiles
     /// A recessed rounded track with the current mode in a native-style selected pill.
     case pill
@@ -58,6 +58,7 @@ public struct LumenModeSwitcher<Mode: Hashable>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.lumenModeSwitcherPlacement) private var placement
+    @Environment(\.lumenBarIconsOnly) private var iconsOnly
     @Environment(\.lumenTabStripName) private var tabStripName
     @Environment(\.lumenTopBarHostsInToolbar) private var hostsInToolbar
     @Environment(\.lumenToolbarCompact) private var toolbarCompact
@@ -81,9 +82,9 @@ public struct LumenModeSwitcher<Mode: Hashable>: View {
 
     public var body: some View {
         ViewThatFits(in: .horizontal) {
-            row(showsLabels: true)
+            row(showsLabels: !iconsOnly)
             row(showsLabels: false)
-            ScrollView(.horizontal) { row(showsLabels: true) }
+            ScrollView(.horizontal) { row(showsLabels: !iconsOnly) }
                 .fixedSize(horizontal: false, vertical: true)
         }
         // Offered its width before flexible neighbors (drag regions, spacers), so labels show
@@ -108,8 +109,7 @@ public struct LumenModeSwitcher<Mode: Hashable>: View {
             if style == .pill {
                 // The track is a field's well with a control's edge, so it reads in light themes too
                 // (at 85% over the panel it all but vanished).
-                LumenTabChrome.shape(radius: LumenTabChrome.radius(metrics: metrics)).fill(palette[.bgInset])
-                    .overlay { LumenTabChrome.shape(radius: LumenTabChrome.radius(metrics: metrics)).strokeBorder(palette[.borderDefault], lineWidth: metrics.stroke.hairline) }
+                LumenTabWell()
             }
         }
         .fixedSize()
@@ -149,7 +149,8 @@ public struct LumenModeSwitcher<Mode: Hashable>: View {
             .frame(minWidth: style == .pill ? pillSegmentHeight : metrics.layout.toolbarButton,
                    minHeight: style == .pill ? pillSegmentHeight : metrics.layout.toolbarButton)
             .background {
-                LumenTabChrome(strip: tabStripName, selected: selected, hovered: hovered == mode)
+                LumenTabChrome(strip: tabStripName, selected: selected, hovered: hovered == mode,
+                               onWell: style == .pill)
             }
             .lumenGroupFocusRing(focused && selected, cornerRadius: LumenTabChrome.radius(metrics: metrics))
             .contentShape(.rect)

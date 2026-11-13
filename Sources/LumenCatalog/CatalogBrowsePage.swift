@@ -16,12 +16,12 @@ struct BrowsePage: View {
 
     private static let items = [
         LumenCollectionItem(id: "lumen", title: "Lumen", detail: "~/Projects/Lumen", systemImage: "lumen.lens", hue: .hueViolet,
-                            date: .now.addingTimeInterval(-600)),
-        LumenCollectionItem(id: "sample", title: "Sample Project", detail: "~/Projects/Sample", systemImage: "scope", hue: .hueBlue,
+                            date: .now.addingTimeInterval(-600), group: "Libraries"),
+        LumenCollectionItem(id: "inspector", title: "Inspector", detail: "~/Projects/Inspector", systemImage: "scope", hue: .hueBlue,
                             date: .now.addingTimeInterval(-86_400), group: "Apps"),
-        LumenCollectionItem(id: "files", title: "File Collection", detail: "~/Projects/Files", systemImage: "cross.case", hue: .hueTeal,
+        LumenCollectionItem(id: "ImageBatch", title: "Batch Tool", detail: "~/Projects/ImageBatch", systemImage: "cross.case", hue: .hueTeal,
                             date: .now.addingTimeInterval(-3 * 86_400), group: "Apps"),
-        LumenCollectionItem(id: "documents", title: "Text Documents", detail: "~/Projects/Documents", systemImage: "doc.richtext", hue: .hueOrange,
+        LumenCollectionItem(id: "desk", title: "Document Tool", detail: "~/Projects/DocumentTool", systemImage: "doc.richtext", hue: .hueOrange,
                             date: .now.addingTimeInterval(-9 * 86_400), group: "Apps"),
     ]
 

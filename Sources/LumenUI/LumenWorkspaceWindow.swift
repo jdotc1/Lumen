@@ -1,8 +1,9 @@
 import SwiftUI
 import LumenTokens
 
-// The workspace window as one component, so the rules that keep it intact live in
-// Lumen rather than in each app: the top bar is pinned at the top and can never be pushed off screen, every region is always mounted and collapses to zero rather than leaving the
+// The workspace window as one component (2026-10-12), so the rules that keep it intact live in
+// Lumen rather than in each app: the top bar is pinned at the top (in the title bar band, the workspace's
+// unified row, from 0.44; or under the window buttons' band) and can never be pushed off screen, every region is always mounted and collapses to zero rather than leaving the
 // split view, no region can ask for more height than the window has, and the panel toggles and
 // their commands come with it. `LumenConformance.workspaceWindow` checks an app's window keeps
 // these rules at every size and panel combination.
@@ -92,7 +93,7 @@ private struct LumenPinnedTopBar<Bar: View>: ViewModifier {
     }
 
     private func unified(_ content: Content) -> some View {
-        // the bar's content is handed to the window's toolbar (`LumenTopBar` turns into
+        // the workspace's: the bar's content is handed to the window's toolbar (`LumenTopBar` turns into
         // toolbar items), so AppKit puts it on the window buttons' center line in the compact band and
         // owns clicks, dragging and double-click. Here, only what's behind and under it: Lumen's glow
         // filling the band (the toolbar's own background hidden) and the hairline under it. The
@@ -171,17 +172,17 @@ extension View {
     }
 }
 
-/// A workspace window: a top bar with the panel toggles at its trailing edge, a sidebar, the main content, an inspector, and a bottom panel under
+/// A workspace window (the workspace's): a top bar with the panel toggles at its trailing edge, a sidebar, the main content, an inspector, and a bottom panel under
 /// the content. Hide and show panels through `panels`; the toggles, the View menu commands
 /// (⌃⌘S, ⇧⌘Y, ⌥⌘I through `LumenViewCommands`) and the regions all follow it.
 ///
 /// Use it with `.windowStyle(.hiddenTitleBar)`. Leave out a region the window doesn't have, and its
 /// toggle is left out too.
 ///
-/// The top bar is a unified row by default (0.44): its content becomes the window's own toolbar
+/// The top bar is the workspace's unified row by default (0.44): its content becomes the window's own toolbar
 /// items (`topLeading` and `topCenter` as `.navigation` items, `topTrailing` with the panel toggles
 /// and New Tab as a `.primaryAction` item), on the window buttons' center line, over Lumen's title
-/// bar glow. Give the scene the compact band:
+/// bar glow. Give the scene the workspace's compact band:
 ///
 /// ```swift
 /// Window("Workspace", id: "workspace") { WorkspaceView() }
@@ -189,8 +190,8 @@ extension View {
 ///     .windowToolbarStyle(.unifiedCompact(showsTitle: false))
 /// ```
 ///
-/// `.topBarPlacement(.underTitleBar)` keeps a SwiftUI bar under the window
-/// buttons' own band. For Toolbar arrangement put `LumenWorkspaceToolbar`
+/// `.topBarPlacement(.underTitleBar)` keeps the inspector example's earlier look, a SwiftUI bar under the window
+/// buttons' own band. For the workspace's arrangement put `LumenWorkspaceToolbar`
 /// in `topLeading` and `LumenToolbarStatus` in `topCenter`, and give the content a
 /// `LumenContentTabBar` for its editor modes or tabs.
 public struct LumenWorkspaceWindow<Leading: View, Center: View, Trailing: View, Sidebar: View, Content: View,
@@ -255,7 +256,7 @@ public struct LumenWorkspaceWindow<Leading: View, Center: View, Trailing: View, 
     }
 
     /// A bottom panel the content draws itself (one built from state the content owns): the window
-    /// adds the bottom toggle and ⇧⌘Y for it, in the panel order, but no bottom region. Ignored when
+    /// adds the bottom toggle and ⇧⌘Y for it, in the workspace's order, but no bottom region. Ignored when
     /// the window has its own `bottom`.
     public func bottomPanelToggle(_ isPresented: Binding<Bool>) -> Self {
         var copy = self
@@ -271,14 +272,15 @@ public struct LumenWorkspaceWindow<Leading: View, Center: View, Trailing: View, 
         return copy
     }
 
-    /// Where the top bar sits: `.unified` or `.underTitleBar`.
+    /// Where the top bar sits: `.unified` (the workspace's, the default unless `.lumenTopBarPlacement` says
+    /// otherwise) or `.underTitleBar` (the inspector example's look before 0.44).
     public func topBarPlacement(_ placement: LumenTopBarPlacement) -> Self {
         var copy = self
         copy.placement = placement
         return copy
     }
 
-    /// A New Tab button (`LumenNewItemButton`) at the very end of the top bar, after the panel
+    /// the workspace's New Tab button (`LumenNewItemButton`) at the very end of the top bar, after the panel
     /// toggles. Attach a `.lumenLaunchMenu` by drawing the button in `topTrailing` instead. The title
     /// defaults to "New Tab", not the bare button's generic "New": in a workspace window it opens a tab.
     public func newItemButton(_ title: String = LumenOtherDefaultStrings.newTab, action: @escaping () -> Void) -> Self {

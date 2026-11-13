@@ -2,9 +2,17 @@ import SwiftUI
 import LumenTokens
 import LumenUI
 
-// Developer tools: debugger, editor, sheets and settings components.
+// The pieces for debugger, editor, sheets and settings (Lumen 0.15–0.27), live.
 
 private typealias C = LumenToken.Code
+
+private extension View {
+    /// The deck's panes share the column: one flexible width instead of a fixed width each
+    /// (design review 2026-11 #17).
+    func debuggerPane() -> some View {
+        frame(minWidth: 280, idealWidth: 320, maxWidth: .infinity, alignment: .leading)
+    }
+}
 
 struct DebuggerPage: View {
     @State private var frame: Int? = 0
@@ -24,7 +32,7 @@ struct DebuggerPage: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            PageHeader(title: "Debugger", summary: "Debugger components: the stack, registers, console, breakpoints, memory, expressions, watches and variables.")
+            PageHeader(title: "Debugger", summary: "the inspector example's debugger, deck by deck: the stack, registers, console, breakpoints, memory, expressions, watches and variables.")
             LumenSectionHeader("Stack and registers")
             ViewThatFits(in: .horizontal) {
                 HStack(alignment: .top, spacing: 16) { stack; registers }
@@ -36,7 +44,7 @@ struct DebuggerPage: View {
                 VStack(alignment: .leading, spacing: 16) { consoleView; breakpoints }
             }
             LumenSectionHeader("Memory")
-            LumenHexDump(Array("Hello, Lumen! This is memory at the stack pointer.".utf8) + [0, 0, 0x1b, 0x0a],
+            LumenHexDump(Array("Hello, world! This is memory at the stack pointer.".utf8) + [0, 0, 0x1b, 0x0a],
                          baseAddress: 0x16fdff280, selection: $hexSelection)
                 .lumenCard(padding: 8)
             LumenSectionHeader("Expressions and watches")
@@ -64,7 +72,7 @@ struct DebuggerPage: View {
             LumenStackFrame(index: 1, function: "run()", address: 0x100004120, location: "main.swift:17"),
             LumenStackFrame(index: 2, function: "start", address: 0x18c2a0274, location: "dyld", isSystem: true),
         ], selection: $frame)
-        .frame(width: 300)
+        .debuggerPane()
     }
 
     private var registers: some View {
@@ -77,7 +85,7 @@ struct DebuggerPage: View {
                 LumenRegister("pc", value: "0x0000000100003f50", role: "program"),
             ])
         }
-        .frame(maxWidth: 380)
+        .debuggerPane()
     }
 
     private var consoleView: some View {
@@ -85,7 +93,7 @@ struct DebuggerPage: View {
             console.append(LumenConsoleLine(.command, command))
             console.append(LumenConsoleLine(.output, "(demo) \(command)"))
         }
-        .frame(width: 340, height: 200)
+        .debuggerPane().frame(height: 200)
         .lumenCard(padding: 0)
     }
 
@@ -101,7 +109,7 @@ struct DebuggerPage: View {
                 }
             }
         }
-        .frame(width: 320)
+        .debuggerPane()
     }
 
     private var commands: some View {
@@ -109,14 +117,14 @@ struct DebuggerPage: View {
             LumenCommandField("expr", parts: [LumenCommandPart($expression, prompt: "Expression")], actionTitle: "Evaluate") {}
             LumenEvaluationResult("2", type: "unsigned long")
         }
-        .frame(width: 320)
+        .debuggerPane()
     }
 
     private var watchList: some View {
         LumenWatchList(watches, newExpression: $newWatch, limit: 16, caution: "Evaluating can run code.",
                        onEvaluate: {}, onAdd: { watches.append(LumenWatch(id: UUID().uuidString, expression: $0)) },
                        onRemove: { id in watches.removeAll { $0.id == id } })
-            .frame(width: 320)
+            .debuggerPane()
     }
 }
 
@@ -127,12 +135,12 @@ struct EditorPage: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            PageHeader(title: "Editor", summary: "Editor components: the pseudocode strip and gutter, the disassembly listing with branch lanes, graph blocks, the strings navigator and the inspector’s summary card.")
+            PageHeader(title: "Editor", summary: "the inspector example's editor panes: the pseudocode strip and gutter, the disassembly listing with branch lanes, graph blocks, the strings navigator and the inspector’s summary card.")
             LumenSectionHeader("Pseudocode")
             VStack(spacing: 0) {
                 LumenStatusStrip(status: LumenStripStatus("Ready", tone: .statusSuccess), chips: [LumenStripChip("Truncated")],
                                  actions: [LumenBarAction("Refresh", systemImage: "arrow.clockwise") {}]) {
-                    LumenModeSwitcher(selection: $source, options: ["Native", "Optimized", "Compare"], style: .pill, title: { $0 })
+                    LumenModeSwitcher(selection: $source, options: ["Native", "Inspector", "Compare"], style: .pill, title: { $0 })
                 }
                 LumenCodeListing([
                     [LumenCodeRun("int64_t", C.type), LumenCodeRun(" "), LumenCodeRun("compute", C.function), LumenCodeRun("(int64_t a1)")],
@@ -175,7 +183,7 @@ struct EditorPage: View {
 
     private var strings: some View {
                 VStack(spacing: 2) {
-                    ForEach(Array(["Hello, Lumen!", "%s: invalid header (%d)\\n", "/usr/lib/libSystem.B.dylib"].enumerated()), id: \.offset) { i, text in
+                    ForEach(Array(["Hello, world!", "%s: invalid header (%d)\\n", "/usr/lib/libSystem.B.dylib"].enumerated()), id: \.offset) { i, text in
                         LumenStringRow(text, address: 0x100008000 + UInt64(i * 0x11), section: "__cstring", length: text.count,
                                        isSelected: i == selectedString)
                             .onTapGesture { selectedString = i }

@@ -8,7 +8,9 @@ struct CatalogNativeMenuExample: NSViewRepresentable {
     @Environment(\.displayScale) private var scale
 
     func makeNSView(context: Context) -> NSPopUpButton {
-        NSPopUpButton(frame: .zero, pullsDown: true)
+        let button = NSPopUpButton(frame: .zero, pullsDown: true)
+        button.isTransparent = true   // the page draws the chrome beneath; the live control still opens its menu
+        return button
     }
 
     func updateNSView(_ button: NSPopUpButton, context: Context) {

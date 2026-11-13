@@ -64,14 +64,15 @@ public struct LumenPack: Sendable {
     /// Built-in themes to leave out of this app's gallery. They still resolve, so themes can
     /// inherit them: an app that brands its own versions of Lumen's themes hides the originals.
     public var hidesThemes: [String]
-    /// Moves tokens another pack defines onto a configured surface. An editor theme can map
-    /// `bg.canvas` onto its editor surface.
+    /// Moves tokens another pack defines onto one of this app's surfaces. the inspector example's editor theme
+    /// draws the canvas, so it moves `bg.canvas` onto its editor surface.
     public var surfaceOverrides: [LumenToken: LumenSurface]
     /// Keys theme files used before a role was renamed or moved (an app's legacy names, say), and
     /// the token each now means. Theme files that use them load as the new roles, so users' themes
     /// keep working across a migration.
     public var renamedKeys: [String: LumenToken]
-    /// Keys theme files may still carry for roles this app retired with no successor. Nothing reads them and the validator doesn't flag them, so old files open
+    /// Keys theme files may still carry for roles this app retired with no successor (the inspector example's
+    /// `graph.edge.*`). Nothing reads them and the validator doesn't flag them, so old files open
     /// quietly. Set it after creating the pack.
     public var retiredKeys: Set<String> = []
     /// Metrics themes may not set, including through inheritance. Locks are validated rather

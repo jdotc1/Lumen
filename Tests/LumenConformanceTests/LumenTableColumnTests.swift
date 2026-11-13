@@ -179,8 +179,8 @@ final class LumenTableMinimumCharactersTests: XCTestCase {
     }
 }
 
-/// A table never grows past its container: when its columns' minimums do not fit, they yield.
-/// A members table with 272 pt minimum width must fit a 259 pt inspector without clipping.
+/// A table never grows past its container: when its columns' minimums don't fit, they yield. the inspector example's
+/// Types inspector clipped on both edges when its members table (minimums ~272 pt) sat in ~259 pt.
 @MainActor
 final class LumenTableFitsItsContainerTests: XCTestCase {
     struct Member: Identifiable { let id: Int; let offset: String; let name: String; let type: String }

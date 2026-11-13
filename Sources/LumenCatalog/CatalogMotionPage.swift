@@ -13,7 +13,7 @@ struct MotionPage: View {
             Text("Reduce Motion: \(reduceMotion ? "On — changes happen immediately" : "Off")")
                 .font(.headline)
             Text("Theme motion: \(metrics.motion.isEnabled ? "Enabled" : "Disabled")")
-                .font(.caption)
+                .foregroundStyle(.lumen(.fgSecondary))
             CatalogMotionPreferenceControl()
             ForEach(LumenMotion.Transition.allCases, id: \.rawValue) { transition in
                 MotionSampleRow(transition: transition)
@@ -38,7 +38,9 @@ private struct MotionSampleRow: View {
                 Button(active ? "Reset" : "Trigger") { active.toggle() }
             }
             MotionSample(transition: transition, active: active)
-                .frame(height: 32)
+                // Sized to the animated content (a 4 pt bar, or a ~28 pt sample) and growing with text
+                // scale, not a fixed band that sits empty until Trigger is pressed (design review 2026-11 #21).
+                .frame(minHeight: transition == .loading ? 6 : 30)
                 .clipped()
             Divider()
         }
@@ -158,14 +160,8 @@ private struct CatalogMotionPreferenceControl: View {
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("catalog.motion.preference")
                 .accessibilityLabel("Motion preference")
-            HStack(spacing: 8) {
-                ForEach(CatalogMotionPreference.allCases, id: \.self) { option in
-                    Button(option.title) { raw = option.rawValue }
-                        .accessibilityIdentifier("catalog.motion.preference.\(option.rawValue)")
-                        .accessibilityLabel("Set motion \(option.title)")
-                        .accessibilityValue(selection.wrappedValue == option ? "selected" : "not selected")
-                }
-            }
+            // Each segment is an AX-pressable button titled with its option, so the page needs no
+            // second row of On / Reduced / Off buttons (design review 2026-11 #6 removed it).
         }
     }
 }

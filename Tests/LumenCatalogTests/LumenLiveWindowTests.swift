@@ -164,7 +164,7 @@ final class LumenLiveWindowTests: XCTestCase {
 
     }
 
-    // MARK: Split workspace unified top bar
+    // MARK: Split workspace, the workspace's unified top bar (L2, L3, centre line)
 
     func split(_ activity: LumenActivity? = nil) -> some View {
         Group {
@@ -210,8 +210,8 @@ final class LumenLiveWindowTests: XCTestCase {
         XCTAssertEqual(findings.map(\.description), [])
     }
 
-    /// PRINCIPLES §9: the status capsule shows whole or hides; it never shows a truncated label
-    /// (it stayed at its fixed 260 pt with 360 pt free and showed "Analysiere libsystem_kernel.dyl…").
+    /// PRINCIPLES §9: the status capsule shows whole or falls back to its mark; it never shows a
+    /// truncated label (it stayed at its fixed 260 pt with 360 pt free and showed "Analysiere libsystem_kernel.dyl…").
     func testTopBarStatusNeverShowsTruncated() {
         let label = "Analysiere libsystem_kernel.dylib und alle abhängigen Bibliotheken"
         let needed = NSHostingController(rootView: Text(label).font(LumenMetrics.standard.typography.callout).fixedSize())
@@ -222,6 +222,8 @@ final class LumenLiveWindowTests: XCTestCase {
             guard layout.items.count >= 3 else { XCTFail("\(Int(width)): \(layout.items.count) toolbar items"); continue }
             let status = layout.items[1]
             guard status.visible, status.frame.width > 1 else { continue }   // hidden: fine
+            // Mark only (no label): fine. The mark is one hit target wide.
+            if status.frame.width <= LumenMetrics.standard.layout.minimumHitTarget + 1 { continue }
             XCTAssertGreaterThanOrEqual(status.frame.width, needed + LumenMetrics.standard.iconSize.regular,
                                         "\(Int(width)) pt window: the status shows in \(Int(status.frame.width)) pt; its label alone needs \(Int(needed.rounded(.up)))")
         }
@@ -273,7 +275,7 @@ final class LumenLiveWindowTests: XCTestCase {
         }
     }
 
-    /// Every top-bar item sits on the window buttons' center line, past the buttons.
+    /// the workspace's rule: every top-bar item sits on the window buttons' center line, past the buttons.
     func testTopBarItemsSitOnTheWindowButtonsCenterLine() throws {
         for size in [CGSize(width: SplitLayout.windowMinWidth, height: 700), CGSize(width: 1280, height: 800)] {
             let layout = layOut(split(), size: size, compact: true)

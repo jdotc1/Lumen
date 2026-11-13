@@ -2,7 +2,7 @@ import SwiftUI
 import LumenTokens
 import LumenUI
 
-// Settings forms and controls.
+// Settings forms and controls added in Lumen 0.29–0.37 (the workspace's settings), live.
 
 struct FormsPage: View {
     @State private var entryDate = Date(timeIntervalSince1970: 1_792_757_400)

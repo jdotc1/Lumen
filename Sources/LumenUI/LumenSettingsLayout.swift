@@ -10,7 +10,9 @@ public enum LumenSettingsWidthClass: Sendable, Equatable, CaseIterable {
 
     func horizontalPadding(_ metrics: LumenMetrics) -> CGFloat {
         switch self {
-        case .compact: metrics.spacing.s6
+        // Never under the native grouped form's own 20 pt box margin, so a grouped pane's boxes and
+        // a rich pane's rows can share this edge (design review 2026-11 #7).
+        case .compact: metrics.spacing.s7
         case .regular: metrics.spacing.s8
         case .wide: metrics.spacing.s9
         }
@@ -23,6 +25,13 @@ public enum LumenSettingsWidthClass: Sendable, Equatable, CaseIterable {
         case .wide: metrics.spacing.s7
         }
     }
+}
+
+/// AppKit's grouped `Form` draws its boxes this far inside its scroll content margin, and row text
+/// a further `groupedRowInset` inside the box (measured on macOS 27.3, `LumenSettingsLeadingEdgeTests`).
+enum LumenGroupedFormInsets {
+    static let box: CGFloat = 20
+    static let row: CGFloat = 10
 }
 
 public extension EnvironmentValues {
@@ -57,7 +66,9 @@ public struct LumenSettingsGroup<Content: View>: View {
             content
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(widthClass.sectionSpacing(metrics))
+        // Vertical only: it draws no box, so a horizontal inset just pushed its rows off the pane
+        // header's edge (design review 2026-11 #7).
+        .padding(.vertical, widthClass.sectionSpacing(metrics))
     }
 }
 

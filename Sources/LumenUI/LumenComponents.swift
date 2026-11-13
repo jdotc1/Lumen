@@ -364,7 +364,8 @@ public struct LumenPropertyRow: View {
 
 // MARK: Empty state
 
-/// Lumen's one empty state, at the prominence its place asks for:
+/// Lumen's one empty state, at the prominence its place asks for (the design review’s review decision: one design
+/// in three tiers, never on a card):
 /// - `.inline`: one quiet sentence and no glyph, for lists, tables, sidebar sections, stacked panes,
 ///   debugger sections, palettes and search results.
 /// - `.pane`: the panel's own symbol in the tertiary text color, a centered title, a short body and at
@@ -559,11 +560,13 @@ private struct LumenLinkPointer: ViewModifier {
 
 // MARK: Toolbar button
 
-/// A toolbar icon button drawn entirely in SwiftUI: a rounded tile (the layout's
-/// `toolbarButton`, 28 pt by default) that appears on hover and deepens on press. One size for
-/// every toolbar button. Glyphs are regular weight in `toolbar.foreground` at 75% (full on hover)
-/// unless the label sets its own style. Add
-/// `.lumenFocusRing()` to the button so keyboard focus shows.
+/// A toolbar icon button drawn as an app icon (`LumenToolbarIcon`): the glyph centered on its own
+/// continuous-corner rounded square, face, light, shadow and glyph drawn as one vector unit in a
+/// `toolbarButton` (28 pt by default) hit area, one size for every toolbar button (design review
+/// 2026-11, note 24; design review 2026-11-13). Hover raises the icon a little and pressing settles it; it is
+/// drawn by Lumen, never glass or the system toolbar platter. Glyphs are regular weight in
+/// `toolbar.foreground` at 75% (full on hover) unless the label sets its own style.
+/// Add `.lumenFocusRing()` to the button so keyboard focus shows.
 public struct LumenToolbarIconButtonStyle: ButtonStyle {
     public init() {}
 
@@ -584,17 +587,13 @@ public struct LumenToolbarIconButtonStyle: ButtonStyle {
         var body: some View {
             // Regular weight in the toolbar's secondary ink (its foreground at the panel toggles' off
             // strength), full strength on hover: the group reads as quiet tools, not headings.
-            configuration.label
-                .font(.system(size: metrics.layout.toolbarGlyphSize, weight: .regular))
-                .foregroundStyle(palette[.toolbarForeground].opacity((isHovered || forcedHover) && isEnabled ? 1 : 0.75))
-                .frame(width: metrics.layout.toolbarButton, height: metrics.layout.toolbarButton)
+            // The glyph and its rounded square are one icon, the same as the panel toggles and New Tab.
+            LumenToolbarIcon(isHovered: isEnabled && (isHovered || forcedHover), isPressed: isEnabled && configuration.isPressed) {
+                configuration.label
+                    .font(.system(size: metrics.layout.toolbarGlyphSize, weight: .regular))
+                    .foregroundStyle(palette[.toolbarForeground].opacity((isHovered || forcedHover) && isEnabled ? 1 : 0.75))
+            }
                 .lumenIconOnlyControl()   // PRINCIPLES §7: every toolbar icon button keeps its hit area
-                .background {
-                    // The top bar's shared plate (toolbar ink at 0.10 hover / 0.16 pressed), so these
-                    // tiles match the panel toggles and New Tab on any title bar glow.
-                    LumenToolbarHoverPlate(isHovered: isEnabled && (isHovered || forcedHover),
-                                           isPressed: isEnabled && configuration.isPressed)
-                }
                 .lumenDisabledOpacity(isEnabled, target: metrics.layout.disabledOpacity, ancestor: ancestorOpacity)
                 .contentShape(.rect)
                 .onHover { isHovered = $0 }
@@ -668,7 +667,7 @@ public struct LumenSymbolBadge: View {
 }
 
 public extension ButtonStyle where Self == LumenToolbarIconButtonStyle {
-    /// `LumenToolbarIconButtonStyle`: the rounded toolbar tile that appears on hover.
+    /// `LumenToolbarIconButtonStyle`: the toolbar button drawn as an app icon.
     static var lumenToolbarIcon: LumenToolbarIconButtonStyle { LumenToolbarIconButtonStyle() }
 }
 

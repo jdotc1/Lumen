@@ -4,8 +4,8 @@ import LumenTokens
 import LumenUI
 import LumenConformance
 
-/// PRINCIPLES §7 (icon scale) and §8 (one surface per pane): each rule rejects
-/// inconsistent composition and accepts a correctly proportioned layout.
+/// PRINCIPLES §7 (icon scale) and §8 (one surface per pane): each rule fails on the pattern design review
+/// found in Inspector and passes on the fix.
 @MainActor
 final class LumenVisualRulesTests: XCTestCase {
     let size = [CGSize(width: 420, height: 240)]
@@ -35,7 +35,7 @@ final class LumenVisualRulesTests: XCTestCase {
         XCTAssertEqual(findings.count, 1, "\(findings)")
     }
 
-    /// A tinted gutter beside the listing and a band inset from the pane edge create surface steps.
+    /// A tinted gutter beside the listing, and a band inset from the pane's edge: the inspector example's staircase.
     func testATintedGutterAndAnInsetBandAreReported() {
         let findings = LumenConformance.surfaceSteps(sizes: size) {
             HStack(spacing: 0) {

@@ -51,7 +51,7 @@ final class LumenCoreTests: XCTestCase {
 }
 
 /// An app extends Lumen with its own pack: tokens, a surface, values for the built-in themes,
-/// and rules using a synthetic token pack.
+/// and rules. This stands in for Inspector or any other app.
 final class LumenAppPackTests: XCTestCase {
     static let editor = LumenSurface("editor")
     static let keyword: LumenToken = "syntax.keyword"

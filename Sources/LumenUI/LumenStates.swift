@@ -105,7 +105,7 @@ private struct LumenCompactControlModifier: ViewModifier {
 
 // MARK: Tag colors
 
-/// The color labels people put on things, drawn from the hue
+/// The color labels people put on things (Finder's tags, the inspector example's row colors), drawn from the hue
 /// family so they follow the theme instead of fixed system colors.
 public enum LumenTagColor: String, CaseIterable, Identifiable, Sendable {
     case red, orange, yellow, green, blue, purple, gray

@@ -32,7 +32,7 @@ struct LumenCatalogApp: App {
         )
         LumenThemeStore.install(store, watchesThemesFolder: false)
         // `LUMEN_CATALOG_CHROME=glass|drawn` sets the chrome style for this launch (for screenshots):
-        // `CatalogChromeOverride`, never saved. The toolbar's Glass toggle clears it and saves.
+        // `CatalogChromeOverride`, never saved; there is no chrome switch for a person (note 24).
         // `LUMEN_CATALOG_THEME=lumen.ultraviolet` picks a theme for this launch, also unsaved: the
         // saved choice is put back, so the next plain launch shows the user's theme.
         if let theme = ProcessInfo.processInfo.environment["LUMEN_CATALOG_THEME"] {
@@ -64,11 +64,11 @@ struct LumenCatalogApp: App {
         WindowGroup(Bundle.main.object(forInfoDictionaryKey: "LumenCatalogPreview") as? Bool == true
                     ? (Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Lumen Catalog Preview") : "Lumen Catalog", id: "catalog") {
             CatalogView()
+                .modifier(CatalogWindowMinimum())
                 .lumenPaletteRoot(store: store)
                 .lumenDensityRoot(store: store)
                 .modifier(CatalogTextScaleRoot())
                 .modifier(CatalogChromeRoot())
-                .modifier(CatalogWindowMinimum())
                 .onAppear {
                     if ProcessInfo.processInfo.environment["LUMEN_CATALOG_BACKGROUND"] != "1" {
                         NSApplication.shared.activate(ignoringOtherApps: true)
@@ -98,7 +98,7 @@ struct LumenCatalogApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        // A workspace window built from Lumen components.
+        // The workspace window: the workspace's layout, built from Lumen's workspace pieces.
         Window("Workspace", id: "workspace") {
             WorkspaceDemo()
                 .lumenPaletteRoot(store: store)
@@ -147,8 +147,8 @@ struct LumenCatalogApp: App {
         .windowResizability(.contentSize)
         .defaultPosition(.center)
 
-        // A hidden title bar with a custom top bar and HSplitView columns,
-        // built from Lumen split-layout components.
+        // the inspector example's structure: a hidden title bar with the app's own top bar and HSplitView columns,
+        // built from Lumen's split-layout pieces. Every Lumen release is exercised here.
         Window("Split Workspace", id: "split") {
             SplitWorkspaceDemo()
                 .lumenPaletteRoot(store: store)
@@ -157,7 +157,7 @@ struct LumenCatalogApp: App {
                 .modifier(CatalogChromeRoot())
         }
         .windowStyle(.hiddenTitleBar)
-        // The compact top bar aligns its items with the window buttons' center line.
+        // the workspace's compact band: the top bar's items sit on the window buttons' center line (0.44).
         .windowToolbarStyle(.unifiedCompact(showsTitle: false))
 
         Window("Sample Workspace", id: "sample-workspace") {
@@ -207,55 +207,34 @@ struct CatalogTextScaleRoot: ViewModifier {
 
 // MARK: Chrome style
 
-/// The Catalog's chrome style (PRINCIPLES §11), saved in the demo suite so every window shares it.
+/// The Catalog's demo defaults suite, shared by every window (text scale, sample settings).
 enum CatalogChrome {
-    static let key = "catalog.chromeStyle"
-    static var defaults: UserDefaults {
+    /// One instance for the whole app. `@AppStorage` observes the instance it was given, so a
+    /// fresh `UserDefaults(suiteName:)` per access left open windows deaf to a Settings change
+    /// (design review 2026-11 #3). UserDefaults is thread-safe.
+    nonisolated(unsafe) static let defaults: UserDefaults = {
         let isPreview = Bundle.main.object(forInfoDictionaryKey: "LumenCatalogPreview") as? Bool == true
         let suite = isPreview ? Bundle.main.bundleIdentifier : "com.lumen.catalog.demo"
         // A suite named for the app's own bundle id is the standard defaults, and Foundation warns on it.
         guard let suite, suite != Bundle.main.bundleIdentifier else { return .standard }
         return UserDefaults(suiteName: suite) ?? .standard
-    }
+    }()
 }
 
-/// `LUMEN_CATALOG_CHROME`'s style for this launch, ahead of the saved one and never written to
-/// defaults, so a screenshot run doesn't change the user's next launch. The Glass toggle clears it.
+/// `LUMEN_CATALOG_CHROME`'s style for this launch, for screenshot and test runs that need the
+/// drawn fallback. Never written to defaults, and never offered to a person (note 24).
 @Observable @MainActor
 final class CatalogChromeOverride {
     static let shared = CatalogChromeOverride()
     var style: LumenChromeStyle? = ProcessInfo.processInfo.environment["LUMEN_CATALOG_CHROME"].map(LumenChromeStyle.resolve)
 }
 
-/// Applies the chrome style to a window's root: the launch override, else the saved style.
+/// Applies the chrome style to a window's root: the launch override, else glass. There is one
+/// style and no switch (design review 2026-11, note 24); glass resolves to the drawn fallback on
+/// its own under Reduce Transparency and offscreen.
 struct CatalogChromeRoot: ViewModifier {
-    @AppStorage(CatalogChrome.key, store: CatalogChrome.defaults) private var raw = LumenChromeStyle.glass.rawValue
     @State private var launch = CatalogChromeOverride.shared
-    func body(content: Content) -> some View { content.lumenChromeStyle(launch.style ?? LumenChromeStyle.resolve(raw)) }
-}
-
-/// The toolbar's Glass toggle: switches every open window between `.drawn` and `.glass`.
-struct CatalogChromeToggle: View {
-    @AppStorage(CatalogChrome.key, store: CatalogChrome.defaults) private var raw = LumenChromeStyle.glass.rawValue
-    @Environment(\.lumenPalette) private var palette
-    @Environment(\.lumenResolvedChromeStyle) private var resolved
-
-    private var isGlass: Bool { (CatalogChromeOverride.shared.style ?? LumenChromeStyle.resolve(raw)) == .glass }
-
-    var body: some View {
-        let title = isGlass ? "Use Drawn Chrome" : "Use Glass Chrome"
-        Button(title, systemImage: isGlass ? "square.on.square.intersection.dashed" : "square.on.square") {
-            let next = (isGlass ? LumenChromeStyle.drawn : .glass).rawValue
-            CatalogChromeOverride.shared.style = nil   // the user's choice replaces the launch override
-            raw = next
-        }
-        .labelStyle(.iconOnly)
-        .buttonStyle(LumenToolbarIconButtonStyle())
-        .foregroundStyle(isGlass ? palette[.layoutToggleOn] : palette[.fgSecondary])
-        .lumenIconOnlyControl(title)
-        .lumenFocusRing()
-        .help(isGlass && resolved == .drawn ? "Glass chrome (drawn while Reduce Transparency is on)" : title)
-    }
+    func body(content: Content) -> some View { content.lumenChromeStyle(launch.style ?? .glass) }
 }
 
 // MARK: Native menus
@@ -374,6 +353,7 @@ struct CatalogView: View {
     /// The window's store, for the palette's theme commands.
     @Environment(\.lumenStore) var lumenStore
     @Environment(\.lumenResolvedChromeStyle) private var chromeStyle
+    @Environment(\.lumenMetrics) private var metrics
 
     @Environment(\.openSettings) private var openSettings
     @Environment(\.openWindow) private var openWindow
@@ -426,12 +406,16 @@ struct CatalogView: View {
         }, selection: Binding(get: { page?.rawValue }, set: { id in page = CatalogPage.allCases.first { $0.rawValue == id } }))
     }
 
+    private var sidebarColumn: (min: CGFloat, ideal: CGFloat, max: CGFloat) {
+        CatalogLayout.sidebarColumn(metrics: metrics)
+    }
+
     @ViewBuilder
     private var columns: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             sidebarContent
                 .lumenSidebarToggle(columnVisibility: $columnVisibility)
-                .navigationSplitViewColumnWidth(min: CatalogLayout.sidebarMinWidth, ideal: CatalogLayout.sidebarIdealWidth, max: 300)
+                .navigationSplitViewColumnWidth(min: sidebarColumn.min, ideal: sidebarColumn.ideal, max: sidebarColumn.max)
         } detail: {
             pageContent
                 .lumenPanelCommands(trailing: $showsInspector)
@@ -462,7 +446,6 @@ struct CatalogView: View {
                 LumenToolbarStatus(activity, minWidth: 180)
             }.lumenToolbarPlatter(chromeStyle)
             ToolbarItem(placement: .primaryAction) { LumenTaskCluster(tasks, activity: activity) }.lumenToolbarPlatter(chromeStyle)
-            ToolbarItem(placement: .primaryAction) { CatalogChromeToggle() }.lumenToolbarPlatter(chromeStyle)
             ToolbarItem(placement: .primaryAction) { LumenInspectorToggle(isPresented: $showsInspector, registersShortcut: false) }
                 .lumenToolbarPlatter(chromeStyle)
         }
@@ -478,7 +461,7 @@ struct CatalogView: View {
                 return
             }
             // `LUMEN_CATALOG_WORKSPACE=1` opens the workspace window; `LUMEN_CATALOG_SPLIT=1` the
-            // split workspace with a custom top bar.
+            // Inspector-shaped split workspace.
             if ProcessInfo.processInfo.environment["LUMEN_CATALOG_WORKSPACE"] == "1" { openWindow(id: "workspace") }
             if ProcessInfo.processInfo.environment["LUMEN_CATALOG_SPLIT"] == "1" { openWindow(id: "split") }
             if ProcessInfo.processInfo.environment["LUMEN_CATALOG_ACTIVITY"] == "working" {
@@ -498,11 +481,13 @@ struct CatalogView: View {
     }
 }
 
-/// The minimum for the native Catalog columns.
+/// The minimum for the native Catalog columns, at the window's text scale. Apply it inside the
+/// text-scale root so it sees the scaled metrics.
 struct CatalogWindowMinimum: ViewModifier {
+    @Environment(\.lumenMetrics) private var metrics
     @ViewBuilder
     func body(content: Content) -> some View {
-        content.frame(minWidth: CatalogLayout.windowMinWidth, minHeight: 640)
+        content.frame(minWidth: CatalogLayout.windowMinWidth(metrics: metrics), minHeight: 640)
     }
 }
 
@@ -527,6 +512,18 @@ enum CatalogLayout {
     /// The split's real width at its minimum: sidebar and inspector at their ideals, the page at its
     /// minimum, plus NSV's two dividers.
     static let windowMinWidth = sidebarIdealWidth + pageMinWidth + inspectorWidthAtMinimum + 2
+
+    /// The sidebar grows with text scale as Lumen's own scaffold columns do, so 1.3× labels are not
+    /// middle-truncated in a 1.0×-wide column (design review 2026-11 #3).
+    static func sidebarColumn(metrics: LumenMetrics) -> (min: CGFloat, ideal: CGFloat, max: CGFloat) {
+        let growth = LumenLayout.sidebarColumn(metrics: metrics).ideal / LumenLayout.sidebarColumn.ideal
+        return (sidebarMinWidth * growth, sidebarIdealWidth * growth, 300 * growth)
+    }
+
+    /// `windowMinWidth` with the sidebar and inspector at their text-scaled ideals.
+    static func windowMinWidth(metrics: LumenMetrics) -> CGFloat {
+        sidebarColumn(metrics: metrics).ideal + pageMinWidth + LumenLayout.inspectorColumn(metrics: metrics).ideal + 2
+    }
 }
 
 /// A fixed-size design (a window, the showcase) shown whole: scaled down to the width it's given,
@@ -574,7 +571,7 @@ struct CatalogPageView: View {
             case .utility: UtilityWindowPage()
             case .library: LibraryWindowPage()
             case .document: DocumentWindowPage()
-            case .menuBar: CatalogMenuBarPanel()
+            case .menuBar: CatalogMenuBarPanelPage()
             case .wizard: WizardWindowPage()
             case .states: StatesPage()
             case .debugger: DebuggerPage()
@@ -633,7 +630,7 @@ extension CatalogView {
             LumenCommand(id: "go.\(target.rawValue)", "Go to \(target.rawValue)", category: "Go", systemImage: target.symbol,
                          hue: target.hue, isEnabled: target != page) { page = target }
         } + [
-            LumenCommand(id: "window.workspace", "Open Workspace", subtitle: "Panels, tabs and editor columns", category: "Window",
+            LumenCommand(id: "window.workspace", "Open Workspace", subtitle: "the workspace's layout in Lumen pieces", category: "Window",
                          systemImage: "macwindow", hue: .hueViolet) { openWindow(id: "workspace") },
             LumenCommand(id: "window.welcome", "Open Welcome Window", category: "Window", systemImage: "hand.wave.fill",
                          hue: .hueYellow) { openWindow(id: "welcome") },
@@ -770,9 +767,10 @@ struct CatalogInspector: View {
         LumenInspectorHeader(page.rawValue, subtitle: "Catalog page", systemImage: page.symbol, hue: hue)
         LumenInspectorSection("Theme", systemImage: "paintpalette.fill", hue: .hueOrange, isExpanded: $themeExpanded) {
             LumenInspectorRow("Theme") {
-                Picker("Theme", selection: Binding(get: { store.theme(for: .window).id }, set: { store.select($0) })) {
-                    ForEach(store.themes) { Text($0.name).tag($0.id) }
-                }
+                LumenPopUp(selection: Binding(get: { store.theme(for: .window).id }, set: { store.select($0) }),
+                           options: store.themes.map(\.id),
+                           title: { id in store.themes.first { $0.id == id }?.name ?? "" })
+                    .accessibilityLabel("Theme")
             }
             LumenInspectorRow("Accent") {
                 HStack(spacing: 6) {
@@ -815,6 +813,7 @@ struct PopoversPage: View {
             LumenSectionHeader("Popover with actions")
             HStack(spacing: 12) {
                 Button("Share Theme…", systemImage: "square.and.arrow.up") { sharing = true }
+                    .buttonStyle(.lumenBordered)
                     .popover(isPresented: $sharing, arrowEdge: .bottom) {
                         LumenPopoverContent("Share Theme", subtitle: "Lumen · light and dark", systemImage: "square.and.arrow.up.fill", hue: .hueBlue) {
                             Text("Exports a .json theme file that anyone with a Lumen app can import.")
@@ -825,6 +824,7 @@ struct PopoversPage: View {
                         }
                     }
                 Button("Build Details", systemImage: "hammer") { details = true }
+                    .buttonStyle(.lumenBordered)
                     .lumenPopover(isPresented: $details, title: "Build succeeded", subtitle: "12.4 s · 0 warnings",
                                   systemImage: "checkmark", hue: .hueGreen) {
                         LumenPropertyRow(label: "Scheme", value: "Lumen")
@@ -873,7 +873,7 @@ struct CatalogWelcome: View {
             ],
             recents: [
                 LumenRecentItem(title: "Lumen", detail: "~/Projects/Lumen", date: .now.addingTimeInterval(-600), systemImage: "lumen.lens", hue: .hueViolet),
-                LumenRecentItem(title: "Sample Project", detail: "~/Projects/Sample", date: .now.addingTimeInterval(-86_400), systemImage: "scope", hue: .hueIndigo),
+                LumenRecentItem(title: "Inspector", detail: "~/Projects/inspector", date: .now.addingTimeInterval(-86_400), systemImage: "scope", hue: .hueIndigo),
                 LumenRecentItem(title: "Field Notes", detail: "~/Documents/Field Notes", date: .now.addingTimeInterval(-3 * 86_400), systemImage: "book.closed.fill", hue: .hueOrange),
                 LumenRecentItem(title: "Scans", detail: "~/Documents/Scans", date: .now.addingTimeInterval(-9 * 86_400), systemImage: "doc.viewfinder.fill", hue: .hueTeal),
             ],
@@ -1041,7 +1041,7 @@ struct MenusPage: View {
             PageHeader(title: "Menus", summary: "Native menus follow the system’s image visibility. Meaningful color glyphs can stay visible; Lumen’s own panels keep their tiles.")
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 12) {
-                    Menu {
+                    LumenPullDownButton("Native Menu", systemImage: "filemenu.and.selection", showsTitle: true) {
                         Button {} label: { LumenMenuLabel("Go to Address…", systemImage: "number", hue: .hueBlue) }.keyboardShortcut("g")
                         Menu {
                             Button {} label: { LumenMenuLabel("Calculator.app", systemImage: "app.fill", hue: .hueGraphite) }
@@ -1049,16 +1049,17 @@ struct MenusPage: View {
                         } label: { LumenMenuLabel("Open Recent", systemImage: "clock.fill", hue: .hueOrange) }
                         Divider()
                         Button(role: .destructive) {} label: { LumenMenuLabel("Delete Bookmark", systemImage: "trash.fill", hue: .hueRed) }
-                    } label: {
-                        Label("Native Menu", systemImage: "filemenu.and.selection")
                     }
-                    .fixedSize()
                     Button { showCommands = true } label: { Label("Command Menu", systemImage: "command") }
+                        .buttonStyle(.lumenBordered)
                         .lumenCommandMenu(isPresented: $showCommands, entries: Self.entries)
                         .fixedSize()
                 }
-                CatalogNativeMenuExample().frame(width: 190, height: 28)
-                // Under the buttons, so they keep their labels at the window's minimum.
+                // The native pop-up stays the live NSPopUpButton (it shows the NSMenu image policy) but
+                // is transparent, drawn in the same chrome as its siblings.
+                ZStack { LumenPopUpLabel("Native Image Policy", width: 190).accessibilityHidden(true); CatalogNativeMenuExample() }
+                    .frame(width: 190, height: 24)
+                // Under the buttons, so they keep their labels at the window's minimum (live P1-2).
                 Text("Right-click the card below for a context menu, or use the Lumen menu in the menu bar.")
                     .font(.callout).foregroundStyle(.lumen(.fgTertiary))
                     .lumenWrapsWithoutTruncating()
@@ -1105,12 +1106,10 @@ struct SettingsPage: View {
             LumenSectionHeader("Adaptive pane layout")
             Text("The pane's own width sets its layout. Compact stacks controls below labels; regular and wide share a readable content edge. Wide panes center the content column.")
                 .font(metrics.typography.callout).foregroundStyle(.lumen(.fgTertiary))
-            Picker("Preview width", selection: $sampleWidth) {
-                Text("Compact · 440 pt").tag(CGFloat(440))
-                Text("Regular · 640 pt").tag(CGFloat(640))
-                Text("Wide · 900 pt").tag(CGFloat(900))
-            }
-            .pickerStyle(.segmented)
+            // The segmented picker's own label is compressible: beside three wide segments it broke
+            // into a column of letters (design review 2026-11 #2). The label keeps its natural width
+            // and the segments theirs; the row stacks when the column is narrower than both.
+            CatalogPreviewWidthPicker(width: $sampleWidth)
             Toggle("Show the tall Automation pane", isOn: $showsTallPane)
                 .toggleStyle(.switch)
             CatalogScaledPreview(width: sampleWidth, height: 480) {
@@ -1133,6 +1132,33 @@ struct SettingsPage: View {
     }
 }
 
+/// The Settings page's preview-width control: a label that keeps its natural width beside a
+/// segmented picker that keeps its own, stacking when the column is narrower than both.
+struct CatalogPreviewWidthPicker: View {
+    @Binding var width: CGFloat
+    @Environment(\.lumenMetrics) private var metrics
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: metrics.spacing.s4) { label; picker }
+            VStack(alignment: .leading, spacing: metrics.spacing.s2) { label; picker }
+        }
+    }
+
+    private var label: some View { Text("Preview width").fixedSize() }
+
+    private var picker: some View {
+        Picker("Preview width", selection: $width) {
+            Text("Compact · 440 pt").tag(CGFloat(440))
+            Text("Regular · 640 pt").tag(CGFloat(640))
+            Text("Wide · 900 pt").tag(CGFloat(900))
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
+    }
+}
+
 struct ComponentsPage: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -1152,7 +1178,17 @@ struct ComponentsPage: View {
             VStack(spacing: 0) {
                 LumenPropertyRow(label: "Owner", value: "Contributor", monospaced: false)
                 LumenPropertyRow(label: "Identifier", value: "0x1000a3e1c")
+                // Long opaque tokens wrap at any character and are never truncated.
+                LumenMetadataRow(label: "SHA-256", value: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08")
             }.frame(width: 360)
+            // Two panes sharing the space by a ratio; drag or focus the divider to change it.
+            LumenProportionalSplit(ratio: $splitRatio, axis: .horizontal, minimumFirst: 100, minimumSecond: 80) {
+                Text("Editor").font(.callout).frame(maxWidth: .infinity, maxHeight: .infinity)
+            } second: {
+                Text("Console").font(.callout).foregroundStyle(.lumen(.fgSecondary)).frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .frame(width: 360, height: 80)
+            .background(.lumen(.bgInset), in: .rect(cornerRadius: 8))
             LumenEmptyState(systemImage: "tray", title: "Nothing here yet", message: "Items you add appear in this list.",
                             link: LumenAction("Add item") {})
                 .frame(width: 360, height: 220)
@@ -1167,7 +1203,7 @@ struct ComponentsPage: View {
                 HStack(spacing: 12) {
                     LumenSymbolBadge(systemImage: "lumen.breakpoint", token: .hueBlue, label: "Breakpoint")
                     LumenBreakpointMarker(isOn: $breakpoint, label: "Line 42")
-                    LumenStringLiteral("\"Hello, Lumen!\\n\"")
+                    LumenStringLiteral("\"Hello, world!\\n\"")
                 }
                 LumenFormRow("Process") {
                     TextField("Process", text: $process).textFieldStyle(.roundedBorder).frame(width: 200)
@@ -1187,6 +1223,7 @@ struct ComponentsPage: View {
 
     @State private var breakpoint = true
     @State private var process = "Sample"
+    @State private var splitRatio = 0.6
 }
 
 // MARK: Settings categories and tabbed sample
@@ -1227,7 +1264,7 @@ struct CatalogSettings: View {
                               keywords: ["alerts"]) { NotificationSettings() },
         LumenSettingsCategory(id: "automation", title: "Automation", systemImage: "gearshape.2", hue: .hueTeal,
                               keywords: ["queue", "tasks", "checkpoints", "scrolling"]) { CatalogAutomationSettings() },
-        LumenSettingsCategory(id: "model-server", title: "Model server", systemImage: "cpu", hue: .hueViolet,
+        LumenSettingsCategory(id: "model-server", title: "Model server", systemImage: "point.3.connected.trianglepath.dotted", hue: .hueIndigo,
                               keywords: ["provider", "sampling", "endpoint", "timeout", "models"]) { CatalogModelServerSettings() },
     ]
 }
@@ -1289,7 +1326,7 @@ struct NotificationSettings: View {
 
 // MARK: Workspace window
 
-/// A workspace with a glowing title bar, panel toggles, sidebar switcher and
+/// the workspace's workspace, rebuilt from Lumen pieces: glowing title bar, panel toggles, sidebar switcher and
 /// sections, document tabs, status bar, a bottom panel with console tabs, a dock zone, and the new menu.
 struct WorkspaceDemo: View {
     private static let env = ProcessInfo.processInfo.environment
@@ -1443,7 +1480,7 @@ struct WorkspaceDemo: View {
             LumenSidebarSection("Repositories", actions: [LumenSidebarAction("Clone Repository", systemImage: "square.on.square") {}]) {
                 LumenEmptyState.inline("No repositories configured", leading: true).padding(.horizontal, metrics.spacing.s4)
             }
-            // Anchor the actions at the sidebar's foot.
+            // Anchored at the sidebar's foot, as the workspace's is and Lumen's workspace golden draws it (LIVE-08).
             Spacer(minLength: 0)
             LumenFilterField(text: $filter).padding(.horizontal, 10).padding(.vertical, 8)
         }
@@ -1538,7 +1575,7 @@ private struct CodeSample: View {
     }
 }
 
-// MARK: Split workspace
+// MARK: Split workspace (the inspector example's structure)
 
 /// The split workspace's columns. Its minimum width is their sum, and the top bar fits it.
 enum SplitLayout {
@@ -1554,7 +1591,7 @@ enum SplitLayout {
     static let windowMinHeight: CGFloat = contentMinHeight + LumenLayout.unifiedTopBarHeight
 }
 
-/// A split workspace with a hidden title bar and one unified top
+/// A window shaped like the inspector example's in the workspace's layout "A" (0.44): hidden title bar, one unified top
 /// bar with the window buttons inside it (app mark / binary / analyze, launch, stop + slice / analysis
 /// status … panel toggles, New Tab), and an HSplitView of a navigator, an editor whose modes sit in
 /// its own tab bar with a debugger deck (at most a quarter of the height; the editor keeps 360 pt)
@@ -1624,7 +1661,7 @@ struct SplitWorkspaceDemo: View {
     }
 
     private var editor: some View {
-        // The editor modes live in the content pane's tab bar.
+        // the workspace's layout: the editor modes live in the content pane's tab bar, not the top bar.
         VStack(spacing: 0) {
             LumenContentTabBar {
                 LumenModeSwitcher(selection: $mode, options: CatalogEditorMode.allCases, style: .underline,
@@ -1651,7 +1688,7 @@ struct SplitWorkspaceDemo: View {
     }
 }
 
-/// Editor modes for the split workspace's mode switcher.
+/// the inspector example's editor modes, for the split workspace's mode switcher.
 enum CatalogEditorMode: String, CaseIterable {
     case disassembly = "Disassembly", pseudocode = "Pseudocode", graph = "Graph", hex = "Hex"
 
@@ -1683,7 +1720,7 @@ struct SplitWorkspaceTopBar: View {
     @State private var showsLaunch = false
 
     var body: some View {
-        // Toolbar groups: app mark / project / tasks + configuration / status … panels, New Tab.
+        // the workspace's toolbar: app mark / project / tasks + configuration / status … panels, New Tab.
         LumenTopBar {
             LumenWorkspaceToolbar {
                 Button { showsLaunch = true } label: {
@@ -1734,6 +1771,7 @@ struct StatesPage: View {
         VStack(alignment: .leading, spacing: 20) {
             PageHeader(title: "States & Rows", summary: "What a pane says when it isn’t simply showing content, and rows that look the same in every app: selection that goes quiet in an inactive window, hover, focus and disabled.")
             CatalogToastSection()
+            CatalogSelectableTextExample()
             LumenSectionHeader("Banner")
             if showsBanner {
                 LumenBanner("The binary changed on disk since it was analyzed.", title: "Out of date", actionTitle: "Reanalyze",
@@ -1787,7 +1825,7 @@ struct StatesPage: View {
                 .frame(height: 420)
                 .lumenCard(padding: 0)
             LumenSectionHeader("Inline welcome")
-            LumenWelcomePanel(appName: "Sample Project", tagline: "Open a binary to start analyzing.", markSymbol: "lumen.lens", markHue: .hueIndigo,
+            LumenWelcomePanel(appName: "Inspector", tagline: "Open a binary to start analyzing.", markSymbol: "lumen.lens", markHue: .hueIndigo,
                               actions: [LumenWelcomeAction("Open…", subtitle: "Browse for a binary", systemImage: "folder.fill", hue: .hueBlue) {}])
                 .frame(height: 300)
                 .lumenCard(padding: 0)
