@@ -22,6 +22,7 @@ struct LumenWindowChromeModifier: ViewModifier {
     var enabled = true
     @Environment(\.lumenIsSettingsWindow) private var isSettingsWindow
     @Environment(\.lumenHasNativeSidebar) private var hasNativeSidebar
+    @Environment(\.lumenPinnedTopBarOwnsBand) private var pinnedBarOwnsBand
     @Environment(\.lumenSettingsWindow) private var explicitlySettings
     @Environment(\.appearsActive) private var appearsActive
     @Environment(\.lumenPalette) private var palette
@@ -34,10 +35,13 @@ struct LumenWindowChromeModifier: ViewModifier {
             ? AnyShapeStyle(LinearGradient(colors: [palette[.titlebarActiveTop], palette[.titlebarActiveBottom]],
                                            startPoint: .top, endPoint: .bottom))
             : AnyShapeStyle(palette[.toolbarBackground])
+        // A pinned top bar paints the band itself, edge to edge; a visible system toolbar background
+        // would cover its fill and the window's wash with a second, flat fill.
+        let ownsBand = hasNativeSidebar || pinnedBarOwnsBand
         content
             .toolbarBackground(style, for: .windowToolbar)
-            .toolbarBackground(native || hasNativeSidebar ? .hidden : .visible, for: .windowToolbar)
-            .preference(key: LumenWindowPaintKey.self, value: .init(glow: active, forcedBand: !native && !hasNativeSidebar))
+            .toolbarBackground(native || ownsBand ? .hidden : .visible, for: .windowToolbar)
+            .preference(key: LumenWindowPaintKey.self, value: .init(glow: active, forcedBand: !native && !ownsBand))
     }
 }
 

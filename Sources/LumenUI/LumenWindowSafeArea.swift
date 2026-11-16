@@ -253,6 +253,8 @@ struct LumenWindowSafeArea: ViewModifier {
     @State private var wizard: [LumenWizardLayoutEntry] = []
     @State private var menu: [LumenMenuBarPanelLayoutEntry] = []
     @State private var bottomBars: [CGRect] = []
+    @State private var pinnedTopBarFrame: CGRect?
+    @State private var topBarPlacement: LumenTopBarPlacement?
     @State private var contentFrame = CGRect.zero
     @State private var minimum = CGSize.zero
     @State private var truncated: Set<String> = []
@@ -292,6 +294,7 @@ struct LumenWindowSafeArea: ViewModifier {
         .environment(\.lumenWindowRootScope, scope)
         .environment(\.lumenIsSettingsWindow, isSettings)
         .environment(\.lumenHasNativeSidebar, hasNativeSidebar)
+        .environment(\.lumenPinnedTopBarOwnsBand, topBarPlacement == .unified)
         .environment(\.lumenScaffoldContentMargin, ancestorMargin ?? metrics.spacing.s6)
         .environment(\.lumenReportsLayoutChecks, watches)
         .background {
@@ -306,6 +309,8 @@ struct LumenWindowSafeArea: ViewModifier {
                                           detectedRootSplit: { nativeSplitOwnsTop = $0; hasNativeSidebar = $1 },
                                           margin: metrics.spacing.s6, scaffoldMargins: scaffoldMargins,
                                           truncated: truncated, visibleTexts: visibleTexts,
+                                          pinnedTopBarFrame: pinnedTopBarFrame,
+                                          pinnedBarOwnsBand: topBarPlacement == .unified,
                                           bottomBars: bottomBars + wizard.filter { $0.region == .bottomBar }.map(\.frame)
                                               + menu.filter { $0.region == .footer }.map(\.frame)) { top, active, isNested, _ in
                     measuredTop = top
@@ -321,6 +326,8 @@ struct LumenWindowSafeArea: ViewModifier {
         .onPreferenceChange(LumenChromeOwnerKey.self) { owners = $0 }
         .onPreferenceChange(LumenWizardLayoutKey.self) { wizard = $0 }
         .onPreferenceChange(LumenMenuBarPanelLayoutKey.self) { menu = $0 }
+        .onPreferenceChange(LumenTopBarFrameKey.self) { pinnedTopBarFrame = $0 }
+        .onPreferenceChange(LumenTopBarPlacementKey.self) { topBarPlacement = $0 }
         .onPreferenceChange(LumenBottomBarFrameKey.self) { bottomBars = $0 }
         .onPreferenceChange(LumenWindowMinimumKey.self) { minimum = $0 }
         .onPreferenceChange(LumenTruncationKey.self) { truncated = $0 }
@@ -351,6 +358,8 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
     let scaffoldMargins: [LumenScaffoldMargin]
     let truncated: Set<String>
     let visibleTexts: Set<LumenVisibleTextEntry>
+    let pinnedTopBarFrame: CGRect?
+    let pinnedBarOwnsBand: Bool
     let bottomBars: [CGRect]
     let measured: @MainActor (CGFloat, Bool, Bool, Bool) -> Void
 
@@ -435,6 +444,7 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             if !nested {
                 chrome.attach(window: window)
                 chrome.update(preservesExpanded: input.preservesExpanded, hasNativeSidebar: lastNativeSidebar == true,
+                              pinnedBarOwnsBand: input.pinnedBarOwnsBand,
                               settings: input.settings)
                 let detected = LumenNativeWindowChrome.isSettingsWindow(window)
                 if detected != lastDetectedSettings {
@@ -458,7 +468,6 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             // itself. A header stacked above a split makes its top lower and cannot qualify.
             let appFrame = screen(input.contentFrame)
             func containsSidebarMaterial(_ view: NSView) -> Bool {
-                if view is LumenSidebarBandAnchor, !view.isHiddenOrHasHiddenAncestor, view.bounds.width > 1 { return true }
                 if let effect = view as? NSVisualEffectView, effect.material == .sidebar,
                    !effect.isHiddenOrHasHiddenAncestor { return true }
                 return view.subviews.contains(where: containsSidebarMaterial)
@@ -483,6 +492,7 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             let splitOwnsTop = !nested && window.contentView.map(rootSplit) == true
             if !nested {
                 chrome.update(preservesExpanded: input.preservesExpanded, hasNativeSidebar: nativeSidebar,
+                              pinnedBarOwnsBand: input.pinnedBarOwnsBand,
                               settings: input.settings)
             }
             if splitOwnsTop != lastRootSplit || nativeSidebar != lastNativeSidebar {
@@ -519,6 +529,8 @@ private struct LumenWindowSafeAreaBridge: NSViewRepresentable {
             report.scaffoldMargins = input.scaffoldMargins.map {
                 .init(frame: screen($0.frame), margin: $0.margin, depth: $0.depth)
             }
+            report.pinnedTopBarFrame = input.pinnedTopBarFrame.map(screen)
+            report.pinnedBarOwnsBand = input.pinnedBarOwnsBand
             report.ownsTopBar = input.ownsTop
             report.contentMinimum = input.minimum
             report.contentMinimumView = input.contentName

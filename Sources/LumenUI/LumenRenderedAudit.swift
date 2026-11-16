@@ -506,6 +506,34 @@ public enum LumenRenderedAudit {
             findings.append(.init(rule: "window-toolbar-rows", view: "Window toolbar",
                                  message: "two-row toolbar style=\(window.toolbarStyle.rawValue); band=\(geometry.chromeBand.height)"))
         }
+        if let band = report.pinnedTopBarFrame, !band.isEmpty {
+            func sidebarGrounds(_ view: NSView) {
+                guard !view.isHiddenOrHasHiddenAncestor, view.alphaValue > 0 else { return }
+                let nativeSidebar = (view as? NSVisualEffectView)?.material == .sidebar
+                let declaredSidebar = view is LumenSidebarPaletteReportView
+                if nativeSidebar || declaredSidebar {
+                    var visible = window.convertToScreen(view.convert(view.bounds, to: nil))
+                    var ancestor = view.superview
+                    while let parent = ancestor {
+                        if parent.clipsToBounds {
+                            visible = visible.intersection(window.convertToScreen(parent.convert(parent.bounds, to: nil)))
+                        }
+                        ancestor = parent.superview
+                    }
+                    let overlap = visible.intersection(band)
+                    if !overlap.isNull, !overlap.isEmpty {
+                        findings.append(.init(rule: "pinned-top-bar-sidebar-ground", view: String(describing: type(of: view)),
+                            message: "Sidebar ground intersects the pinned top bar; overlap=\(overlap); band=\(band)"))
+                    }
+                }
+                for child in view.subviews { sidebarGrounds(child) }
+            }
+            if let frame = window.contentView?.superview { sidebarGrounds(frame) }
+        }
+        if report.pinnedBarOwnsBand, report.forcesToolbarBand || !window.titlebarAppearsTransparent {
+            findings.append(.init(rule: "pinned-top-bar-band-painter", view: "Window toolbar",
+                message: "A system fill covers the pinned top bar's band; forcedBand=\(report.forcesToolbarBand); transparentTitlebar=\(window.titlebarAppearsTransparent)"))
+        }
         if report.settingsWindow {
             if report.paintsWindowGlow || report.forcesToolbarBand {
                 findings.append(.init(rule: "settings-native-background", view: "Settings toolbar",

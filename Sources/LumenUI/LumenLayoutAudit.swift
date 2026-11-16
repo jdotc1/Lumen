@@ -14,6 +14,11 @@ final class LumenWindowAuditReports {
     var bottomBars: [CGRect] = []
     var pageMargin: CGFloat?
     var scaffoldMargins: [LumenScaffoldMargin] = []
+    /// The pinned bar background, measured in screen coordinates; nil without a pinned bar.
+    var pinnedTopBarFrame: CGRect?
+    /// True while the top bar is pinned in the title bar band (the unified placement) and so is
+    /// the band's only painter.
+    var pinnedBarOwnsBand = false
     var ownsTopBar = false
     var lumenRooted = false
     var settingsWindow = false

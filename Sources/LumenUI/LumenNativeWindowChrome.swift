@@ -14,6 +14,10 @@ extension EnvironmentValues {
     @Entry var lumenSettingsWindow = false
     @Entry var lumenIsSettingsWindow = false
     @Entry var lumenHasNativeSidebar = false
+    /// True while the window's top bar is pinned in the title bar band (the unified placement).
+    /// That bar paints the whole band itself, edge to edge, so the system toolbar background stays
+    /// hidden and the title bar transparent, with or without a sidebar.
+    @Entry var lumenPinnedTopBarOwnsBand = false
 }
 
 struct LumenSettingsRootKey: PreferenceKey {
@@ -44,6 +48,7 @@ final class LumenNativeWindowChrome {
     private var addedFullSize = false
     private var originalTitlebarTransparency: Bool?
     private var hasNativeSidebar = false
+    private var pinnedBarOwnsBand = false
     private var observation: NSKeyValueObservation?
     private var transparencyObservation: NSKeyValueObservation?
     private var styleMaskObservation: NSKeyValueObservation?
@@ -87,9 +92,10 @@ final class LumenNativeWindowChrome {
     /// `settings` marks a Settings root (scene identity, scene marker or the stock scaffold).
     /// Settings always uses one unified row: the Settings scene's own `.preference` default is
     /// not an application's request for an expanded toolbar, so the opt-out never applies there.
-    func update(preservesExpanded: Bool, hasNativeSidebar: Bool, settings: Bool = false) {
+    func update(preservesExpanded: Bool, hasNativeSidebar: Bool, pinnedBarOwnsBand: Bool = false, settings: Bool = false) {
         self.preservesExpanded = preservesExpanded
         self.hasNativeSidebar = hasNativeSidebar
+        self.pinnedBarOwnsBand = pinnedBarOwnsBand
         self.settings = settings
         schedule()
     }
@@ -109,7 +115,9 @@ final class LumenNativeWindowChrome {
         if !window.styleMask.contains(.fullSizeContentView) {
             window.styleMask.insert(.fullSizeContentView)
         }
-        let transparent = hasNativeSidebar || (originalTitlebarTransparency ?? false)
+        // A pinned top bar paints the band itself: nothing of the system's may cover it.
+        let ownsBand = hasNativeSidebar || pinnedBarOwnsBand
+        let transparent = ownsBand || (originalTitlebarTransparency ?? false)
         if window.titlebarAppearsTransparent != transparent {
             window.titlebarAppearsTransparent = transparent
         }
@@ -117,7 +125,7 @@ final class LumenNativeWindowChrome {
         // when an application requests an expanded toolbar for other window kinds.
         // Settings windows are unified whether or not their sidebar is visible.
         let settingsWindow = settings || Self.isSettingsWindow(window)
-        if preservesExpanded && !hasNativeSidebar && !settingsWindow {
+        if preservesExpanded && !ownsBand && !settingsWindow {
             if let installedStyle, window.toolbarStyle == installedStyle, let originalStyle {
                 changeStyle(originalStyle, in: window)
                 self.installedStyle = nil
@@ -161,6 +169,7 @@ final class LumenNativeWindowChrome {
         originalStyle = nil
         originalTitlebarTransparency = nil
         hasNativeSidebar = false
+        pinnedBarOwnsBand = false
         settings = false
         installedStyle = nil
         preservedHeight = nil

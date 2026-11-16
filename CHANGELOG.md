@@ -2,6 +2,16 @@
 
 Public releases of the Lumen design system and Catalog.
 
+## 1.3.1 (2026-11-15)
+
+### Fixed
+- Workspace, library and utility windows keep one continuous top-bar fill across the sidebar edge,
+  in active and inactive appearances: the theme's band fill under the window's wash, edge to edge.
+  A top bar pinned in the title bar band is the band's only painter, with or without a sidebar: the
+  system toolbar background stays hidden and the title bar transparent. The rendered audit now detects
+  sidebar ground inside a pinned top bar (`pinned-top-bar-sidebar-ground`) and a system fill over it
+  (`pinned-top-bar-band-painter`).
+
 ## 1.3.0 (2026-11-12)
 
 ### Visual
