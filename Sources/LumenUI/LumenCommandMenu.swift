@@ -238,6 +238,7 @@ public struct LumenCommandMenu: View {
     private let width: CGFloat
     private let placement: SubmenuPlacement
     private var automaticWidth = false
+    private var ownsGround = true
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.lumenCommandMenuMaximumHeight) private var maximumHeight
 
@@ -271,6 +272,14 @@ public struct LumenCommandMenu: View {
         self.width = width
         self.placement = placement
         self.onDismiss = onDismiss
+    }
+
+    /// A menu whose host is its ground (a popover's bubble): the list draws no panel, edge or
+    /// shadow of its own, so the host shows one ground.
+    func onHostGround() -> LumenCommandMenu {
+        var menu = self
+        menu.ownsGround = false
+        return menu
     }
 
     /// For previews and golden images: a fixed highlight and open submenu.
@@ -400,12 +409,7 @@ public struct LumenCommandMenu: View {
         }
             .frame(minWidth: 0, idealWidth: width, maxWidth: width, alignment: .leading)
             .lumenRaisedGround()
-            .background(palette[.menuBackground], in: .rect(cornerRadius: metrics.radius.lg, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: metrics.radius.lg, style: .continuous)
-                    .strokeBorder(palette[.menuSeparator], lineWidth: metrics.stroke.hairline)
-            }
-            .lumenElevation(.menu)
+            .modifier(LumenCommandMenuGround(isDrawn: ownsGround))
     }
 
     @ViewBuilder
@@ -568,11 +572,36 @@ struct LumenCommandMenuPresentation: View {
     let width: CGFloat?
     @Binding var isPresented: Bool
     @Environment(\.lumenMetrics) private var metrics
+    @Environment(\.lumenPalette) private var palette
 
     var body: some View {
         LumenCommandMenu(entries, width: width ?? 320 * metrics.floatingTextGrowth, placement: .inPlace) {
             isPresented = false
         }
+        .onHostGround()
         .padding(metrics.spacing.s4)
+        // The bubble, its arrow included, is the menu's ground: one fill, no panel inside a rim.
+        .presentationBackground(palette[.menuBackground])
+    }
+}
+
+/// The panel a menu draws under its rows when no host supplies the ground.
+struct LumenCommandMenuGround: ViewModifier {
+    let isDrawn: Bool
+    @Environment(\.lumenPalette) private var palette
+    @Environment(\.lumenMetrics) private var metrics
+
+    func body(content: Content) -> some View {
+        if isDrawn {
+            content
+                .background(palette[.menuBackground], in: .rect(cornerRadius: metrics.radius.lg, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: metrics.radius.lg, style: .continuous)
+                        .strokeBorder(palette[.menuSeparator], lineWidth: metrics.stroke.hairline)
+                }
+                .lumenElevation(.menu)
+        } else {
+            content
+        }
     }
 }

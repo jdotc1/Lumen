@@ -656,6 +656,9 @@ struct LumenSidebarTileProjection: Equatable {
         return .init(tileIDs: tiles, menuIDs: visibleIDs.filter { !shown.contains($0) }, insufficientWidth: false)
     }
 
+    /// The More menu's width at standard text size: room for a tool's title, not a command list's.
+    static let menuWidth: CGFloat = 220
+
     /// The gap between neighbouring slots. With tools in the menu, the tiles and the More slot span
     /// the offered width, so the row ends where the rule under it ends; the remainder is always
     /// less than one slot. A row that fits every tool keeps its slots together at the leading edge.
@@ -816,7 +819,7 @@ public struct LumenSidebarSwitcher: View {
                     .item(id: item.id, item.title, systemImage: item.systemImage, hue: item.hue ?? .accent) {
                         selection = item.id
                     }
-                })
+                }, width: LumenSidebarTileProjection.menuWidth * metrics.floatingTextGrowth)
             }
             if usesWholeTiles { Spacer(minLength: 0) }
         }

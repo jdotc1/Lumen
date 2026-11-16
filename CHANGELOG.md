@@ -2,6 +2,14 @@
 
 Public releases of the Lumen design system and Catalog.
 
+## 1.3.3 (2026-11-16)
+
+### Fixed
+- A command menu presented in a popover is one ground: the bubble and its arrow take the menu's
+  fill, and the list draws no panel, edge or shadow inside it. It showed a filled panel inside a
+  rim of the system material.
+- The sidebar's More menu is as wide as a tool's title needs (220 pt at standard text size).
+
 ## 1.3.2 (2026-11-16)
 
 ### Added
