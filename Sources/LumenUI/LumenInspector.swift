@@ -90,9 +90,11 @@ public struct LumenInspectorHeader: View {
             Spacer(minLength: 0)
         }
         .padding(metrics.spacing.s5)
-        .overlay(alignment: .bottom) { InspectorRule() }
         .lumenReportsMarginElement("inspector header")
         .padding(.trailing, windowMargin ?? 0)
+        .overlay(alignment: .bottom) {
+            InspectorRule().lumenReportsMarginElement("inspector header rule")
+        }
         .lumenReportsMarginElement("inspector header region")
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)

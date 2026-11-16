@@ -615,6 +615,58 @@ public enum LumenSidebarSwitcherStyle: Sendable {
     case tiles
 }
 
+/// How a sidebar switcher handles tools beyond its offered width.
+public enum LumenSidebarOverflow: Sendable {
+    /// Keep the existing flexible strip.
+    case none
+    /// With `.tiles`, reserve whole tile slots and a trailing More menu when needed.
+    /// Below two slots, show only the selection; below one slot it requires more width.
+    case wholeTiles
+}
+
+/// A width-only projection. The saved arrangement remains authoritative and is never rewritten.
+struct LumenSidebarTileProjection: Equatable {
+    let tileIDs: [String]
+    let menuIDs: [String]
+    let insufficientWidth: Bool
+
+    static func eligibleIDs(layout: LumenToolLayout, selection: String) -> [String] {
+        layout.order.filter { !layout.hidden.contains($0) || $0 == selection }
+    }
+
+    static func project(visibleIDs: [String], selection: String, offeredWidth: CGFloat,
+                        slotWidth: CGFloat) -> Self {
+        guard !visibleIDs.isEmpty else { return .init(tileIDs: [], menuIDs: [], insufficientWidth: false) }
+        let selected = visibleIDs.contains(selection) ? selection : visibleIDs[0]
+        guard slotWidth.isFinite, slotWidth > 0 else {
+            return .init(tileIDs: [selected], menuIDs: [], insufficientWidth: true)
+        }
+        let width = offeredWidth.isNaN ? 0 : max(0, offeredWidth)
+        if width >= CGFloat(visibleIDs.count) * slotWidth {
+            return .init(tileIDs: visibleIDs, menuIDs: [], insufficientWidth: false)
+        }
+        // Compare whole extents rather than round a quotient upward at a boundary.
+        let capacity = (0..<visibleIDs.count).last { CGFloat($0) * slotWidth <= width } ?? 0
+        guard capacity >= 2 else {
+            return .init(tileIDs: [selected], menuIDs: [], insufficientWidth: width < slotWidth)
+        }
+        var tiles = Array(visibleIDs.prefix(capacity - 1))
+        if !tiles.contains(selected) { tiles[tiles.count - 1] = selected }
+        let shown = Set(tiles)
+        return .init(tileIDs: tiles, menuIDs: visibleIDs.filter { !shown.contains($0) }, insufficientWidth: false)
+    }
+
+    /// The gap between neighbouring slots. With tools in the menu, the tiles and the More slot span
+    /// the offered width, so the row ends where the rule under it ends; the remainder is always
+    /// less than one slot. A row that fits every tool keeps its slots together at the leading edge.
+    static func slotSpacing(slots: Int, overflowing: Bool, offeredWidth: CGFloat, slotWidth: CGFloat) -> CGFloat {
+        guard overflowing, slots >= 2, offeredWidth.isFinite, slotWidth.isFinite, slotWidth > 0 else { return 0 }
+        let remainder = offeredWidth - CGFloat(slots) * slotWidth
+        guard remainder > 0 else { return 0 }
+        return remainder / CGFloat(slots - 1)
+    }
+}
+
 public struct LumenSidebarSwitcher: View {
     @Environment(\.layoutDirection) private var layoutDirection
     @Binding private var selection: String
@@ -622,6 +674,7 @@ public struct LumenSidebarSwitcher: View {
     private let shortcuts: Bool
     private let arrangement: Binding<String>?
     private let style: LumenSidebarSwitcherStyle
+    private let overflow: LumenSidebarOverflow
 
     @Environment(\.lumenRendersOffscreen) private var rendersOffscreen
     @Environment(\.lumenPalette) private var palette
@@ -629,6 +682,7 @@ public struct LumenSidebarSwitcher: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.lumenMenuOwnsShortcuts) private var menuOwnsShortcuts
     @State private var hovered: String?
+    @State private var showsMore = false
     @FocusState private var focused: Bool
 
     /// - Parameters:
@@ -641,15 +695,27 @@ public struct LumenSidebarSwitcher: View {
         self.init(selection: selection, items: items, shortcuts: shortcuts, arrangement: arrangement, style: .fill)
     }
 
-    /// - Parameter style: `.tiles` draws each pane in its hue's tile (`item.hue`, else the accent).
+    /// - Parameters:
+    ///   - style: `.tiles` draws each pane in its hue's tile (`item.hue`, else the accent).
+    ///   - overflow: `.wholeTiles` uses the offered width, including each tile's glow. Pass all
+    ///     items and the full arrangement binding. Below two slots only the selection is shown;
+    ///     offer at least one slot to contain it. Other styles retain their existing behavior.
     public init(selection: Binding<String>, items: [LumenSidebarItem], shortcuts: Bool = true, arrangement: Binding<String>? = nil,
-                style: LumenSidebarSwitcherStyle) {
+                style: LumenSidebarSwitcherStyle, overflow: LumenSidebarOverflow = .none) {
         _selection = selection
         self.items = items
         self.shortcuts = shortcuts
         self.arrangement = arrangement
         self.style = style
+        self.overflow = overflow
     }
+
+    /// The width of a whole tile and both sides of its contained glow.
+    static func tileSlotWidth(tileSize: CGFloat) -> CGFloat {
+        tileSize * (1 + 2 * LumenIconTile.backlightReach)
+    }
+
+    private var usesWholeTiles: Bool { overflow == .wholeTiles && style == .tiles }
 
     private var layout: LumenToolLayout {
         LumenToolLayout(encoded: arrangement?.wrappedValue ?? "", all: items.map(\.id))
@@ -657,43 +723,27 @@ public struct LumenSidebarSwitcher: View {
 
     private var visibleItems: [LumenSidebarItem] {
         let byID = Dictionary(items.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        return layout.visible.compactMap { byID[$0] }
+        let ids = usesWholeTiles
+            ? LumenSidebarTileProjection.eligibleIDs(layout: layout, selection: selection)
+            : layout.visible
+        return ids.compactMap { byID[$0] }
     }
 
+    /// Pass all items and the full arrangement binding. Fit-driven hiding never changes storage.
     public var body: some View {
-        let shown = visibleItems
-        HStack(spacing: 0) {
-            ForEach(Array(shown.enumerated()), id: \.element.id) { index, item in
-                let selected = item.id == selection
-                Button { selection = item.id } label: {
-                    paneLabel(item, selected: selected)
-                        .frame(maxWidth: .infinity, minHeight: 28)
-                        .lumenGroupFocusRing(focused && selected, cornerRadius: LumenTabChrome.radius(metrics: metrics, base: metrics.radius.sm))
-                        .contentShape(.rect)
+        Group {
+            if usesWholeTiles {
+                GeometryReader { proxy in
+                    let projection = LumenSidebarTileProjection.project(visibleIDs: visibleItems.map(\.id),
+                        selection: selection, offeredWidth: proxy.size.width,
+                        slotWidth: Self.tileSlotWidth(tileSize: metrics.layout.tileTool))
+                    strip(projection: projection, offeredWidth: proxy.size.width)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                 }
-                .buttonStyle(.plain)
-                .focusable(false)
-                .onHover { hovered = $0 ? item.id : (hovered == item.id ? nil : hovered) }
-                .keyboardShortcut(shortcuts && !menuOwnsShortcuts ? LumenShortcuts.pane(index + 1) : nil)
-                .help(item.title + (shortcuts && index < 9 ? " (⌘\(index + 1))" : ""))
-                .accessibilityLabel(item.title)
-                .accessibilityAddTraits(selected ? [.isSelected, .isButton] : .isButton)
-                .lumenAccessibilityIdentifier(item.accessibilityIdentifier)
-                .contextMenu { if arrangement != nil { arrangementMenu(for: item) } }
-
+            } else {
+                strip(projection: nil, offeredWidth: 0)
             }
-            .reorderable()
         }
-        .modifier(LumenReorderBehavior(items: shown, isEnabled: arrangement != nil,
-                                      payload: { lumenPaneDragPrefix + $0 }, move: { change in
-            update { $0.reorder(change) }
-        }, externalDrop: arrangement == nil ? nil : { strings, destination in
-            guard let string = strings.first, string.hasPrefix(lumenPaneDragPrefix) else { return }
-            let before: String?
-            if case .before(let id) = destination?.position { before = id } else { before = nil }
-            update { $0.dock(String(string.dropFirst(lumenPaneDragPrefix.count)), before: before) }
-        }))
-        .lumenSelectionGroup(shown.map(\.id), selection: $selection, focused: $focused)
         .lumenTileBacklight(style == .tiles)
         .lumenBacklightContainer("Sidebar switcher")
         // Tiles: the first plate starts at the sidebar's leading edge, where the hairline and the
@@ -706,6 +756,71 @@ public struct LumenSidebarSwitcher: View {
         .overlay(alignment: .bottom) { Rectangle().fill(palette[.borderSubtle]).frame(height: metrics.stroke.hairline) }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(lumenLocalized(String(localized: "Sidebar panes", bundle: .module, comment: "Panels control text.")))
+    }
+
+    private func strip(projection: LumenSidebarTileProjection?, offeredWidth: CGFloat) -> some View {
+        let shown = visibleItems
+        let byID = Dictionary(shown.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let displayed = projection.map { $0.tileIDs.compactMap { byID[$0] } } ?? shown
+        let menu = projection.map { $0.menuIDs.compactMap { byID[$0] } } ?? []
+        let slotWidth = Self.tileSlotWidth(tileSize: metrics.layout.tileTool)
+        let spacing = LumenSidebarTileProjection.slotSpacing(slots: displayed.count + 1, overflowing: !menu.isEmpty,
+            offeredWidth: offeredWidth, slotWidth: slotWidth)
+        return HStack(spacing: spacing) {
+            HStack(spacing: spacing) {
+                ForEach(Array(displayed.enumerated()), id: \.element.id) { index, item in
+                    let selected = item.id == selection
+                    let shortcutIndex = shown.firstIndex { $0.id == item.id } ?? index
+                    Button { selection = item.id } label: {
+                        paneLabel(item, selected: selected)
+                            .frame(maxWidth: .infinity, minHeight: 28)
+                            .frame(width: usesWholeTiles ? slotWidth : nil)
+                            .lumenReportsMarginElement("sidebar tile:\(item.id)")
+                            .lumenGroupFocusRing(focused && selected, cornerRadius: LumenTabChrome.radius(metrics: metrics, base: metrics.radius.sm))
+                            .contentShape(.rect)
+                    }
+                    .buttonStyle(.plain)
+                    .focusable(false)
+                    .onHover { hovered = $0 ? item.id : (hovered == item.id ? nil : hovered) }
+                    .keyboardShortcut(shortcuts && !menuOwnsShortcuts ? LumenShortcuts.pane(shortcutIndex + 1) : nil)
+                    .help(item.title + (shortcuts && shortcutIndex < 9 ? " (⌘\(shortcutIndex + 1))" : ""))
+                    .accessibilityLabel(item.title)
+                    .accessibilityAddTraits(selected ? [.isSelected, .isButton] : .isButton)
+                    .lumenAccessibilityIdentifier(item.accessibilityIdentifier)
+                    .contextMenu { if arrangement != nil { arrangementMenu(for: item) } }
+
+                }
+                .reorderable()
+            }
+            .modifier(LumenReorderBehavior(items: shown, isEnabled: arrangement != nil,
+                                          payload: { lumenPaneDragPrefix + $0 }, move: { change in
+                update { $0.reorder(change) }
+            }, externalDrop: arrangement == nil ? nil : { strings, destination in
+                guard let string = strings.first, string.hasPrefix(lumenPaneDragPrefix) else { return }
+                let before: String?
+                if case .before(let id) = destination?.position { before = id } else { before = nil }
+                update { $0.dock(String(string.dropFirst(lumenPaneDragPrefix.count)), before: before) }
+            }))
+            if !menu.isEmpty {
+                Button { showsMore.toggle() } label: {
+                    LumenIconTile("ellipsis", hue: .accent, size: metrics.layout.tileTool)
+                        .lumenIconRole(.control)
+                        .frame(width: slotWidth, height: metrics.layout.tileTool + metrics.spacing.s4)
+                        .lumenReportsMarginElement("sidebar more")
+                        .contentShape(.rect)
+                }
+                .buttonStyle(.lumenBare)
+                .accessibilityIdentifier("lumen.sidebar.more")
+                .accessibilityLabel(lumenLocalized(String(localized: "More", bundle: .module, comment: "Panels control text.")))
+                .lumenCommandMenu(isPresented: $showsMore, entries: menu.map { item in
+                    .item(id: item.id, item.title, systemImage: item.systemImage, hue: item.hue ?? .accent) {
+                        selection = item.id
+                    }
+                })
+            }
+            if usesWholeTiles { Spacer(minLength: 0) }
+        }
+        .lumenSelectionGroup(shown.map(\.id), selection: $selection, focused: $focused)
     }
 
     @ViewBuilder

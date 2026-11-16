@@ -2,6 +2,18 @@
 
 Public releases of the Lumen design system and Catalog.
 
+## 1.3.2 (2026-11-16)
+
+### Added
+- `LumenSidebarSwitcher` accepts `overflow: .wholeTiles` with the tile style. Whole tile slots
+  reserve room for a More menu, keep the selection visible and preserve the full saved arrangement.
+  With tools in the menu, the tiles and the More slot span the offered width, so the row ends where
+  the rule under it ends; a row that fits every tool keeps its tiles together at the leading edge.
+  Below two slots, only the selected tile is shown. Existing switchers keep their current behavior.
+
+### Fixed
+- The inspector header's bottom rule spans the full column, including the trailing content margin.
+
 ## 1.3.1 (2026-11-15)
 
 ### Fixed
