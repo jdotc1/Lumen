@@ -2,6 +2,12 @@
 
 Public releases of the Lumen design system and Catalog.
 
+## 1.3.4 (2026-11-16)
+
+### Fixed
+- The AppKit line-number ruler clips its drawing to the gutter. Its background could paint
+  over text in a transparent code editor, leaving only the line numbers visible.
+
 ## 1.3.3 (2026-11-16)
 
 ### Fixed

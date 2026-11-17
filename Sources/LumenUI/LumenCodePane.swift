@@ -292,6 +292,9 @@ public final class LumenLineNumberRuler: NSRulerView {
         self.palette = palette
         self.textView = textView
         super.init(scrollView: textView.enclosingScrollView, orientation: .verticalRuler)
+        // AppKit can pass a dirty rect wider than the gutter. Confine every ruler draw
+        // to its bounds so the background cannot paint over the document text.
+        clipsToBounds = true
         clientView = textView
         recountLines()
         let center = NotificationCenter.default
